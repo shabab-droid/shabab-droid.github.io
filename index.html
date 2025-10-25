@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>D20 Catastrophe — No Reflection, No Momentum</title>
 <style>
   :root{
@@ -29,14 +29,18 @@
     color: var(--text);
     font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
     margin: 0;
+    -webkit-text-size-adjust: 100%;
+    overflow-x: hidden; /* avoid tiny overflow on iOS */
   }
 
   * { box-sizing: border-box; }
 
   .wrap {
     max-width: 1100px;
-    margin: 20px auto 60px;
-    padding: 16px;
+    margin: 12px auto 56px;
+    padding: 12px;
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
   }
 
   header h1{
@@ -44,11 +48,12 @@
     font-weight: 800;
     letter-spacing: .5px;
     text-shadow: 0 0 10px rgba(0,229,255,.4);
+    font-size: clamp(20px, 5.5vw, 28px);
   }
   header p {
     margin: 0 0 18px 0;
     color: var(--muted);
-    font-size: .95rem;
+    font-size: clamp(.9rem, 3.6vw, .95rem);
   }
 
   .grid {
@@ -65,47 +70,60 @@
     border: 1px solid var(--edge);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding: 16px;
+    padding: 14px;
   }
 
   /* Last Roll panel */
   .last-roll {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
   }
 
   .roll-result {
     display: grid;
     grid-template-columns: auto 1fr auto;
-    gap: 14px;
+    gap: 12px;
     align-items: center;
-    padding: 18px;
+    padding: 14px;
     border-radius: 16px;
     border: 1px solid var(--edge);
-    background:
-      linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
   }
+
+  /* Mobile reflow: number + label top, steps below */
+  @media (max-width: 480px){
+    .roll-result{
+      grid-template-columns: auto 1fr;
+      grid-template-areas:
+        "num label"
+        "steps steps";
+    }
+    .roll-result .roll-number { grid-area: num; }
+    .roll-result > div:nth-child(2) { grid-area: label; }
+    .roll-result > div:nth-child(3) { grid-area: steps; justify-self: start; margin-top: 6px; }
+  }
+
   .roll-number {
-    font-size: 56px;
+    font-size: clamp(40px, 20vw, 56px);
     font-weight: 900;
     line-height: 1;
     letter-spacing: 1px;
-    min-width: 84px;
+    min-width: 64px;
     text-align: center;
     filter: drop-shadow(0 0 18px rgba(255,255,255,0.04));
   }
   .roll-label {
     font-weight: 800;
-    font-size: 18px;
+    font-size: clamp(15px, 4.2vw, 18px);
     letter-spacing: .6px;
     text-transform: uppercase;
     opacity: .95;
   }
   .roll-sub {
     color: var(--muted);
-    font-size: 13px;
+    font-size: clamp(12px, 3.4vw, 13px);
   }
 
   .badge {
@@ -133,20 +151,20 @@
   .stats-grid {
     display: grid;
     grid-template-columns: repeat(2,1fr);
-    gap: 12px;
+    gap: 10px;
   }
   @media (max-width: 480px){
     .stats-grid { grid-template-columns: 1fr; }
   }
   .stat {
-    padding: 12px 14px;
+    padding: 10px 12px;
     border-radius: 12px;
     border: 1px solid var(--edge);
     background: rgba(255,255,255,0.02);
   }
   .stat h3 {
-    margin: 0 0 8px 0;
-    font-size: 12px;
+    margin: 0 0 6px 0;
+    font-size: 11px;
     font-weight: 800;
     letter-spacing: .6px;
     color: var(--muted);
@@ -154,14 +172,14 @@
   }
   .stat .value {
     font-weight: 900;
-    font-size: 24px;
+    font-size: clamp(18px, 6vw, 24px);
     letter-spacing: .5px;
   }
   .row {
     display: grid;
     grid-template-columns: repeat(2,1fr);
     gap: 8px;
-    margin-top: 8px;
+    margin-top: 6px;
   }
 
   /* canvases */
@@ -201,12 +219,13 @@
     padding: 14px 12px;
     border-radius: 14px;
     font-weight: 800;
-    letter-spacing: .6px;
+    letter-spacing: .5px;
     text-transform: uppercase;
     cursor: pointer;
     transition: transform .05s ease, box-shadow .2s ease, border-color .2s ease;
     box-shadow: 0 0 0 rgba(0,0,0,0);
     user-select: none;
+    font-size: clamp(12px, 3.4vw, 14px);
   }
   button:hover { transform: translateY(-1px); border-color: var(--neon-cyan); box-shadow: 0 0 18px rgba(0,229,255,.25); }
   button:active { transform: translateY(0); }
@@ -221,6 +240,7 @@
     font-size: 12px;
     color: var(--muted);
     text-align: center;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
   }
   code.small {
     color: var(--neon-cyan);
@@ -436,7 +456,6 @@ function applyRoll(r){
     state.neutrals++;
     state.losses++;
     outcome = 'neutral';
-    // subtle beep (optional)
     sound = 'neutral';
   }
 
@@ -454,8 +473,7 @@ function applyRoll(r){
   // UI updates & effects
   if (flashClass){
     els.rollCard.classList.remove('flash-win','flash-cat');
-    // force reflow for re-trigger
-    void els.rollCard.offsetWidth;
+    void els.rollCard.offsetWidth; // reflow to re-trigger
     els.rollCard.classList.add(flashClass);
   }
   beep(sound);
@@ -501,6 +519,20 @@ function resetGame(){
   updateUI(true);
 }
 
+/* ---------- HiDPI Canvas helper ---------- */
+function setupHiDPICanvas(c){
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const cssW = Math.max(1, Math.floor(c.getBoundingClientRect().width));
+  const cssH = Math.max(1, Math.floor(parseFloat(getComputedStyle(c).height)));
+  // Resize drawing buffer to match CSS * DPR
+  c.width = Math.round(cssW * dpr);
+  c.height = Math.round(cssH * dpr);
+  const ctx = c.getContext('2d');
+  // Normalize coordinates to CSS pixels
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, w: cssW, h: cssH };
+}
+
 /* ---------- UI ---------- */
 function updateUI(isReset=false){
   // Text fields
@@ -542,7 +574,7 @@ function updateUI(isReset=false){
     }
   }
 
-  // Draw sparkline and histogram
+  // Draw sparkline and histogram (retina-aware)
   drawSparkline();
   drawHistogram();
 }
@@ -550,16 +582,14 @@ function updateUI(isReset=false){
 /* ---------- Canvas: Sparkline (recent k) ---------- */
 function drawSparkline(){
   const c = els.spark;
-  const ctx = c.getContext('2d');
-  const w = c.width, h = c.height;
+  const { ctx, w, h } = setupHiDPICanvas(c);
 
   ctx.clearRect(0,0,w,h);
 
-  // axes (subtle grid)
+  // subtle grid
   ctx.globalAlpha = 0.10;
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 1;
-  // faint horizontal lines for k bands (1..19)
   const levels = 19;
   for (let i=1;i<=levels;i++){
     const y = mapKtoY(i, h);
@@ -573,7 +603,7 @@ function drawSparkline(){
   const data = state.recentK;
   if (data.length < 2) return;
 
-  // line
+  // gradient line
   ctx.lineWidth = 2;
   const grad = ctx.createLinearGradient(0,0,w,0);
   grad.addColorStop(0, '#00e5ff');
@@ -599,9 +629,7 @@ function drawSparkline(){
   ctx.fill();
   ctx.globalAlpha = 1.0;
 
-  // helper
   function mapKtoY(k, hgt){
-    // k = 1 (bottom-ish) .. 19 (top-ish) — invert for visual (higher k goes up)
     const minK = 1, maxK = 19;
     const t = (k - minK) / (maxK - minK);
     const pad = 8;
@@ -612,8 +640,7 @@ function drawSparkline(){
 /* ---------- Canvas: Histogram (time at each k) ---------- */
 function drawHistogram(){
   const c = els.hist;
-  const ctx = c.getContext('2d');
-  const w = c.width, h = c.height;
+  const { ctx, w, h } = setupHiDPICanvas(c);
 
   ctx.clearRect(0,0,w,h);
 
@@ -639,7 +666,6 @@ function drawHistogram(){
     const x = gap + i*(barW + gap);
     const y = h - barH;
 
-    // gradient cyan→pink
     const grad = ctx.createLinearGradient(0, y, 0, y+barH);
     grad.addColorStop(0, '#00e5ff');
     grad.addColorStop(1, '#ff3df0');
@@ -686,15 +712,19 @@ function bindEvents(){
 
   // Any gesture should resume audio if suspended
   ['click','keydown','touchstart'].forEach(ev=>{
-    window.addEventListener(ev, () => {
-      try { ensureAudio(); } catch {}
-    }, { once:true });
+    window.addEventListener(ev, () => { try { ensureAudio(); } catch {} }, { once:true });
   });
 
-  // Make big touch targets feel responsive on mobile
+  // Make buttons feel responsive on mobile
   document.querySelectorAll('button').forEach(btn=>{
     btn.addEventListener('touchstart', ()=>btn.classList.add('btn-on'), {passive:true});
     btn.addEventListener('touchend', ()=>btn.classList.remove('btn-on'), {passive:true});
+  });
+
+  // Redraw canvases on resize/orientation
+  window.addEventListener('resize', () => {
+    drawSparkline();
+    drawHistogram();
   });
 }
 
