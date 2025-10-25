@@ -49,11 +49,29 @@
     letter-spacing: .5px;
     text-shadow: 0 0 10px rgba(0,229,255,.4);
     font-size: clamp(20px, 5.5vw, 28px);
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   header p {
     margin: 0 0 18px 0;
     color: var(--muted);
     font-size: clamp(.9rem, 3.6vw, .95rem);
+  }
+
+  /* D20 logo */
+  .logo-d20{
+    width: clamp(22px, 6.5vw, 28px);
+    height: clamp(22px, 6.5vw, 28px);
+    flex: 0 0 auto;
+    filter: drop-shadow(0 0 6px rgba(0,229,255,.45)) drop-shadow(0 0 10px rgba(255,61,240,.25));
+  }
+  .logo-d20 .edge{ stroke: url(#g1); stroke-width: 2; fill: none; }
+  .logo-d20 .face{ fill: rgba(0,229,255,.08); stroke: none; }
+  .logo-d20 text{
+    font: 900 12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto;
+    fill: #e6f0ff;
+    letter-spacing: .5px;
   }
 
   .grid {
@@ -254,8 +272,28 @@
 <body>
   <div class="wrap" id="app">
     <header>
-      <h1>🎲 D20 Catastrophe</h1>
-      <p>Catastrophe mode with <strong>no reflection</strong> at the top and <strong>no momentum</strong>. Hit the threshold (≥ <span id="thresholdHdr">20</span>) to <span class="state-win">win</span> and expand the range — but at the peak (<code class="small">k = 19</code>), the <em>next win</em> triggers a <span class="state-top">TOP HIT</span> and you reset back to <code class="small">k = 1</code>. Rolling <code class="small">1</code> is a <span class="state-loss">catastrophe</span> that also resets to <code class="small">k = 1</code>.</p>
+      <h1>
+        <!-- Neon D20 icon (icosahedron) -->
+        <svg class="logo-d20" viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#00e5ff"/>
+              <stop offset="1" stop-color="#ff3df0"/>
+            </linearGradient>
+          </defs>
+          <!-- simplified icosahedron: top/bottom vertices + two pentagon rings + facet lines -->
+          <polygon class="face" points="32,6 49,18 54,34 32,58 10,34 15,18"/>
+          <path class="edge" d="M32 6 L49 18 L54 34 L32 58 L10 34 L15 18 Z"/>
+          <!-- inner ring -->
+          <path class="edge" d="M32 6 L32 22 M49 18 L37 26 M15 18 L27 26 M10 34 L22 34 M54 34 L42 34 M32 58 L32 44"/>
+          <!-- cross facets -->
+          <path class="edge" d="M27 26 L37 26 L42 34 L32 44 L22 34 Z"/>
+          <!-- tiny D20 text -->
+          <text x="32" y="36" text-anchor="middle">20</text>
+        </svg>
+        D20 Catastrophe
+      </h1>
+      <p>Hit the threshold (≥ <span id="thresholdHdr">20</span>) to <span class="state-win">win</span> and expand the range — at the peak (<code class="small">k = 19</code>), the next win triggers a <span class="state-top">TOP HIT</span> and you reset to <code class="small">k = 1</code>. Rolling <code class="small">1</code> is a <span class="state-loss">catastrophe</span> that also resets to <code class="small">k = 1</code>.</p>
     </header>
 
     <div class="grid">
@@ -275,7 +313,7 @@
         </div>
 
         <div class="canv-wrap">
-          <div class="canv-title">Recent k (sparkline)</div>
+          <div class="canv-title">Recent k</div>
           <canvas id="spark" width="800" height="160"></canvas>
         </div>
 
@@ -321,7 +359,7 @@
         </div>
 
         <div class="canv-wrap hist" style="margin-top:12px;">
-          <div class="canv-title">Time at each k (optional histogram)</div>
+          <div class="canv-title">Time at each k</div>
           <canvas id="hist" width="800" height="220" aria-label="Histogram of time at each k"></canvas>
         </div>
       </aside>
