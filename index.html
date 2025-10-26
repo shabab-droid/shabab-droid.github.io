@@ -380,7 +380,14 @@
           <div class="kv"><span class="label">Long-run top-hit rate (per roll)</span><span class="value" id="statTopRate">—</span></div>
           <div class="kv"><span class="label">Long-run time at current k</span><span class="value" id="statFk">—</span></div>
 
-          <small class="note">Formulas: \(P_{\text{top first}}=k/20\), \(E[\text{rolls to reset}]=20-k\), \(E[\text{wins}]=k(H_{19}-H_k+\tfrac1{20})\), \(f_k=\frac{20}{19k(k+1)}\).</small>
+         <small class="note">
+  Formulas:
+  <code>P(top first) = k/20</code>,
+  <code>E[rolls to reset] = 20 − k</code>,
+  <code>E[wins] = k · (H<sub>19</sub> − H<sub>k</sub> + 1/20)</code>,
+  <code>f<sub>k</sub> = 20 / (19 · k · (k+1))</code>.
+</small>
+
         </div>
       </aside>
     </div>
