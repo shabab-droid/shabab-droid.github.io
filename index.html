@@ -264,6 +264,18 @@
   }
   .save-link a{ color: var(--neon-cyan); text-decoration: none; border-bottom: 1px dotted var(--neon-cyan); }
   .save-link a:hover{ opacity: .9; }
+
+  /* NEW: Stats panel styles */
+  .math-card .kv{
+    display:grid; grid-template-columns: 1fr auto;
+    gap:6px; align-items:center;
+    font-size: clamp(12px,3.4vw,14px);
+    padding:8px 10px; border:1px solid var(--edge); border-radius:10px;
+    background: rgba(255,255,255,0.02); margin-bottom:8px;
+  }
+  .math-card .kv .label{ color: var(--muted); }
+  .math-card .kv .value{ font-weight:800; letter-spacing:.3px; }
+  .math-card small.note{ color: var(--muted); display:block; margin-top:4px; }
 </style>
 </head>
 <body>
@@ -356,6 +368,20 @@
             <a href="#" id="clearSave">Clear saved state</a>
           </div>
         </div>
+
+        <!-- NEW: Live Stats card -->
+        <div class="card math-card" style="margin-top:12px;">
+          <div class="canv-title">Live Stats</div>
+
+          <div class="kv"><span class="label">Top hit before catastrophe</span><span class="value" id="statTopFirst">—</span></div>
+          <div class="kv"><span class="label">Catastrophe before top hit</span><span class="value" id="statCatFirst">—</span></div>
+          <div class="kv"><span class="label">Expected rolls to reset</span><span class="value" id="statERolls">—</span></div>
+          <div class="kv"><span class="label">Expected wins before reset</span><span class="value" id="statEWins">—</span></div>
+          <div class="kv"><span class="label">Long-run top-hit rate (per roll)</span><span class="value" id="statTopRate">—</span></div>
+          <div class="kv"><span class="label">Long-run time at current k</span><span class="value" id="statFk">—</span></div>
+
+          <small class="note">Formulas: \(P_{\text{top first}}=k/20\), \(E[\text{rolls to reset}]=20-k\), \(E[\text{wins}]=k(H_{19}-H_k+\tfrac1{20})\), \(f_k=\frac{20}{19k(k+1)}\).</small>
+        </div>
       </aside>
     </div>
 
@@ -369,11 +395,11 @@
 
 <script>
 /* =========================
-   D20 Catastrophe (with Save/Restore)
+   D20 Catastrophe (with Save/Restore + Live Stats)
    ========================= */
 
 /* ---------- Persistence ---------- */
-const STORAGE_KEY = 'd20c_state_v1'; // bump version if structure changes
+const STORAGE_KEY = 'd20c_state_v1';
 
 function saveState(){
   try{
@@ -388,14 +414,12 @@ function saveState(){
       lastRoll: state.lastRoll,
       lastOutcome: state.lastOutcome,
       recentK: state.recentK.slice(-200),
-      histK: state.histK.slice(0, 20), // indices 0..19
+      histK: state.histK.slice(0, 20),
       savedAt: Date.now(),
       v: 1
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }catch(e){
-    // Ignore storage errors (private mode, quota, etc.)
-  }
+  }catch(e){}
 }
 
 function loadState(){
@@ -405,7 +429,6 @@ function loadState(){
     const data = JSON.parse(raw);
     if (!data || data.v !== 1) return false;
 
-    // Basic validation & clamping
     const clampInt = (x, lo, hi, def=lo)=> Number.isFinite(x) ? Math.max(lo, Math.min(hi, Math.trunc(x))) : def;
 
     state.k = clampInt(data.k, 1, 19, 1);
@@ -423,9 +446,7 @@ function loadState(){
       : Array(20).fill(0);
 
     return true;
-  }catch(e){
-    return false;
-  }
+  }catch(e){ return false; }
 }
 
 function clearSavedState(){
@@ -434,18 +455,11 @@ function clearSavedState(){
 
 /* ---------- Game State ---------- */
 const state = {
-  k: 1,                   // winning span size (1..19)
-  steps: 0,
-  wins: 0,
-  losses: 0,
-  neutrals: 0,
-  catastrophes: 0,
-  topHits: 0,
-  lastRoll: null,
-  lastOutcome: '—',
+  k: 1, steps: 0,
+  wins: 0, losses: 0, neutrals: 0, catastrophes: 0, topHits: 0,
+  lastRoll: null, lastOutcome: '—',
   autoTimer: null,
-  recentK: [],
-  histK: Array(20).fill(0)
+  recentK: [], histK: Array(20).fill(0)
 };
 
 const els = {
@@ -468,7 +482,14 @@ const els = {
   autoBtn: document.getElementById('autoBtn'),
   stopBtn: document.getElementById('stopBtn'),
   resetBtn: document.getElementById('resetBtn'),
-  clearSave: document.getElementById('clearSave')
+  clearSave: document.getElementById('clearSave'),
+  // NEW: live stats fields
+  statTopFirst: document.getElementById('statTopFirst'),
+  statCatFirst: document.getElementById('statCatFirst'),
+  statERolls: document.getElementById('statERolls'),
+  statEWins: document.getElementById('statEWins'),
+  statTopRate: document.getElementById('statTopRate'),
+  statFk: document.getElementById('statFk')
 };
 
 /* ---------- Audio (soft) ---------- */
@@ -536,7 +557,6 @@ function applyRoll(r){
     state.neutrals++;
     state.losses++;
     outcome = 'neutral';
-    sound = 'neutral';
   }
 
   state.steps++;
@@ -556,7 +576,7 @@ function applyRoll(r){
   beep(sound);
 
   updateUI();
-  saveState(); // <- persist after each roll
+  saveState();
 }
 
 function roll(){ applyRoll(rand20()); }
@@ -590,7 +610,7 @@ function resetGame(){
   state.recentK = [];
   state.histK = Array(20).fill(0);
   updateUI(true);
-  saveState(); // <- persist reset
+  saveState();
 }
 
 /* ---------- HiDPI Canvas helper ---------- */
@@ -604,6 +624,17 @@ function setupHiDPICanvas(c){
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   return { ctx, w: cssW, h: cssH };
 }
+
+/* ---------- Math helpers for Live Stats ---------- */
+function harmonic(n){
+  let s = 0;
+  for (let i=1;i<=n;i++) s += 1/i;
+  return s;
+}
+const H19 = harmonic(19);
+
+function formatPct(x){ return (x*100).toFixed(2) + '%'; }
+function formatNum(x){ return Number.isFinite(x) ? (+x.toFixed(3)).toString() : '—'; }
 
 /* ---------- UI ---------- */
 function updateUI(isReset=false){
@@ -635,9 +666,36 @@ function updateUI(isReset=false){
 
   drawSparkline();
   drawHistogram();
+  updateLiveStats(); // NEW
 }
 
-/* ---------- Canvas: Sparkline ---------- */
+/* ---------- Live Stats updater ---------- */
+function updateLiveStats(){
+  const k = state.k;
+  // Top before Cat, Cat before Top
+  const pTopFirst = k/20;
+  const pCatFirst = 1 - pTopFirst;
+
+  // Expected rolls and wins
+  const eRolls = 20 - k;
+  const Hk = harmonic(k);
+  const eWins = k * (H19 - Hk + 1/20);
+
+  // Long-run per-roll top-hit rate (global)
+  const longTopRate = 1/380;
+
+  // Long-run time fraction at current k
+  const f_k = (20/19) * (1/(k*(k+1)));
+
+  els.statTopFirst.textContent = formatPct(pTopFirst);
+  els.statCatFirst.textContent = formatPct(pCatFirst);
+  els.statERolls.textContent = formatNum(eRolls);
+  els.statEWins.textContent = formatNum(eWins);
+  els.statTopRate.textContent = formatPct(longTopRate);
+  els.statFk.textContent = formatPct(f_k);
+}
+
+/* ---------- Canvases ---------- */
 function drawSparkline(){
   const c = els.spark;
   const { ctx, w, h } = setupHiDPICanvas(c);
@@ -684,7 +742,6 @@ function drawSparkline(){
   }
 }
 
-/* ---------- Canvas: Histogram ---------- */
 function drawHistogram(){
   const c = els.hist;
   const { ctx, w, h } = setupHiDPICanvas(c);
@@ -722,7 +779,7 @@ function drawHistogram(){
   }
 }
 
-/* ---------- Controls & Keys ---------- */
+/* ---------- Controls & Bindings ---------- */
 function preventScroll(e){ if (e.code === 'Space') e.preventDefault(); }
 function onKey(e){
   const k = e.key.toLowerCase();
@@ -752,20 +809,17 @@ function bindEvents(){
     alert('Saved state cleared. (Current session continues until you refresh.)');
   });
 
-  // Save before leaving the page
   window.addEventListener('beforeunload', saveState);
 }
 
 /* ---------- Init ---------- */
 function init(){
-  // Try to restore saved state; else seed defaults
   if (!loadState()){
     state.recentK = [state.k];
     state.histK = Array(20).fill(0);
   }
   updateUI(true);
   bindEvents();
-  // Ensure canvases render after initial layout
   setTimeout(()=>{ drawSparkline(); drawHistogram(); }, 0);
 }
 init();
