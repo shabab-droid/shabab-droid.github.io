@@ -283,7 +283,7 @@
     <header>
       <h1>
         <!-- Neon D20 icon -->
-        <!-- Replace the old logo SVG with this -->
+       <!-- Icosahedron-style D20 (triangular wireframe, no "20" text) -->
 <svg class="logo-d20" viewBox="0 0 64 64" aria-hidden="true">
   <defs>
     <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
@@ -292,12 +292,52 @@
     </linearGradient>
   </defs>
 
-  <!-- approximate icosahedron silhouette -->
-  <polygon class="face" points="32,4 50,14 60,32 50,50 32,60 14,50 4,32 14,14" />
-  <path class="edge" d="M32 4 L50 14 L60 32 L50 50 L32 60 L14 50 L4 32 L14 14 Z M32 4 L32 32 M32 60 L32 32 M14 14 L50 14 M14 50 L50 50 M4 32 L60 32" />
+  <!-- style hooks from your CSS: .edge uses the gradient stroke, .face is a faint glow -->
+  <g fill="none" stroke="url(#g1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <!-- optional soft fill/glow for the hull silhouette -->
+    <polygon class="face" fill="rgba(0,229,255,0.08)"
+      points="32,6 46,12 56,22 60,36 52,50 36,58 28,60 12,52 6,38 8,24 18,14 28,10"/>
 
-  <!-- inner geometry lines -->
-  <path class="edge" d="M14 14 L50 50 M50 14 L14 50" />
+    <!-- vertices (projected) -->
+    <!-- T (top), U1..U5 (upper ring), L1..L5 (lower ring), B (bottom) -->
+    <!-- Chosen to give a classic D20 outline when stroked -->
+    <!-- Top & bottom axis -->
+    <path class="edge" d="M32 6 L32 60"/>
+
+    <!-- Upper ring edges (cycle of 5 edges — note: still triangulated faces, not pentagon faces) -->
+    <path class="edge" d="M28 10 L18 14 L8 24 L18 14 L28 10 L46 12 L56 22 L46 12"/>
+
+    <!-- Lower ring edges -->
+    <path class="edge" d="M12 52 L28 60 L36 58 L52 50 L60 36"/>
+
+    <!-- Outer hull (suggests many triangular faces) -->
+    <path class="edge" d="M32 6 L46 12 L56 22 L60 36 L52 50 L36 58 L28 60 L12 52 L6 38 L8 24 L18 14 L28 10 Z"/>
+
+    <!-- Triangular fans from top to upper ring -->
+    <path class="edge" d="M32 6 L28 10 L46 12 Z"/>
+    <path class="edge" d="M32 6 L18 14 L28 10 Z"/>
+    <path class="edge" d="M32 6 L46 12 L56 22 Z"/>
+    <path class="edge" d="M32 6 L8 24 L18 14 Z"/>
+
+    <!-- Upper-to-lower “belt” triangles -->
+    <path class="edge" d="M8 24 L6 38 L12 52"/>
+    <path class="edge" d="M8 24 L28 10 L56 22"/>
+    <path class="edge" d="M18 14 L6 38 L28 60"/>
+    <path class="edge" d="M46 12 L60 36 L36 58"/>
+    <path class="edge" d="M56 22 L52 50 L28 60"/>
+
+    <!-- Triangular fans from lower ring to bottom -->
+    <path class="edge" d="M32 60 L12 52 L28 60 Z"/>
+    <path class="edge" d="M32 60 L36 58 L52 50 Z"/>
+    <path class="edge" d="M32 60 L6 38 L12 52 Z"/>
+    <path class="edge" d="M32 60 L60 36 L52 50 Z"/>
+
+    <!-- Cross-links to increase the triangular read -->
+    <path class="edge" d="M18 14 L36 58"/>
+    <path class="edge" d="M46 12 L12 52"/>
+    <path class="edge" d="M28 10 L52 50"/>
+    <path class="edge" d="M56 22 L6 38"/>
+  </g>
 </svg>
         D20 Catastrophe
       </h1>
