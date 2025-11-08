@@ -1,862 +1,392 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>D20 Catastrophe</title>
-<style>
-  :root{
-    --bg: #0b0f1c;
-    --panel: #10172a;
-    --edge: #1b2a4a;
-    --text: #e6f0ff;
-    --muted: #9ab3ff;
-    --neon-cyan: #00e5ff;
-    --neon-pink: #ff3df0;
-    --neon-green: #00ff9c;
-    --neon-red: #ff3b3b;
-    --neon-blue: #4da6ff;
-    --neon-gold: #ffd166;
-    --shadow: 0 0 20px rgba(0,229,255,0.25), 0 0 60px rgba(255,61,240,0.12);
-    --radius: 18px;
-  }
-
-  html, body {
-    background:
-      radial-gradient(1200px 600px at 10% -10%, rgba(255,61,240,0.07), transparent 60%),
-      radial-gradient(1200px 600px at 110% 110%, rgba(0,229,255,0.08), transparent 60%),
-      var(--bg);
-    color: var(--text);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
-    margin: 0;
-    -webkit-text-size-adjust: 100%;
-    overflow-x: hidden;
-  }
-
-  * { box-sizing: border-box; }
-
-  .wrap {
-    max-width: 1100px;
-    margin: 12px auto 56px;
-    padding: 12px;
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
-  }
-
-  header h1{
-    margin: 0 0 6px 0;
-    font-weight: 800;
-    letter-spacing: .5px;
-    text-shadow: 0 0 10px rgba(0,229,255,.4);
-    font-size: clamp(20px, 5.5vw, 28px);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  header p {
-    margin: 0 0 18px 0;
-    color: var(--muted);
-    font-size: clamp(.9rem, 3.6vw, .95rem);
-  }
-
-  /* D20 logo */
-  .logo-d20{
-    width: clamp(22px, 6.5vw, 28px);
-    height: clamp(22px, 6.5vw, 28px);
-    flex: 0 0 auto;
-    filter: drop-shadow(0 0 6px rgba(0,229,255,.45)) drop-shadow(0 0 10px rgba(255,61,240,.25));
-  }
-  .logo-d20 .edge{ stroke: url(#g1); stroke-width: 2; fill: none; }
-  .logo-d20 .face{ fill: rgba(0,229,255,.08); stroke: none; }
-  .logo-d20 text{
-    font: 900 12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto;
-    fill: #e6f0ff;
-    letter-spacing: .5px;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: 1.1fr .9fr;
-    gap: 16px;
-  }
-  @media (max-width: 840px){
-    .grid { grid-template-columns: 1fr; }
-  }
-
-  .card {
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)) , var(--panel);
-    border: 1px solid var(--edge);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 14px;
-  }
-
-  .last-roll {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .roll-result {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 12px;
-    align-items: center;
-    padding: 14px;
-    border-radius: 16px;
-    border: 1px solid var(--edge);
-    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-  }
-
-  @media (max-width: 480px){
-    .roll-result{
-      grid-template-columns: auto 1fr;
-      grid-template-areas:
-        "num label"
-        "steps steps";
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sisyphus's Ruin — 2D Ladder Process Simulator</title>
+  <style>
+    /* ===== Outrun Neon Orange + Purple/Blue Theme ===== */
+    :root{
+      --bg:#080014; --panel:#1a0030; --panel-2:#240040; --text:#fef8ff; --muted:#cdaeff;
+      --accent:#ff9e2c; /* neon orange */
+      --accent-2:#ff00b8; /* magenta */
+      --accent-3:#00b7ff; /* cyan */
+      --accent-4:#ff4efc; /* purple */
+      --radius:16px; --outline:1px solid rgba(255,100,250,.35); --gridline:rgba(100,50,255,.12);
     }
-    .roll-result .roll-number { grid-area: num; }
-    .roll-result > div:nth-child(2) { grid-area: label; }
-    .roll-result > div:nth-child(3) { grid-area: steps; justify-self: start; margin-top: 6px; }
-  }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;color:var(--text);background:
+      radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.20), transparent 70%),
+      radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.15), transparent 70%),
+      linear-gradient(180deg,#0b0014 0%, #050010 100%);
+      overflow-x:hidden;
+    }
+    /* retro grid horizon */
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.6;background:
+      repeating-linear-gradient(to right, var(--gridline) 0 2px, transparent 2px 40px),
+      repeating-linear-gradient(to top,   var(--gridline) 0 2px, transparent 2px 40px);
+      transform:perspective(600px) rotateX(60deg) translateY(40%);
+      filter:drop-shadow(0 0 10px rgba(0,183,255,.08));
+    }
 
-  .roll-number {
-    font-size: clamp(40px, 20vw, 56px);
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: 1px;
-    min-width: 64px;
-    text-align: center;
-    filter: drop-shadow(0 0 18px rgba(255,255,255,0.04));
-  }
-  .roll-label {
-    font-weight: 800;
-    font-size: clamp(15px, 4.2vw, 18px);
-    letter-spacing: .6px;
-    text-transform: uppercase;
-    opacity: .95;
-  }
-  .roll-sub {
-    color: var(--muted);
-    font-size: clamp(12px, 3.4vw, 13px);
-  }
+    .app{max-width:1100px;margin:0 auto;padding:12px}
+    h1{ text-align:center; font-size:clamp(22px,3vw,30px); margin:14px 0 12px; letter-spacing:1px;
+        background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--accent-3)); -webkit-background-clip:text; background-clip:text; color:transparent;
+        text-shadow:0 0 25px rgba(255,160,0,.35), 0 0 40px rgba(0,100,255,.25);
+    }
 
-  .badge {
-    font-weight: 700;
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--edge);
-    background: rgba(255,255,255,0.03);
-    font-size: 12px;
-    letter-spacing: .4px;
-  }
+    /* Cards & layout */
+    .card{ background: linear-gradient(180deg, var(--panel), var(--panel-2)); border-radius: var(--radius); border: var(--outline); padding:14px; box-shadow:0 0 25px rgba(255,0,200,.15), 0 0 50px rgba(0,150,255,.10)}
+    .grid{display:grid; grid-template-columns:1fr 360px; gap:12px}
+    @media (max-width:900px){ .grid{grid-template-columns:1fr} }
+    .small{font-size:12px;color:var(--muted)}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    label{width:120px;font-size:12px;color:var(--muted)}
+    input[type="number"],select{ background:#120026; color:var(--text); border:1px solid rgba(255,100,250,.35); border-radius:10px; padding:6px 8px; min-width:80px }
 
-  .state-win    { color: var(--neon-green); text-shadow: 0 0 14px rgba(0,255,156,.4); }
-  .state-loss   { color: var(--neon-red);   text-shadow: 0 0 14px rgba(255,59,59,.4); }
-  .state-neutral{ color: var(--neon-blue);  text-shadow: 0 0 14px rgba(77,166,255,.35); }
-  .state-top    { color: var(--neon-gold);  text-shadow: 0 0 14px rgba(255,209,102,.45); }
+    /* Buttons */
+    .btn{appearance:none;background:linear-gradient(180deg,#300040,#150025);border:1px solid rgba(255,0,200,.4);color:var(--text);border-radius:var(--radius);padding:10px 14px;cursor:pointer;font-weight:700;letter-spacing:.3px;box-shadow:0 0 10px rgba(255,0,200,.15) inset;transition:all .2s}
+    .btn.big{display:block;width:100%;font-size:20px;padding:16px;margin-bottom:14px}
+    .btn.ghost{background:transparent}
+    .btn.secondary{background:linear-gradient(180deg,#2a1b00,#180d00);border-color:rgba(255,166,0,.5)}
+    .btn:hover{background:linear-gradient(180deg,#400050,#250040);box-shadow:0 0 15px rgba(0,200,255,.2)}
 
-  @keyframes flashWin { 0%{box-shadow: 0 0 0 rgba(0,255,156,.0);} 35%{box-shadow: 0 0 28px rgba(0,255,156,.55);} 100%{box-shadow: 0 0 0 rgba(0,255,156,.0);} }
-  @keyframes flashCat { 0%{box-shadow: 0 0 0 rgba(255,59,59,.0);} 35%{box-shadow: 0 0 34px rgba(255,59,59,.6);} 100%{box-shadow: 0 0 0 rgba(255,59,59,.0);} }
-  .flash-win { animation: flashWin 420ms ease-out; }
-  .flash-cat { animation: flashCat 520ms ease-out; }
+    .sticky-roll{position:sticky;top:8px;z-index:5}
 
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2,1fr);
-    gap: 10px;
-  }
-  @media (max-width: 480px){
-    .stats-grid { grid-template-columns: 1fr; }
-  }
-  .stat {
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid var(--edge);
-    background: rgba(255,255,255,0.02);
-  }
-  .stat h3 {
-    margin: 0 0 6px 0;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: .6px;
-    color: var(--muted);
-    text-transform: uppercase;
-  }
-  .stat .value {
-    font-weight: 900;
-    font-size: clamp(18px, 6vw, 24px);
-    letter-spacing: .5px;
-  }
-  .row {
-    display: grid;
-    grid-template-columns: repeat(2,1fr);
-    gap: 8px;
-    margin-top: 6px;
-  }
+    /* Bars */
+    .bar{height:10px;background:#10001f;border-radius:8px;overflow:hidden;margin:3px 0;border:1px solid rgba(255,166,0,.25)}
+    .bar>div{height:100%}
+    .bar .win{background:linear-gradient(90deg,#ffd94d,var(--accent))}
+    .bar .neu{background:linear-gradient(90deg,var(--accent-3),var(--accent-2))}
+    .bar .loss{background:linear-gradient(90deg,var(--accent-4),#ff2400)}
 
-  .canv-wrap {
-    border: 1px solid var(--edge);
-    border-radius: 12px;
-    background: linear-gradient(180deg, rgba(0,229,255,0.07), rgba(255,61,240,0.06));
-    padding: 8px;
-  }
-  .canv-title{
-    font-size: 12px;
-    letter-spacing: .4px;
-    color: var(--muted);
-    margin: 0 0 6px 2px;
-    text-transform: uppercase;
-    font-weight: 800;
-  }
-  canvas { width: 100%; height: 80px; display:block; border-radius: 8px; background: #0a1224; }
-  .hist canvas { height: 120px; }
+    /* Outcome text effects */
+    .outcome-line{display:flex;align-items:baseline;gap:10px}
+    #recent-outcome{font-weight:900;letter-spacing:1px;font-size:clamp(20px,3.2vw,32px)}
+    .recent.win #recent-outcome{background:linear-gradient(90deg,var(--accent),var(--accent-3));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .recent.neu #recent-outcome{background:linear-gradient(90deg,var(--accent-2),var(--accent-4));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .recent.loss #recent-outcome{background:linear-gradient(90deg,var(--accent-4),#ff2400);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .fx-pop{animation:fxpop .45s ease-out}
+    @keyframes fxpop{0%{transform:scale(.96);opacity:.8}70%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
+    .pulse{animation:pulse 450ms ease-out}
+    @keyframes pulse{0%{transform:scale(1)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
+    .flash-win{animation:flashwin 600ms ease-out}
+    @keyframes flashwin{0%{box-shadow:0 0 0 0 rgba(255,180,0,.0)}25%{box-shadow:0 0 0 6px rgba(255,180,0,.2)}100%{box-shadow:0 0 0 0 rgba(255,180,0,.0)}}
+    .flash-loss{animation:flashloss 600ms ease-out}
+    @keyframes flashloss{0%{box-shadow:0 0 0 0 rgba(255,78,0,.0)}25%{box-shadow:0 0 0 6px rgba(255,78,0,.2)}100%{box-shadow:0 0 0 0 rgba(255,78,0,.0)}}
+    .flash-neu{animation:flashneu 600ms ease-out}
+    @keyframes flashneu{0%{box-shadow:0 0 0 0 rgba(255,135,0,.0)}25%{box-shadow:0 0 0 6px rgba(255,135,0,.2)}100%{box-shadow:0 0 0 0 rgba(255,135,0,.0)}}
 
-  .controls {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-top: 6px;
-  }
-  @media (max-width: 520px){
-    .controls { grid-template-columns: 1fr 1fr; }
-  }
-  button {
-    appearance: none;
-    border: 1px solid var(--edge);
-    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-    color: var(--text);
-    padding: 14px 12px;
-    border-radius: 14px;
-    font-weight: 800;
-    letter-spacing: .5px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: transform .05s ease, box-shadow .2s ease, border-color .2s ease;
-    box-shadow: 0 0 0 rgba(0,0,0,0);
-    user-select: none;
-    font-size: clamp(12px, 3.4vw, 14px);
-  }
-  button:hover { transform: translateY(-1px); border-color: var(--neon-cyan); box-shadow: 0 0 18px rgba(0,229,255,.25); }
-  button:active { transform: translateY(0); }
-  .btn-primary { border-color: var(--neon-cyan); box-shadow: 0 0 14px rgba(0,229,255,.25) inset; }
-  .btn-danger  { border-color: var(--neon-red); }
-  .btn-warn    { border-color: var(--neon-gold); }
-  .btn-on      { box-shadow: 0 0 18px rgba(0,229,255,.4), inset 0 0 18px rgba(0,229,255,.18); }
-
-  footer {
-    margin-top: 18px;
-    font-size: 12px;
-    color: var(--muted);
-    text-align: center;
-    padding-bottom: max(8px, env(safe-area-inset-bottom));
-  }
-  code.small {
-    color: var(--neon-cyan);
-    background: rgba(0,229,255,0.08);
-    padding: 1px 6px;
-    border-radius: 8px;
-    border: 1px solid rgba(0,229,255,0.22);
-  }
-  .save-link{
-    display:inline-block;margin-top:6px;opacity:.8
-  }
-  .save-link a{ color: var(--neon-cyan); text-decoration: none; border-bottom: 1px dotted var(--neon-cyan); }
-  .save-link a:hover{ opacity: .9; }
-
-  /* NEW: Stats panel styles */
-  .math-card .kv{
-    display:grid; grid-template-columns: 1fr auto;
-    gap:6px; align-items:center;
-    font-size: clamp(12px,3.4vw,14px);
-    padding:8px 10px; border:1px solid var(--edge); border-radius:10px;
-    background: rgba(255,255,255,0.02); margin-bottom:8px;
-  }
-  .math-card .kv .label{ color: var(--muted); }
-  .math-card .kv .value{ font-weight:800; letter-spacing:.3px; }
-  .math-card small.note{ color: var(--muted); display:block; margin-top:4px; }
-</style>
+    /* Recent bars & position meters */
+    .recent-bars{margin-top:8px;display:grid;gap:6px}
+    .recent-bar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px}
+    .recent-bar .bar{height:8px}
+    .recent-bar .pct{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+    .kpos-track,.lpos-track{height:6px;background:#10001f;border:1px solid rgba(255,166,0,.25);border-radius:6px;overflow:hidden}
+    /* SWAPPED: k uses orange→purple, ℓ uses cyan→magenta */
+    .kpos-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-4))}
+    .lpos-fill{height:100%;background:linear-gradient(90deg,var(--accent-3),var(--accent-2))}
+  </style>
 </head>
 <body>
-  <div class="wrap" id="app">
-    <header>
-      <h1>
-        <!-- Neon D20 icon -->
-    <!-- Neon-themed Icosahedron Icon -->
-<svg class="logo-d20" viewBox="0 0 512 512" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <!-- your gradient theme -->
-    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#00e5ff"/>
-      <stop offset="1" stop-color="#ff3df0"/>
-    </linearGradient>
-    <!-- subtle glow blur -->
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
+  <div class="app">
+    <h1>Sisyphus's Ruin</h1>
 
-  <!-- apply glow + gradient stroke -->
-  <g stroke="url(#g1)" fill="none" stroke-width="12"
-     stroke-linejoin="round" stroke-linecap="round"
-     filter="url(#glow)">
-    <path d="M490.421,137.707c-0.085-1.003-0.149-2.005-0.555-2.987c-0.107-0.256-0.32-0.427-0.448-0.683
-      c-0.277-0.533-0.597-0.981-0.96-1.472c-0.725-1.003-1.536-1.835-2.517-2.517c-0.256-0.171-0.363-0.491-0.64-0.64l-224-128
-      c-3.285-1.877-7.296-1.877-10.581,0l-224,128c-0.256,0.171-0.363,0.469-0.619,0.64c-1.024,0.704-1.899,1.557-2.645,2.624
-      c-0.299,0.427-0.597,0.811-0.832,1.28c-0.149,0.277-0.384,0.469-0.512,0.768c-0.469,1.173-0.619,2.389-0.661,3.584
-      c0,0.128-0.107,0.256-0.107,0.384v0.171c0,0.021,0,0.021,0,0.043v234.304c0,0.021,0,0.064,0,0.085v0.064
-      c0,0.213,0.149,0.405,0.171,0.619c0.085,1.493,0.32,2.987,1.045,4.352c0.043,0.085,0.128,0.107,0.171,0.192
-      c0.277,0.491,0.768,0.811,1.131,1.259c0.789,0.981,1.557,1.941,2.603,2.603c0.107,0.064,0.149,0.192,0.235,0.235l224,128
-      c1.664,0.939,3.477,1.408,5.312,1.408s3.648-0.469,5.291-1.408l224-128c0.107-0.064,0.149-0.192,0.256-0.256
-      c0.981-0.597,1.664-1.493,2.411-2.389c0.427-0.512,1.003-0.896,1.323-1.472c0.043-0.064,0.107-0.107,0.149-0.171
-      c0.576-1.109,0.683-2.325,0.853-3.52c0.064-0.491,0.384-0.939,0.384-1.451V138.688
-      C490.677,138.347,490.443,138.048,490.421,137.707z M455.52,136.981l-78.251,31.296L291.211,43.093L455.52,136.981z
-       M256.011,29.504l97.067,141.184H158.944L256.011,29.504z M220.747,43.115l-86.037,125.163L56.48,136.981L220.747,43.115z
-       M42.677,154.432l80.768,32.32L42.677,332.16V154.432z M138.635,203.392l98.325,178.773L49.248,364.288L138.635,203.392z
-       M245.344,482.965l-165.12-94.336l165.12,15.573V482.965z M256.011,372.544l-99.285-180.523h198.571L256.011,372.544z
-       M266.677,482.965v-78.571l165.035-15.723L266.677,482.965z M274.997,382.357l98.411-178.901l89.365,160.853L274.997,382.357z
-       M469.344,332.203l-80.811-145.451l80.811-32.32V332.203z"/>
-  </g>
-</svg>
-        D20 Catastrophe
-      </h1>
-      <p>Hit the threshold (≥ <span id="thresholdHdr">20</span>) to <span class="state-win">win</span> and expand the range — at the peak <code class="small">k = 19</code>, the next win triggers a <span class="state-top">TOP HIT</span> and you reset to <code class="small">k = 1</code>. Rolling <code class="small">1</code> is a <span class="state-loss">catastrophe</span> that also resets to <code class="small">k = 1</code>.</p>
-    </header>
-
-    <div class="grid">
-      <section class="card last-roll">
-        <div class="roll-result" id="rollCard" aria-live="polite" aria-atomic="true">
-          <div class="roll-number" id="lastRoll">—</div>
-          <div>
-            <div class="roll-label" id="lastOutcome">Press Roll</div>
-            <div class="roll-sub">
-              k = <span id="kVal">1</span> · Win threshold: <span id="threshold">≥ 20</span>
-            </div>
-          </div>
-          <div>
-            <span class="badge">Steps: <span id="steps">0</span></span>
-          </div>
-        </div>
-
-        <div class="canv-wrap">
-          <div class="canv-title">Recent k</div>
-          <canvas id="spark"></canvas>
-        </div>
-
-        <div class="controls">
-          <button id="rollBtn" class="btn-primary" title="R / Space">Roll</button>
-          <button id="autoBtn" title="A to toggle">Auto</button>
-          <button id="stopBtn" class="btn-warn" title="S">Stop</button>
-          <button id="resetBtn" class="btn-danger" title="X">Reset</button>
-        </div>
-      </section>
-
-      <aside class="card">
-        <div class="stats-grid">
-          <div class="stat">
-            <h3>Wins</h3>
-            <div class="value state-win" id="wins">0</div>
-            <div class="row">
-              <div class="stat" style="margin:8px 0 0 0;">
-                <h3>Top Hits</h3>
-                <div class="value state-top" id="topHits">0</div>
-              </div>
-              <div class="stat" style="margin:8px 0 0 0;">
-                <h3>Current k</h3>
-                <div class="value" id="kValBig">1</div>
-              </div>
-            </div>
-          </div>
-          <div class="stat">
-            <h3>Losses</h3>
-            <div class="value state-loss" id="losses">0</div>
-            <div class="row">
-              <div class="stat" style="margin:8px 0 0 0;">
-                <h3>Neutrals</h3>
-                <div class="value state-neutral" id="neutrals">0</div>
-              </div>
-              <div class="stat" style="margin:8px 0 0 0;">
-                <h3>Catastrophes</h3>
-                <div class="value state-loss" id="cats">0</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="canv-wrap hist" style="margin-top:12px;">
-          <div class="canv-title">Time at each k</div>
-          <canvas id="hist"></canvas>
-          <div class="save-link">
-            <a href="#" id="clearSave">Clear saved state</a>
-          </div>
-        </div>
-
-        <!-- NEW: Live Stats card -->
-        <div class="card math-card" style="margin-top:12px;">
-          <div class="canv-title">Live Stats</div>
-
-          <div class="kv"><span class="label">Top hit before catastrophe</span><span class="value" id="statTopFirst">—</span></div>
-          <div class="kv"><span class="label">Catastrophe before top hit</span><span class="value" id="statCatFirst">—</span></div>
-          <div class="kv"><span class="label">Expected rolls to reset</span><span class="value" id="statERolls">—</span></div>
-          <div class="kv"><span class="label">Expected wins before reset</span><span class="value" id="statEWins">—</span></div>
-          <div class="kv"><span class="label">Long-run top-hit rate (per roll)</span><span class="value" id="statTopRate">—</span></div>
-          <div class="kv"><span class="label">Long-run time at current k</span><span class="value" id="statFk">—</span></div>
-
-         <small class="note">
-  Formulas:
-  <code>P(top first) = k/20</code>,
-  <code>E[rolls to reset] = 20 − k</code>,
-  <code>E[wins] = k · (H<sub>19</sub> − H<sub>k</sub> + 1/20)</code>,
-  <code>f<sub>k</sub> = 20 / (19 · k · (k+1))</code>.
-</small>
-
-        </div>
-      </aside>
+    <div class="sticky-roll">
+      <button class="btn big" id="roll1_big">🎲 Roll</button>
     </div>
 
-    <footer>
-      Shortcuts: <code class="small">R</code>/<code class="small">Space</code> = Roll ·
-      <code class="small">A</code> = Auto/Stop ·
-      <code class="small">S</code> = Stop ·
-      <code class="small">X</code> = Reset
-    </footer>
+    <div class="grid">
+      <!-- LEFT COLUMN -->
+      <div>
+        <!-- Recent outcome & position -->
+        <div class="card recent" id="recent-card">
+          <div class="outcome-line">
+            <div id="recent-outcome">No rolls yet</div>
+            <div class="small">(k,ℓ): <span id="recent-kl">(1,0)→(1,0)</span> • p=[<span id="recent-p">0.000, 0.000, 0.000</span>] • p(win | no loss): <span id="recent-p-cond">—</span></div>
+          </div>
+          <div id="recent-bars" class="recent-bars">
+            <div class="recent-bar"><span>win</span><div class="bar"><div id="rbar-win" class="win" style="width:0%"></div></div><span id="rpct-win" class="pct">0%</span></div>
+            <div class="recent-bar"><span>neutral</span><div class="bar"><div id="rbar-neu" class="neu" style="width:0%"></div></div><span id="rpct-neu" class="pct">0%</span></div>
+            <div class="recent-bar"><span>loss</span><div class="bar"><div id="rbar-loss" class="loss" style="width:0%"></div></div><span id="rpct-loss" class="pct">0%</span></div>
+            <div class="kpos"><div class="kpos-track"><div id="kpos-fill" class="kpos-fill" style="width:0%"></div></div><div class="small">k-position: <span id="kpos-text">1 / 20</span></div></div>
+            <div class="lpos" style="margin-top:4px"><div class="lpos-track"><div id="lpos-fill" class="lpos-fill" style="width:0%"></div></div><div class="small">ℓ-position: <span id="lpos-text">0 / 10</span></div></div>
+          </div>
+        </div>
+
+        <!-- Sparkline -->
+        <div class="card">
+          <h2 style="margin-top:0">Sparkline</h2>
+          <svg id="spark" viewBox="0 0 300 60" preserveAspectRatio="none" style="width:100%;height:60px"></svg>
+        </div>
+
+        <!-- Run Stats -->
+        <div class="card">
+          <h2 style="margin-top:0">Run Stats</h2>
+          <div class="row" style="justify-content:space-between;margin-bottom:6px">
+            <div>steps: <span class="mono" id="rollStep">0</span></div>
+          </div>
+          <div class="bar"><div class="win" id="bar-win" style="width:0%"></div></div>
+          <div class="bar"><div class="neu" id="bar-neu" style="width:0%"></div></div>
+          <div class="bar"><div class="loss" id="bar-loss" style="width:0%"></div></div>
+          <div class="row" style="justify-content:space-between">
+            <div>win: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
+            <div>neutral: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
+            <div>loss: <span class="mono" id="c-loss">0</span> (<span class="mono" id="r-loss">0.0%</span>)</div>
+          </div>
+        </div>
+
+        <!-- Log (title intentionally omitted) -->
+        <div class="card">
+          <div id="log" style="height:160px;overflow:auto;background:#120026;border:1px solid rgba(255,166,0,.25);border-radius:10px;padding:8px;font-family:monospace;font-size:12px"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div>
+        <div class="card">
+          <h2 style="margin-top:0">Play Controls</h2>
+          <div class="row">
+            <input id="nRolls" type="number" value="20" style="width:90px">
+            <button class="btn" id="rollN">Roll N</button>
+            <button class="btn ghost" id="auto">Auto</button>
+            <select id="speed">
+              <option value="200">Slow</option>
+              <option value="80" selected>Normal</option>
+              <option value="20">Fast</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2 style="margin-top:0">Parameters</h2>
+          <div class="row"><label for="M">Max k (M)</label><input id="M" type="number" min="2" max="200" step="1" value="20"></div>
+          <div class="small">Number of k-levels. Higher M stretches the ladder; win probability ramps across these levels.</div>
+
+          <div class="row"><label for="L">Max ℓ (L)</label><input id="L" type="number" min="0" max="200" step="1" value="10"></div>
+          <div class="small">Ceiling for the auxiliary ℓ-state. ℓ modulates win/loss via boost/decay.</div>
+
+          <div class="row"><label>Win base (w_min → w_max)</label><input id="w_min" type="number" min="0" max="0.99" step="0.005" value="0.05"><input id="w_max" type="number" min="0" max="0.99" step="0.005" value="0.80"></div>
+          <div class="small">Minimum/maximum per-step win baseline before ℓ boost is applied.</div>
+
+          <div class="row"><label for="beta">k ramp β</label><input id="beta" type="number" min="0.1" max="8" step="0.1" value="1.5"></div>
+          <div class="small">Curvature of win ramp along k (higher β pushes wins later).</div>
+
+          <div class="row"><label>ℓ boost (ρ, γ)</label><input id="rho" type="number" min="0" max="1" step="0.05" value="0.6"><input id="gamma" type="number" min="0.1" max="8" step="0.1" value="1.4"></div>
+          <div class="small">ρ mixes in ℓ, γ curves how strongly large ℓ boosts p(win).</div>
+
+          <div class="row"><label>Loss floor/ceiling</label><input id="c_min" type="number" min="0" max="0.99" step="0.005" value="0.03"><input id="c_max" type="number" min="0" max="0.99" step="0.005" value="0.10"></div>
+          <div class="small">Bounds for p(loss) before ℓ-decay is applied.</div>
+
+          <div class="row"><label for="alpha">Loss decay α</label><input id="alpha" type="number" min="0" max="5" step="0.05" value="0.6"></div>
+          <div class="small">Controls how quickly p(loss) falls as ℓ grows.</div>
+
+          <div class="row"><label>ℓ update (g_n, s_w)</label><input id="g_n" type="number" min="0" max="10" step="1" value="1"><input id="s_w" type="number" min="0" max="10" step="1" value="5"></div>
+          <div class="small">On neutral: ℓ += g_n. On win: ℓ -= s_w (clamped ≥ 0). Loss resets to (k,ℓ)=(1,0).</div>
+
+          <div class="row">
+            <button class="btn" id="apply">Apply</button>
+            <button class="btn secondary" id="resetState">Reset State</button>
+            <button class="btn ghost" id="export">Export</button>
+            <button class="btn ghost" id="import">Import</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-<script>
-/* =========================
-   D20 Catastrophe (with Save/Restore + Live Stats)
-   ========================= */
+  <script>
+  // ===== Parameters, State, Counters =====
+  const params = { M:20, L:10, w_min:0.05, w_max:0.80, beta:1.5, rho:0.6, gamma:1.4, c_min:0.03, c_max:0.10, alpha:0.6, g_n:1, s_w:5 };
+  const state  = { k:1, l:0, step:0 };
+  const counts = { win:0, neu:0, loss:0 };
+  const historyK = []; // last 200 for sparkline
+  const historyKAll = []; // (kept short via log viewport)
+  let streakSinceReset = 0, longestStreak = 0, maxK = 1, lastResetStep = 0;
+  const cycleLengths = [];
 
-/* ---------- Persistence ---------- */
-const STORAGE_KEY = 'd20c_state_v1';
+  // ===== Persistence (localStorage) =====
+  const STORAGE_KEY = 'sisyphus_ruin_v1';
+  function saveSnapshot(){
+    try {
+      const snap = {
+        version:1,
+        params: { ...params },
+        state: { ...state },
+        counts: { ...counts },
+        historyK: [...historyK],
+        maxK, longestStreak, streakSinceReset, lastResetStep,
+        cycleLengths: [...cycleLengths]
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snap));
+    } catch(e){ console.warn('saveSnapshot failed', e); }
+  }
+  function applySnapshot(snap){
+    Object.assign(params, snap.params||{});
+    Object.assign(state,  snap.state||{});
+    Object.assign(counts, snap.counts||{});
+    maxK = snap.maxK||1; longestStreak = snap.longestStreak||0; streakSinceReset = snap.streakSinceReset||0; lastResetStep = snap.lastResetStep||0;
+    historyK.length = 0; (snap.historyK||[]).forEach(v=> historyK.push(v));
+    cycleLengths.length = 0; (snap.cycleLengths||[]).forEach(v=> cycleLengths.push(v));
+    // reflect in inputs
+    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{ const e=$(id); if(e && params[id] !== undefined) e.value = params[id]; });
+  }
+  function loadSnapshot(){
+    try {
+      const s = localStorage.getItem(STORAGE_KEY);
+      if(!s) return false;
+      const snap = JSON.parse(s);
+      if(!snap || snap.version !== 1) return false;
+      applySnapshot(snap);
+      return true;
+    } catch(e){ console.warn('loadSnapshot failed', e); return false; }
+  }
+  function clearSnapshot(){ try{ localStorage.removeItem(STORAGE_KEY); logMsg('persistence cleared'); }catch(_){} }
 
-function saveState(){
-  try{
-    const payload = {
-      k: state.k,
-      steps: state.steps,
-      wins: state.wins,
-      losses: state.losses,
-      neutrals: state.neutrals,
-      catastrophes: state.catastrophes,
-      topHits: state.topHits,
-      lastRoll: state.lastRoll,
-      lastOutcome: state.lastOutcome,
-      recentK: state.recentK.slice(-200),
-      histK: state.histK.slice(0, 20),
-      savedAt: Date.now(),
-      v: 1
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }catch(e){}
-}
+  // ===== DOM helpers =====
+  const $ = (id)=> document.getElementById(id);
+  const el = { barwin: $('bar-win'), barneu:$('bar-neu'), barloss:$('bar-loss'), cwin:$('c-win'), cneu:$('c-neu'), closs:$('c-loss'), spark:$('spark'), log:$('log'), rollStep:$('rollStep') };
 
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return false;
-    const data = JSON.parse(raw);
-    if (!data || data.v !== 1) return false;
+  // ===== Math / Probs =====
+  const clamp01 = (x)=> Math.min(1, Math.max(0, x));
+  function computeProbs(k,l){
+    const M=params.M, L=Math.max(1, params.L);
+    const base = params.w_min + (params.w_max-params.w_min)*Math.pow((k-1)/(M-1), params.beta);
+    const ell  = (1-params.rho) + params.rho*Math.pow(l/L, params.gamma);
+    let p_win  = clamp01(base*ell);
+    let p_loss = params.c_min + (params.c_max-params.c_min)*Math.exp(-params.alpha*l);
+    if (p_win + p_loss > 1){ const s=p_win+p_loss; p_win/=s; p_loss/=s; }
+    const p_neu = 1 - p_win - p_loss;
+    return { p_win, p_neu, p_loss };
+  }
 
-    const clampInt = (x, lo, hi, def=lo)=> Number.isFinite(x) ? Math.max(lo, Math.min(hi, Math.trunc(x))) : def;
+  // ===== UI helpers =====
+  function logMsg(msg){ const line=document.createElement('div'); line.textContent=msg; el.log.appendChild(line); el.log.scrollTop=el.log.scrollHeight; historyKAll.push(state.k); }
 
-    state.k = clampInt(data.k, 1, 19, 1);
-    state.steps = clampInt(data.steps, 0, 1e9, 0);
-    state.wins = clampInt(data.wins, 0, 1e9, 0);
-    state.losses = clampInt(data.losses, 0, 1e9, 0);
-    state.neutrals = clampInt(data.neutrals, 0, 1e9, 0);
-    state.catastrophes = clampInt(data.catastrophes, 0, 1e9, 0);
-    state.topHits = clampInt(data.topHits, 0, 1e9, 0);
-    state.lastRoll = (typeof data.lastRoll === 'number' && data.lastRoll >= 1 && data.lastRoll <= 20) ? data.lastRoll : null;
-    state.lastOutcome = (typeof data.lastOutcome === 'string') ? data.lastOutcome : '—';
-    state.recentK = Array.isArray(data.recentK) ? data.recentK.map(v=>clampInt(v,1,19,1)).slice(-200) : [state.k];
-    state.histK = Array.isArray(data.histK) && data.histK.length >= 20
-      ? data.histK.slice(0,20).map(v=>clampInt(v,0,1e9,0))
-      : Array(20).fill(0);
+  function setRecent(outcome,k0,l0,k1,l1,pw,pn,pl){
+    const card = $('recent-card'); if(!card) return;
+    card.classList.remove('win','neu','loss','flash-win','flash-neu','flash-loss','pulse');
+    card.classList.add(outcome,'pulse', outcome==='win'?'flash-win':(outcome==='loss'?'flash-loss':'flash-neu'));
+    const outEl = $('recent-outcome'); outEl.textContent = outcome==='neu'?'NEUTRAL':outcome.toUpperCase(); outEl.classList.remove('fx-pop'); void outEl.offsetWidth; outEl.classList.add('fx-pop');
+    $('recent-kl').textContent = `(${k0},${l0})→(${k1},${l1})`;
+    $('recent-p').textContent  = `${pw.toFixed(3)}, ${pn.toFixed(3)}, ${pl.toFixed(3)}`;
+    const denom = 1 - pl; const pcond = denom>1e-12 ? Math.max(0, Math.min(1, pw/denom)) : 0; const pcondEl=$('recent-p-cond'); if(pcondEl) pcondEl.textContent = (denom<=1e-12? '—' : (pcond*100).toFixed(1)+'%');
+    const pct = x=> (100*Math.max(0,Math.min(1,x))).toFixed(0)+'%';
+    const setW = (id,val)=>{ const e=$(id); if(e) e.style.width=pct(val); };
+    const setT = (id,val)=>{ const e=$(id); if(e) e.textContent=pct(val); };
+    setW('rbar-win', pw); setW('rbar-neu', pn); setW('rbar-loss', pl);
+    setT('rpct-win', pw); setT('rpct-neu', pn); setT('rpct-loss', pl);
+    const kfrac = (k1-1)/Math.max(1, params.M-1); const kfill=$('kpos-fill'); if(kfill) kfill.style.width = pct(kfrac); const ktext=$('kpos-text'); if(ktext) ktext.textContent = `${k1} / ${params.M}`;
+    const lfrac = (l1)/Math.max(1, params.L);   const lfill=$('lpos-fill'); if(lfill) lfill.style.width = pct(lfrac); const ltext=$('lpos-text'); if(ltext) ltext.textContent = `${l1} / ${params.L}`;
+  }
 
-    return true;
-  }catch(e){ return false; }
-}
+  function drawSpark(){
+    const w=300,h=60, data=historyK.length?historyK:[state.k], M=Math.max(2,params.M), y=(k)=> h-6-(h-12)*((k-1)/(M-1));
+    const stepX = data.length>1? (w-6)/(data.length-1):0; let points='';
+    for (let i=0;i<data.length;i++) points += `${3+i*stepX},${y(data[i]).toFixed(1)} `;
+    const stroke = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff9e2c';
+    $('spark').innerHTML = `<polyline fill="none" stroke="${stroke}" stroke-width="2" points="${points.trim()}" />` + `<rect x="0" y="0" width="300" height="60" fill="transparent" />`;
+  }
 
-function clearSavedState(){
-  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
-}
+  // ===== Simulation step =====
+  function stepOnce(){
+    const {p_win,p_neu,p_loss} = computeProbs(state.k,state.l);
+    const k0=state.k, l0=state.l; const r=Math.random(); let outcome;
+    if (r < p_win){ outcome='win'; state.k=Math.min(params.M, state.k+1); state.l=Math.max(0, state.l-params.s_w); streakSinceReset++; }
+    else if (r < p_win+p_neu){ outcome='neu'; state.l=Math.min(params.L, state.l+params.g_n); }
+    else { outcome='loss'; const len = state.step - lastResetStep; if (state.step>0) cycleLengths.push(len); lastResetStep=state.step; state.k=1; state.l=0; longestStreak = Math.max(longestStreak, streakSinceReset); streakSinceReset=0; }
+    counts[outcome]++; state.step++; maxK=Math.max(maxK,state.k); historyK.push(state.k); if (historyK.length>200) historyK.shift();
+    $('rollStep').textContent = state.step;
+    logMsg(`step ${state.step}: (${k0},${l0}) → (${state.k},${state.l}) ${outcome.toUpperCase()} | p=[${p_win.toFixed(3)}, ${p_neu.toFixed(3)}, ${p_loss.toFixed(3)}]`);
+    if (state.k===maxK && state.k>1 && outcome==='win') celebrateMilestone(`New best k = ${maxK}`);
+    setRecent(outcome,k0,l0,state.k,state.l,p_win,p_neu,p_loss); updateUI();
+    saveSnapshot();
+  }
 
-/* ---------- Game State ---------- */
-const state = {
-  k: 1, steps: 0,
-  wins: 0, losses: 0, neutrals: 0, catastrophes: 0, topHits: 0,
-  lastRoll: null, lastOutcome: '—',
-  autoTimer: null,
-  recentK: [], histK: Array(20).fill(0)
-};
+  function updateUI(){
+    const total = counts.win+counts.neu+counts.loss; const wP = total?counts.win/total*100:0; const nP=total?counts.neu/total*100:0; const lP=total?counts.loss/total*100:0;
+    el.barwin.style.width=wP+'%'; el.barneu.style.width=nP+'%'; el.barloss.style.width=lP+'%';
+    el.cwin.textContent=counts.win; el.cneu.textContent=counts.neu; el.closs.textContent=counts.loss;
+    $('r-win').textContent = wP.toFixed(1)+'%'; $('r-neu').textContent = nP.toFixed(1)+'%'; $('r-loss').textContent = lP.toFixed(1)+'%';
+    drawSpark();
+  }
 
-const els = {
-  rollCard: document.getElementById('rollCard'),
-  lastRoll: document.getElementById('lastRoll'),
-  lastOutcome: document.getElementById('lastOutcome'),
-  kVal: document.getElementById('kVal'),
-  kValBig: document.getElementById('kValBig'),
-  threshold: document.getElementById('threshold'),
-  thresholdHdr: document.getElementById('thresholdHdr'),
-  steps: document.getElementById('steps'),
-  wins: document.getElementById('wins'),
-  losses: document.getElementById('losses'),
-  neutrals: document.getElementById('neutrals'),
-  cats: document.getElementById('cats'),
-  topHits: document.getElementById('topHits'),
-  spark: document.getElementById('spark'),
-  hist: document.getElementById('hist'),
-  rollBtn: document.getElementById('rollBtn'),
-  autoBtn: document.getElementById('autoBtn'),
-  stopBtn: document.getElementById('stopBtn'),
-  resetBtn: document.getElementById('resetBtn'),
-  clearSave: document.getElementById('clearSave'),
-  // NEW: live stats fields
-  statTopFirst: document.getElementById('statTopFirst'),
-  statCatFirst: document.getElementById('statCatFirst'),
-  statERolls: document.getElementById('statERolls'),
-  statEWins: document.getElementById('statEWins'),
-  statTopRate: document.getElementById('statTopRate'),
-  statFk: document.getElementById('statFk')
-};
+  // ===== Controls =====
+  function applyParams(){
+    const p=params; p.M=Math.max(2, +$('M').value|0); p.L=Math.max(0,+$('L').value|0);
+    p.w_min=Math.max(0, Math.min(0.99, +$('w_min').value)); p.w_max=Math.max(p.w_min, Math.min(0.99, +$('w_max').value));
+    p.beta=Math.max(0.1, +$('beta').value); p.rho=Math.min(1, Math.max(0, +$('rho').value)); p.gamma=Math.max(0.1, +$('gamma').value);
+    p.c_min=Math.max(0, Math.min(0.99, +$('c_min').value)); p.c_max=Math.max(p.c_min, Math.min(0.99, +$('c_max').value)); p.alpha=Math.max(0, +$('alpha').value);
+    p.g_n=Math.max(0, (+$('g_n').value|0)); p.s_w=Math.max(0, (+$('s_w').value|0));
+    $('kpos-text').textContent = `${state.k} / ${params.M}`;
+    $('lpos-text').textContent = `${state.l} / ${params.L}`;
+    updateUI();
+    saveSnapshot();
+  }
+  function resetState(){
+    state.k=1; state.l=0; state.step=0; maxK=1; counts.win=counts.neu=counts.loss=0; historyK.length=0; historyKAll.length=0; cycleLengths.length=0; lastResetStep=0;
+    el.log.innerHTML=''; $('rollStep').textContent='0'; logMsg('state reset');
+    const {p_win,p_neu,p_loss} = computeProbs(state.k,state.l);
+    setRecent('neu',1,0,state.k,state.l,p_win,p_neu,p_loss); $('recent-outcome').textContent='RESET';
+    updateUI();
+    saveSnapshot();
+  }
+  function rollN(n){ n=Math.max(1,n|0); for(let i=0;i<n;i++) stepOnce(); }
+  function toggleAuto(){ const auto=$('auto'); if(window.__auto){ clearInterval(window.__auto); window.__auto=null; auto.textContent='Auto'; return; } const dt=+$('speed').value; window.__auto=setInterval(stepOnce, dt); auto.textContent='Stop'; }
+  function exportParams(){ const blob=new Blob([JSON.stringify(params,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='params.json'; a.click(); }
+  function importParams(){ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=()=>{ const f=inp.files[0]; if(!f) return; const fr=new FileReader(); fr.onload=()=>{ try{ Object.assign(params, JSON.parse(fr.result)); ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{ const e=$(id); if(e) e.value=params[id]; }); updateUI(); saveSnapshot(); logMsg('params imported'); }catch(e){ alert('Invalid JSON'); } }; fr.readAsText(f); }; inp.click(); }
 
-/* ---------- Audio (soft) ---------- */
-let audioCtx = null;
-function ensureAudio() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-}
-function beep(type='neutral'){
-  try {
-    ensureAudio();
-    const now = audioCtx.currentTime;
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    let freq = 440, dur = 0.05, vol = 0.06;
+  // ===== Wire-up & Tests =====
+  (function init(){
+    // Try restore first
+    const restored = loadSnapshot();
+    // Sync form inputs (either from defaults or restored)
+    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{ const e=$(id); if(e) e.value=params[id]; });
 
-    if (type === 'win')        { freq = 880;  dur = 0.07; vol = 0.07; }
-    else if (type === 'cat')   { freq = 220;  dur = 0.09; vol = 0.08; }
-    else if (type === 'top')   { freq = 1200; dur = 0.08; vol = 0.08; }
+    $('roll1_big').addEventListener('click', stepOnce);
+    $('rollN').addEventListener('click', ()=> rollN(+$('nRolls').value || 1));
+    $('auto').addEventListener('click', toggleAuto);
+    $('apply').addEventListener('click', applyParams);
+    $('resetState').addEventListener('click', resetState);
+    $('export').addEventListener('click', exportParams);
+    $('import').addEventListener('click', importParams);
+    document.addEventListener('keydown', (e)=>{ if(e.key==='r'||e.key==='R') stepOnce(); if(e.key==='a'||e.key==='A') toggleAuto(); if(e.key==='s'||e.key==='S'){ if(window.__auto) toggleAuto(); } });
 
-    o.type = 'triangle';
-    o.frequency.setValueAtTime(freq, now);
-    g.gain.setValueAtTime(0, now);
-    g.gain.linearRampToValueAtTime(vol, now + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-
-    o.connect(g).connect(audioCtx.destination);
-    o.start(now);
-    o.stop(now + dur + 0.02);
-  } catch(e) { /* optional */ }
-}
-
-/* ---------- Core mechanics ---------- */
-function rand20(){ return Math.floor(Math.random() * 20) + 1; }
-function currentThreshold(k = state.k){ return 21 - k; }
-
-function applyRoll(r){
-  const thr = currentThreshold();
-  let outcome = 'neutral';
-  let flashClass = null;
-  let sound = 'neutral';
-
-  if (r === 1){
-    state.catastrophes++;
-    state.losses++;
-    state.k = 1;
-    outcome = 'cat';
-    flashClass = 'flash-cat';
-    sound = 'cat';
-  } else if (r >= thr){
-    state.wins++;
-    if (state.k < 19){
-      state.k++;
-      outcome = 'win';
-      flashClass = 'flash-win';
-      sound = 'win';
+    if(restored){
+      logMsg('session restored from persistence');
+      updateUI();
+      const {p_win,p_neu,p_loss} = computeProbs(state.k,state.l);
+      setRecent('neu', state.k, state.l, state.k, state.l, p_win, p_neu, p_loss);
     } else {
-      state.topHits++;
-      outcome = 'top';
-      state.k = 1;
-      flashClass = 'flash-win';
-      sound = 'top';
+      updateUI(); logMsg('ready');
+      runTests();
+      resetState();
+      saveSnapshot();
     }
-  } else {
-    state.neutrals++;
-    state.losses++;
-    outcome = 'neutral';
+  })();
+
+  function celebrateMilestone(msg){ const r=$('recent-outcome'); if(!r) return; r.textContent = `${r.textContent} • ${msg}`; }
+
+  function runTests(){ const errs=[];
+    // T0: probs sum to 1 and non-negative at sample points
+    [[1,0],[1,2],[10,0],[10,8],[19,0],[19,8]].forEach(([k,l])=>{ const {p_win,p_neu,p_loss}=computeProbs(k,l); const s=p_win+p_neu+p_loss; if(!(p_win>=0&&p_neu>=0&&p_loss>=0)) errs.push(`Negative prob at (${k},${l})`); if(Math.abs(s-1)>1e-9) errs.push(`Sum!=1 at (${k},${l})=${s}`); });
+    // T1: position bars present and react
+    (function(){ const kfill=$('kpos-fill'), lfill=$('lpos-fill'); if(!kfill||!lfill) errs.push('Position bars missing'); const bK=kfill.style.width, bL=lfill.style.width; stepOnce(); if(kfill.style.width===bK && lfill.style.width===bL) errs.push('Position bars didn\'t change after step'); })();
+    // T2: roll increments counters by 1
+    const t0=counts.win+counts.neu+counts.loss; stepOnce(); const t1=counts.win+counts.neu+counts.loss; if(t1!==t0+1) errs.push('Totals did not increment by 1');
+    // T3: streak counts wins only
+    const rnd=Math.random; try{ const {p_win,p_neu,p_loss}=computeProbs(state.k,state.l); let s0=streakSinceReset; Math.random=()=> p_win + Math.max(1e-6,p_neu/2); stepOnce(); let s1=streakSinceReset; if(s1!==s0) errs.push('Streak changed on neutral'); s0=streakSinceReset; Math.random=()=> Math.max(1e-6,p_win/2); stepOnce(); s1=streakSinceReset; if(s1!==s0+1) errs.push('Streak didn\'t increment on win'); s0=streakSinceReset; Math.random=()=> 1 - Math.max(1e-6,p_loss/2); stepOnce(); s1=streakSinceReset; if(s1!==0) errs.push('Streak didn\'t reset on loss'); } finally { Math.random=rnd; }
+    // T4: persistence round-trip (without touching localStorage)
+    const snapshot = { version:1, params:{...params}, state:{...state}, counts:{...counts}, historyK:[...historyK], maxK, longestStreak, streakSinceReset, lastResetStep, cycleLengths:[...cycleLengths] };
+    // mutate then restore
+    const oldStep=state.step; state.step+=5; // fake progress
+    applySnapshot(snapshot);
+    if(state.step!==oldStep) errs.push('Persistence apply failed to restore state');
+
+    if(errs.length){ console.warn('[Tests] FAIL', errs); logMsg('[TESTS] FAIL: '+errs.join(' | ')); } else { console.info('[Tests] PASS'); logMsg('[TESTS] PASS'); }
   }
-
-  state.steps++;
-  state.lastRoll = r;
-  state.lastOutcome = outcome;
-
-  state.histK[state.k] = (state.histK[state.k] || 0) + 1;
-
-  state.recentK.push(state.k);
-  if (state.recentK.length > 200) state.recentK.shift();
-
-  if (flashClass){
-    els.rollCard.classList.remove('flash-win','flash-cat');
-    void els.rollCard.offsetWidth;
-    els.rollCard.classList.add(flashClass);
-  }
-  beep(sound);
-
-  updateUI();
-  saveState();
-}
-
-function roll(){ applyRoll(rand20()); }
-
-/* ---------- Auto runner ---------- */
-function startAuto(){
-  if (state.autoTimer) return;
-  els.autoBtn.classList.add('btn-on');
-  state.autoTimer = setInterval(roll, 100);
-}
-function stopAuto(){
-  if (!state.autoTimer) return;
-  clearInterval(state.autoTimer);
-  state.autoTimer = null;
-  els.autoBtn.classList.remove('btn-on');
-}
-function toggleAuto(){ state.autoTimer ? stopAuto() : startAuto(); }
-
-/* ---------- Reset ---------- */
-function resetGame(){
-  stopAuto();
-  state.k = 1;
-  state.steps = 0;
-  state.wins = 0;
-  state.losses = 0;
-  state.neutrals = 0;
-  state.catastrophes = 0;
-  state.topHits = 0;
-  state.lastRoll = null;
-  state.lastOutcome = '—';
-  state.recentK = [];
-  state.histK = Array(20).fill(0);
-  updateUI(true);
-  saveState();
-}
-
-/* ---------- HiDPI Canvas helper ---------- */
-function setupHiDPICanvas(c){
-  const dpr = Math.max(1, window.devicePixelRatio || 1);
-  const cssW = Math.max(1, Math.floor(c.getBoundingClientRect().width));
-  const cssH = Math.max(1, Math.floor(parseFloat(getComputedStyle(c).height)));
-  c.width = Math.round(cssW * dpr);
-  c.height = Math.round(cssH * dpr);
-  const ctx = c.getContext('2d');
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  return { ctx, w: cssW, h: cssH };
-}
-
-/* ---------- Math helpers for Live Stats ---------- */
-function harmonic(n){
-  let s = 0;
-  for (let i=1;i<=n;i++) s += 1/i;
-  return s;
-}
-const H19 = harmonic(19);
-
-function formatPct(x){ return (x*100).toFixed(2) + '%'; }
-function formatNum(x){ return Number.isFinite(x) ? (+x.toFixed(3)).toString() : '—'; }
-
-/* ---------- UI ---------- */
-function updateUI(isReset=false){
-  els.kVal.textContent = state.k;
-  els.kValBig.textContent = state.k;
-  const thr = currentThreshold();
-  els.threshold.textContent = '≥ ' + thr;
-  els.thresholdHdr.textContent = thr;
-  els.steps.textContent = state.steps;
-  els.wins.textContent = state.wins;
-  els.losses.textContent = state.losses;
-  els.neutrals.textContent = state.neutrals;
-  els.cats.textContent = state.catastrophes;
-  els.topHits.textContent = state.topHits;
-
-  if (state.lastRoll == null){
-    els.lastRoll.textContent = '—';
-    els.lastOutcome.textContent = 'Ready';
-    els.lastOutcome.className = 'roll-label';
-  } else {
-    els.lastRoll.textContent = state.lastRoll;
-    const L = els.lastOutcome;
-    L.className = 'roll-label';
-    if (state.lastOutcome === 'win'){ L.textContent = 'WIN'; L.classList.add('state-win'); }
-    else if (state.lastOutcome === 'top'){ L.textContent = 'TOP HIT → RESET'; L.classList.add('state-top'); }
-    else if (state.lastOutcome === 'cat'){ L.textContent = 'CATASTROPHE → RESET'; L.classList.add('state-loss'); }
-    else { L.textContent = 'NEUTRAL'; L.classList.add('state-neutral'); }
-  }
-
-  drawSparkline();
-  drawHistogram();
-  updateLiveStats(); // NEW
-}
-
-/* ---------- Live Stats updater ---------- */
-function updateLiveStats(){
-  const k = state.k;
-  // Top before Cat, Cat before Top
-  const pTopFirst = k/20;
-  const pCatFirst = 1 - pTopFirst;
-
-  // Expected rolls and wins
-  const eRolls = 20 - k;
-  const Hk = harmonic(k);
-  const eWins = k * (H19 - Hk + 1/20);
-
-  // Long-run per-roll top-hit rate (global)
-  const longTopRate = 1/380;
-
-  // Long-run time fraction at current k
-  const f_k = (20/19) * (1/(k*(k+1)));
-
-  els.statTopFirst.textContent = formatPct(pTopFirst);
-  els.statCatFirst.textContent = formatPct(pCatFirst);
-  els.statERolls.textContent = formatNum(eRolls);
-  els.statEWins.textContent = formatNum(eWins);
-  els.statTopRate.textContent = formatPct(longTopRate);
-  els.statFk.textContent = formatPct(f_k);
-}
-
-/* ---------- Canvases ---------- */
-function drawSparkline(){
-  const c = els.spark;
-  const { ctx, w, h } = setupHiDPICanvas(c);
-
-  ctx.clearRect(0,0,w,h);
-
-  ctx.globalAlpha = 0.10;
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 1;
-  for (let i=1;i<=19;i++){
-    const y = mapKtoY(i, h);
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-  }
-  ctx.globalAlpha = 1.0;
-
-  const data = state.recentK;
-  if (data.length < 2) return;
-
-  ctx.lineWidth = 2;
-  const grad = ctx.createLinearGradient(0,0,w,0);
-  grad.addColorStop(0, '#00e5ff');
-  grad.addColorStop(1, '#ff3df0');
-  ctx.strokeStyle = grad;
-
-  ctx.beginPath();
-  const N = data.length;
-  const xStep = w / (N - 1);
-  for (let i=0;i<N;i++){
-    const x = i * xStep;
-    const y = mapKtoY(data[i], h);
-    if (i === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-  }
-  ctx.stroke();
-
-  ctx.globalAlpha = 0.12;
-  ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
-  ctx.fillStyle = grad; ctx.fill();
-  ctx.globalAlpha = 1.0;
-
-  function mapKtoY(k, hgt){
-    const t = (k - 1) / (19 - 1);
-    const pad = 8;
-    return (hgt - pad) - t * (hgt - 2*pad);
-  }
-}
-
-function drawHistogram(){
-  const c = els.hist;
-  const { ctx, w, h } = setupHiDPICanvas(c);
-
-  ctx.clearRect(0,0,w,h);
-
-  const counts = state.histK.slice(1, 20);
-  const max = Math.max(1, ...counts);
-  const n = counts.length;
-  const gap = 4;
-  const barW = (w - gap*(n+1)) / n;
-
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(0, h-0.5); ctx.lineTo(w, h-0.5); ctx.stroke();
-
-  for (let i=0;i<n;i++){
-    const v = counts[i];
-    const ratio = v / max;
-    const barH = Math.max(2, Math.round(ratio * (h - 16)));
-    const x = gap + i*(barW + gap);
-    const y = h - barH;
-
-    const grad = ctx.createLinearGradient(0, y, 0, y+barH);
-    grad.addColorStop(0, '#00e5ff');
-    grad.addColorStop(1, '#ff3df0');
-
-    ctx.fillStyle = grad;
-    ctx.fillRect(x, y, barW, barH);
-
-    ctx.fillStyle = 'rgba(230,240,255,0.6)';
-    ctx.font = '10px ui-sans-serif, system-ui';
-    ctx.textAlign = 'center';
-    ctx.fillText(String(i+1), x + barW/2, h - 2);
-  }
-}
-
-/* ---------- Controls & Bindings ---------- */
-function preventScroll(e){ if (e.code === 'Space') e.preventDefault(); }
-function onKey(e){
-  const k = e.key.toLowerCase();
-  if (k === 'r' || e.code === 'Space'){ e.preventDefault(); roll(); }
-  else if (k === 'a'){ toggleAuto(); }
-  else if (k === 's'){ stopAuto(); }
-  else if (k === 'x'){ resetGame(); }
-}
-
-function bindEvents(){
-  els.rollBtn.addEventListener('click', roll);
-  els.autoBtn.addEventListener('click', toggleAuto);
-  els.stopBtn.addEventListener('click', stopAuto);
-  els.resetBtn.addEventListener('click', resetGame);
-  window.addEventListener('keydown', preventScroll, {passive:false});
-  window.addEventListener('keydown', onKey);
-
-  ['click','keydown','touchstart'].forEach(ev=>{
-    window.addEventListener(ev, () => { try { ensureAudio(); } catch {} }, { once:true });
-  });
-
-  window.addEventListener('resize', () => { drawSparkline(); drawHistogram(); });
-
-  els.clearSave.addEventListener('click', (e)=>{
-    e.preventDefault();
-    clearSavedState();
-    alert('Saved state cleared. (Current session continues until you refresh.)');
-  });
-
-  window.addEventListener('beforeunload', saveState);
-}
-
-/* ---------- Init ---------- */
-function init(){
-  if (!loadState()){
-    state.recentK = [state.k];
-    state.histK = Array(20).fill(0);
-  }
-  updateUI(true);
-  bindEvents();
-  setTimeout(()=>{ drawSparkline(); drawHistogram(); }, 0);
-}
-init();
-</script>
+  </script>
 </body>
 </html>
+
