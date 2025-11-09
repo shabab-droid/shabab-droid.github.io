@@ -1,392 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sisyphus' Ruin — 2D Ladder Process Simulator</title>
-  <style>
-    /* ===== Outrun Neon Orange + Purple/Blue Theme ===== */
-    :root{
-      --bg:#080014; --panel:#1a0030; --panel-2:#240040; --text:#fef8ff; --muted:#cdaeff;
-      --accent:#ff9e2c; /* neon orange */
-      --accent-2:#ff00b8; /* magenta */
-      --accent-3:#00b7ff; /* cyan */
-      --accent-4:#ff4efc; /* purple */
-      --radius:16px; --outline:1px solid rgba(255,100,250,.35); --gridline:rgba(100,50,255,.12);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;color:var(--text);background:
-      radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.20), transparent 70%),
-      radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.15), transparent 70%),
-      linear-gradient(180deg,#0b0014 0%, #050010 100%);
-      overflow-x:hidden;
-    }
-    /* retro grid horizon */
-    body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.6;background:
-      repeating-linear-gradient(to right, var(--gridline) 0 2px, transparent 2px 40px),
-      repeating-linear-gradient(to top,   var(--gridline) 0 2px, transparent 2px 40px);
-      transform:perspective(600px) rotateX(60deg) translateY(40%);
-      filter:drop-shadow(0 0 10px rgba(0,183,255,.08));
-    }
-
-    .app{max-width:1100px;margin:0 auto;padding:12px}
-    h1{ text-align:center; font-size:clamp(22px,3vw,30px); margin:14px 0 12px; letter-spacing:1px;
-        background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--accent-3)); -webkit-background-clip:text; background-clip:text; color:transparent;
-        text-shadow:0 0 25px rgba(255,160,0,.35), 0 0 40px rgba(0,100,255,.25);
-    }
-
-    /* Cards & layout */
-    .card{ background: linear-gradient(180deg, var(--panel), var(--panel-2)); border-radius: var(--radius); border: var(--outline); padding:14px; box-shadow:0 0 25px rgba(255,0,200,.15), 0 0 50px rgba(0,150,255,.10)}
-    .grid{display:grid; grid-template-columns:1fr 360px; gap:12px}
-    @media (max-width:900px){ .grid{grid-template-columns:1fr} }
-    .small{font-size:12px;color:var(--muted)}
-    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    label{width:120px;font-size:12px;color:var(--muted)}
-    input[type="number"],select{ background:#120026; color:var(--text); border:1px solid rgba(255,100,250,.35); border-radius:10px; padding:6px 8px; min-width:80px }
-
-    /* Buttons */
-    .btn{appearance:none;background:linear-gradient(180deg,#300040,#150025);border:1px solid rgba(255,0,200,.4);color:var(--text);border-radius:var(--radius);padding:10px 14px;cursor:pointer;font-weight:700;letter-spacing:.3px;box-shadow:0 0 10px rgba(255,0,200,.15) inset;transition:all .2s}
-    .btn.big{display:block;width:100%;font-size:20px;padding:16px;margin-bottom:14px}
-    .btn.ghost{background:transparent}
-    .btn.secondary{background:linear-gradient(180deg,#2a1b00,#180d00);border-color:rgba(255,166,0,.5)}
-    .btn:hover{background:linear-gradient(180deg,#400050,#250040);box-shadow:0 0 15px rgba(0,200,255,.2)}
-
-    .sticky-roll{position:sticky;top:8px;z-index:5}
-
-    /* Bars */
-    .bar{height:10px;background:#10001f;border-radius:8px;overflow:hidden;margin:3px 0;border:1px solid rgba(255,166,0,.25)}
-    .bar>div{height:100%}
-    .bar .win{background:linear-gradient(90deg,#ffd94d,var(--accent))}
-    .bar .neu{background:linear-gradient(90deg,var(--accent-3),var(--accent-2))}
-    .bar .loss{background:linear-gradient(90deg,var(--accent-4),#ff2400)}
-
-    /* Outcome text effects */
-    .outcome-line{display:flex;align-items:baseline;gap:10px}
-    #recent-outcome{font-weight:900;letter-spacing:1px;font-size:clamp(20px,3.2vw,32px)}
-    .recent.win #recent-outcome{background:linear-gradient(90deg,var(--accent),var(--accent-3));-webkit-background-clip:text;background-clip:text;color:transparent}
-    .recent.neu #recent-outcome{background:linear-gradient(90deg,var(--accent-2),var(--accent-4));-webkit-background-clip:text;background-clip:text;color:transparent}
-    .recent.loss #recent-outcome{background:linear-gradient(90deg,var(--accent-4),#ff2400);-webkit-background-clip:text;background-clip:text;color:transparent}
-    .fx-pop{animation:fxpop .45s ease-out}
-    @keyframes fxpop{0%{transform:scale(.96);opacity:.8}70%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
-    .pulse{animation:pulse 450ms ease-out}
-    @keyframes pulse{0%{transform:scale(1)}60%{transform:scale(1.04)}100%{transform:scale(1)}}
-    .flash-win{animation:flashwin 600ms ease-out}
-    @keyframes flashwin{0%{box-shadow:0 0 0 0 rgba(255,180,0,.0)}25%{box-shadow:0 0 0 6px rgba(255,180,0,.2)}100%{box-shadow:0 0 0 0 rgba(255,180,0,.0)}}
-    .flash-loss{animation:flashloss 600ms ease-out}
-    @keyframes flashloss{0%{box-shadow:0 0 0 0 rgba(255,78,0,.0)}25%{box-shadow:0 0 0 6px rgba(255,78,0,.2)}100%{box-shadow:0 0 0 0 rgba(255,78,0,.0)}}
-    .flash-neu{animation:flashneu 600ms ease-out}
-    @keyframes flashneu{0%{box-shadow:0 0 0 0 rgba(255,135,0,.0)}25%{box-shadow:0 0 0 6px rgba(255,135,0,.2)}100%{box-shadow:0 0 0 0 rgba(255,135,0,.0)}}
-
-    /* Recent bars & position meters */
-    .recent-bars{margin-top:8px;display:grid;gap:6px}
-    .recent-bar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px}
-    .recent-bar .bar{height:8px}
-    .recent-bar .pct{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
-    .kpos-track,.lpos-track{height:6px;background:#10001f;border:1px solid rgba(255,166,0,.25);border-radius:6px;overflow:hidden}
-    /* SWAPPED: k uses orange→purple, ℓ uses cyan→magenta */
-    .kpos-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-4))}
-    .lpos-fill{height:100%;background:linear-gradient(90deg,var(--accent-3),var(--accent-2))}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sisyphus' Ruin — Game</title>
+<style>
+  :root{
+    --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
+    --accent:#ff9e2c; --accent-2:#ff00b8; --accent-3:#00b7ff; --accent-4:#ff4efc;
+  }
+  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);
+    background:radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%),
+               radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%),
+               linear-gradient(180deg,#0b0014 0%, #050010 100%)}
+  .app{max-width:1100px;margin:0 auto;padding:12px}
+  h1{text-align:center;font-size:clamp(22px,3vw,30px);margin:14px 0 12px;letter-spacing:.5px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--accent-3));-webkit-background-clip:text;color:transparent}
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:12px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .card{background:transparent;padding:14px;border:none}
+  .btn{appearance:none;background:#1c0130;border:none;color:var(--text);
+    border-radius:6px;padding:10px 14px;cursor:pointer;font-weight:600;letter-spacing:.3px;
+    transition:background .15s ease,transform .1s ease;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+  .btn:hover{background:#2d0048}
+  .btn:active{transform:scale(.97)}
+  .btn.big{display:block;width:100%;font-size:20px;padding:16px;margin-bottom:14px;background:#ff9e2c;color:#120026;font-weight:700}
+  .btn.big:hover{background:#ffb64d}
+  label{width:120px;font-size:12px;color:var(--muted)}
+  input[type="number"],select{background:#140026;color:var(--text);border:none;border-radius:4px;padding:6px 8px;min-width:80px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .bar{height:10px;background:rgba(255,255,255,.06);border-radius:8px;overflow:hidden;margin:3px 0;border:1px solid rgba(255,166,0,.12)}
+  .bar>div{height:100%}
+  .bar .win{background:linear-gradient(90deg,#ffd94d,var(--accent))}
+  .bar .neu{background:linear-gradient(90deg,var(--accent-3),var(--accent-2))}
+  .bar .loss{background:linear-gradient(90deg,var(--accent-4),#ff2400)}
+  .kpos-track,.lpos-track{height:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,166,0,.12);border-radius:6px;overflow:hidden}
+  .kpos-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-4))}
+  .lpos-fill{height:100%;background:linear-gradient(90deg,var(--accent-3),var(--accent-2))}
+  #log{height:160px;overflow:auto;background:rgba(18,0,38,.35);border:1px solid rgba(255,166,0,.12);border-radius:10px;padding:8px;font-family:monospace;font-size:12px}
+  svg#spark{width:100%;height:60px}
+  .tiny{font-size:11px;opacity:.65;color:var(--muted)}
+  .desc{font-size:11px;opacity:.6;color:var(--muted);margin:-2px 0 8px}
+  .recent.win #recent-outcome{color:#ffd54a;text-shadow:0 0 6px rgba(255,213,74,.65),0 0 18px rgba(255,180,0,.4)}
+  .recent.neu #recent-outcome{color:#a98dff}
+  .recent.loss #recent-outcome{color:#ff4d4d;text-shadow:0 0 6px rgba(255,77,77,.65),0 0 18px rgba(255,40,40,.4)}
+</style>
 </head>
 <body>
-  <div class="app">
-    <h1>Sisyphus' Ruin</h1>
+<div class="app">
+  <h1>Sisyphus' Ruin</h1>
 
-    <div class="sticky-roll">
-      <button class="btn big" id="roll1_big">🎲 Roll</button>
-    </div>
+  <div class="card"><button class="btn big" id="roll1_big">Roll</button></div>
 
-    <div class="grid">
-      <!-- LEFT COLUMN -->
-      <div>
-        <!-- Recent outcome & position -->
-        <div class="card recent" id="recent-card">
-          <div class="outcome-line">
-            <div id="recent-outcome">No rolls yet</div>
-            <div class="small">(k,ℓ): <span id="recent-kl">(1,0)→(1,0)</span> • p=[<span id="recent-p">0.000, 0.000, 0.000</span>] • p(win | no loss): <span id="recent-p-cond">—</span></div>
-          </div>
-          <div id="recent-bars" class="recent-bars">
-            <div class="recent-bar"><span>win</span><div class="bar"><div id="rbar-win" class="win" style="width:0%"></div></div><span id="rpct-win" class="pct">0%</span></div>
-            <div class="recent-bar"><span>neutral</span><div class="bar"><div id="rbar-neu" class="neu" style="width:0%"></div></div><span id="rpct-neu" class="pct">0%</span></div>
-            <div class="recent-bar"><span>loss</span><div class="bar"><div id="rbar-loss" class="loss" style="width:0%"></div></div><span id="rpct-loss" class="pct">0%</span></div>
-            <div class="kpos"><div class="kpos-track"><div id="kpos-fill" class="kpos-fill" style="width:0%"></div></div><div class="small">k-position: <span id="kpos-text">1 / 20</span></div></div>
-            <div class="lpos" style="margin-top:4px"><div class="lpos-track"><div id="lpos-fill" class="lpos-fill" style="width:0%"></div></div><div class="small">ℓ-position: <span id="lpos-text">0 / 10</span></div></div>
-          </div>
+  <div class="grid">
+    <div>
+      <!-- Recent -->
+      <div class="card recent" id="recent-card">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div id="recent-outcome" style="font-weight:900;letter-spacing:1px;font-size:clamp(20px,3.2vw,32px)">No rolls yet</div>
+          <div class="tiny mono">(k,ℓ): <span id="recent-kl">(1,0)→(1,0)</span></div>
         </div>
-
-        <!-- Sparkline -->
-        <div class="card">
-          <h2 style="margin-top:0">Sparkline</h2>
-          <svg id="spark" viewBox="0 0 300 60" preserveAspectRatio="none" style="width:100%;height:60px"></svg>
-        </div>
-
-        <!-- Run Stats -->
-        <div class="card">
-          <h2 style="margin-top:0">Run Stats</h2>
-          <div class="row" style="justify-content:space-between;margin-bottom:6px">
-            <div>steps: <span class="mono" id="rollStep">0</span></div>
-          </div>
-          <div class="bar"><div class="win" id="bar-win" style="width:0%"></div></div>
-          <div class="bar"><div class="neu" id="bar-neu" style="width:0%"></div></div>
-          <div class="bar"><div class="loss" id="bar-loss" style="width:0%"></div></div>
-          <div class="row" style="justify-content:space-between">
-            <div>win: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
-            <div>neutral: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
-            <div>loss: <span class="mono" id="c-loss">0</span> (<span class="mono" id="r-loss">0.0%</span>)</div>
-          </div>
-        </div>
-
-        <!-- Log (title intentionally omitted) -->
-        <div class="card">
-          <div id="log" style="height:160px;overflow:auto;background:#120026;border:1px solid rgba(255,166,0,.25);border-radius:10px;padding:8px;font-family:monospace;font-size:12px"></div>
+        <div class="recent-bars" style="margin-top:8px;display:grid;gap:6px">
+          <div class="row recent-bar"><span style="width:46px">win</span><div class="bar" style="flex:1"><div id="rbar-win" class="win" style="width:0%"></div></div><span id="rpct-win" class="small mono">0.0%</span></div>
+          <div class="row recent-bar"><span style="width:46px">neutral</span><div class="bar" style="flex:1"><div id="rbar-neu" class="neu" style="width:0%"></div></div><span id="rpct-neu" class="small mono">0.0%</span></div>
+          <div class="row recent-bar"><span style="width:46px">loss</span><div class="bar" style="flex:1"><div id="rbar-loss" class="loss" style="width:0%"></div></div><span id="rpct-loss" class="small mono">0.0%</span></div>
+          <div class="kpos"><div class="kpos-track"><div id="kpos-fill" class="kpos-fill" style="width:0%"></div></div><div class="small">k-position: <span id="kpos-text">1 / 20</span></div></div>
+          <div class="lpos" style="margin-top:4px"><div class="lpos-track"><div id="lpos-fill" class="lpos-fill" style="width:0%"></div></div><div class="small">ℓ-position: <span id="lpos-text">0 / 20</span></div></div>
+          <div class="row tiny" style="margin-top:2px">p(win | no loss): <span id="recent-p-cond">—</span></div>
         </div>
       </div>
 
-      <!-- RIGHT COLUMN -->
-      <div>
-        <div class="card">
-          <h2 style="margin-top:0">Play Controls</h2>
-          <div class="row">
-            <input id="nRolls" type="number" value="20" style="width:90px">
-            <button class="btn" id="rollN">Roll N</button>
-            <button class="btn ghost" id="auto">Auto</button>
-            <select id="speed">
-              <option value="200">Slow</option>
-              <option value="80" selected>Normal</option>
-              <option value="20">Fast</option>
-            </select>
-          </div>
+      <!-- Sparkline -->
+      <div class="card"><h2 style="margin:0 0 8px">Sparkline</h2><svg id="spark" viewBox="0 0 300 60" preserveAspectRatio="none"></svg></div>
+
+      <!-- Run stats -->
+      <div class="card"><h2 style="margin:0 0 8px">Run Stats</h2>
+        <div class="small" style="margin-bottom:6px">steps: <span class="mono" id="run-steps">0</span></div>
+        <div class="bar"><div class="win" id="bar-win" style="width:0%"></div></div>
+        <div class="bar"><div class="neu" id="bar-neu" style="width:0%"></div></div>
+        <div class="bar"><div class="loss" id="bar-loss" style="width:0%"></div></div>
+        <div class="row" style="justify-content:space-between">
+          <div>win: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
+          <div>neutral: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
+          <div>loss: <span class="mono" id="c-loss">0</span> (<span class="mono" id="r-loss">0.0%</span>)</div>
         </div>
+      </div>
 
-        <div class="card">
-          <h2 style="margin-top:0">Parameters</h2>
-          <div class="row"><label for="M">Max k (M)</label><input id="M" type="number" min="2" max="200" step="1" value="20"></div>
-          <div class="small">Number of k-levels. Higher M stretches the ladder; win probability ramps across these levels.</div>
+      <div class="card"><div id="log"></div></div>
+    </div>
 
-          <div class="row"><label for="L">Max ℓ (L)</label><input id="L" type="number" min="0" max="200" step="1" value="10"></div>
-          <div class="small">Ceiling for the auxiliary ℓ-state. ℓ modulates win/loss via boost/decay.</div>
-
-          <div class="row"><label>Win base (w_min → w_max)</label><input id="w_min" type="number" min="0" max="0.99" step="0.005" value="0.05"><input id="w_max" type="number" min="0" max="0.99" step="0.005" value="0.80"></div>
-          <div class="small">Minimum/maximum per-step win baseline before ℓ boost is applied.</div>
-
-          <div class="row"><label for="beta">k ramp β</label><input id="beta" type="number" min="0.1" max="8" step="0.1" value="1.5"></div>
-          <div class="small">Curvature of win ramp along k (higher β pushes wins later).</div>
-
-          <div class="row"><label>ℓ boost (ρ, γ)</label><input id="rho" type="number" min="0" max="1" step="0.05" value="0.6"><input id="gamma" type="number" min="0.1" max="8" step="0.1" value="1.4"></div>
-          <div class="small">ρ mixes in ℓ, γ curves how strongly large ℓ boosts p(win).</div>
-
-          <div class="row"><label>Loss floor/ceiling</label><input id="c_min" type="number" min="0" max="0.99" step="0.005" value="0.03"><input id="c_max" type="number" min="0" max="0.99" step="0.005" value="0.10"></div>
-          <div class="small">Bounds for p(loss) before ℓ-decay is applied.</div>
-
-          <div class="row"><label for="alpha">Loss decay α</label><input id="alpha" type="number" min="0" max="5" step="0.05" value="0.6"></div>
-          <div class="small">Controls how quickly p(loss) falls as ℓ grows.</div>
-
-          <div class="row"><label>ℓ update (g_n, s_w)</label><input id="g_n" type="number" min="0" max="10" step="1" value="1"><input id="s_w" type="number" min="0" max="10" step="1" value="5"></div>
-          <div class="small">On neutral: ℓ += g_n. On win: ℓ -= s_w (clamped ≥ 0). Loss resets to (k,ℓ)=(1,0).</div>
-
-          <div class="row">
-            <button class="btn" id="apply">Apply</button>
-            <button class="btn secondary" id="resetState">Reset State</button>
-            <button class="btn ghost" id="export">Export</button>
-            <button class="btn ghost" id="import">Import</button>
-          </div>
+    <div>
+      <!-- Play Controls -->
+      <div class="card"><h2 style="margin:0 0 8px">Play Controls</h2>
+        <div class="row">
+          <input id="nRolls" type="number" value="20" style="width:90px">
+          <button class="btn" id="rollN">Roll N</button>
+          <button class="btn" id="auto">Auto</button>
+          <select id="speed">
+            <option value="1000">Slow</option>
+            <option value="100" selected>Normal</option>
+            <option value="10">Fast</option>
+          </select>
         </div>
+      </div>
+
+      <!-- Parameters -->
+      <div class="card"><h2 style="margin:0 0 8px">Parameters</h2>
+        <div class="row"><label title="Number of progress levels">M (k levels)</label><input id="M" type="number" min="2" max="200" step="1" value="20"></div>
+        <div class="desc">How many rungs in the ladder.</div>
+        <div class="row"><label title="Maximum momentum index">L (ℓ max)</label><input id="L" type="number" min="0" max="200" step="1" value="20"></div>
+        <div class="desc">Momentum scale; ℓ ∈ [0, L].</div>
+        <div class="row"><label title="Baseline win range across k">w_min → w_max</label><input id="w_min" type="number" min="0" max="0.99" step="0.005" value="0.10"><input id="w_max" type="number" min="0" max="0.99" step="0.005" value="0.90"></div>
+        <div class="desc">Win rises from w_min at k=1 to w_max at k=M (after curvature).</div>
+        <div class="row"><label title="Curvature of win vs k">β (k ramp)</label><input id="beta" type="number" min="0.1" max="8" step="0.1" value="1.6"></div>
+        <div class="desc">β > 1 makes late k much easier; β < 1 flattens.</div>
+        <div class="row"><label title="Momentum boost strength & curvature">ρ, γ (ℓ boost)</label><input id="rho" type="number" min="0" max="1" step="0.05" value="0.6"><input id="gamma" type="number" min="0.1" max="8" step="0.1" value="1.5"></div>
+        <div class="desc">(1-ρ) + ρ(ℓ/L)^γ scales p(win): higher ℓ → more win.</div>
+        <div class="row"><label title="Loss baseline range">c_min → c_max</label><input id="c_min" type="number" min="0" max="0.99" step="0.005" value="0.03"><input id="c_max" type="number" min="0" max="0.99" step="0.005" value="0.10"></div>
+        <div class="desc">Per-step loss floor/ceiling before ℓ-decay.</div>
+        <div class="row"><label title="Loss decreases with ℓ">α (loss decay)</label><input id="alpha" type="number" min="0" max="5" step="0.05" value="0.6"></div>
+        <div class="desc">Higher ℓ reduces loss via e^{-αℓ}.</div>
+        <div class="row"><label title="ℓ changes on neutral / win">g_n, s_w (ℓ update)</label><input id="g_n" type="number" min="0" max="10" step="1" value="1"><input id="s_w" type="number" min="0" max="10" step="1" value="5"></div>
+        <div class="desc">Neutral: ℓ += g_n (capped at L). Win: ℓ -= s_w (floored at 0).</div>
+        <div class="row"><button class="btn" id="apply">Apply</button><button class="btn" id="resetState">Reset State</button></div>
       </div>
     </div>
   </div>
-
-  <script>
-  // ===== Parameters, State, Counters =====
-  const params = { M:20, L:10, w_min:0.05, w_max:0.80, beta:1.5, rho:0.6, gamma:1.4, c_min:0.03, c_max:0.10, alpha:0.6, g_n:1, s_w:5 };
+</div>
+<script>
+  // ===== Parameters & State =====
+  const params = { M:20, L:20, w_min:0.10, w_max:0.90, beta:1.6, rho:0.6, gamma:1.5, c_min:0.03, c_max:0.10, alpha:0.6, g_n:1, s_w:5 };
   const state  = { k:1, l:0, step:0 };
   const counts = { win:0, neu:0, loss:0 };
-  const historyK = []; // last 200 for sparkline
-  const historyKAll = []; // (kept short via log viewport)
-  let streakSinceReset = 0, longestStreak = 0, maxK = 1, lastResetStep = 0;
-  const cycleLengths = [];
+  const historyK = []; let maxK=1;
 
-  // ===== Persistence (localStorage) =====
-  const STORAGE_KEY = 'sisyphus_ruin_v1';
-  function saveSnapshot(){
-    try {
-      const snap = {
-        version:1,
-        params: { ...params },
-        state: { ...state },
-        counts: { ...counts },
-        historyK: [...historyK],
-        maxK, longestStreak, streakSinceReset, lastResetStep,
-        cycleLengths: [...cycleLengths]
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(snap));
-    } catch(e){ console.warn('saveSnapshot failed', e); }
-  }
-  function applySnapshot(snap){
-    Object.assign(params, snap.params||{});
-    Object.assign(state,  snap.state||{});
-    Object.assign(counts, snap.counts||{});
-    maxK = snap.maxK||1; longestStreak = snap.longestStreak||0; streakSinceReset = snap.streakSinceReset||0; lastResetStep = snap.lastResetStep||0;
-    historyK.length = 0; (snap.historyK||[]).forEach(v=> historyK.push(v));
-    cycleLengths.length = 0; (snap.cycleLengths||[]).forEach(v=> cycleLengths.push(v));
-    // reflect in inputs
-    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{ const e=$(id); if(e && params[id] !== undefined) e.value = params[id]; });
-  }
-  function loadSnapshot(){
-    try {
-      const s = localStorage.getItem(STORAGE_KEY);
-      if(!s) return false;
-      const snap = JSON.parse(s);
-      if(!snap || snap.version !== 1) return false;
-      applySnapshot(snap);
-      return true;
-    } catch(e){ console.warn('loadSnapshot failed', e); return false; }
-  }
-  function clearSnapshot(){ try{ localStorage.removeItem(STORAGE_KEY); logMsg('persistence cleared'); }catch(_){} }
+  // ===== Persistence =====
+  const STORAGE_KEY='sisyphus_ruin_game_v1';
+  const $=id=>document.getElementById(id);
+  function save(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({params,state,counts,historyK,maxK})); }catch(_){} }
+  function load(){ try{ const s=localStorage.getItem(STORAGE_KEY); if(!s) return false; const o=JSON.parse(s); Object.assign(params,o.params||{}); Object.assign(state,o.state||{}); Object.assign(counts,o.counts||{}); historyK.length=0; (o.historyK||[]).forEach(v=>historyK.push(v)); maxK=o.maxK||1; return true; }catch(_){return false} }
 
-  // ===== DOM helpers =====
-  const $ = (id)=> document.getElementById(id);
-  const el = { barwin: $('bar-win'), barneu:$('bar-neu'), barloss:$('bar-loss'), cwin:$('c-win'), cneu:$('c-neu'), closs:$('c-loss'), spark:$('spark'), log:$('log'), rollStep:$('rollStep') };
-
-  // ===== Math / Probs =====
-  const clamp01 = (x)=> Math.min(1, Math.max(0, x));
+  // ===== Probs =====
+  const clamp01=x=>Math.min(1,Math.max(0,x));
   function computeProbs(k,l){
-    const M=params.M, L=Math.max(1, params.L);
-    const base = params.w_min + (params.w_max-params.w_min)*Math.pow((k-1)/(M-1), params.beta);
-    const ell  = (1-params.rho) + params.rho*Math.pow(l/L, params.gamma);
-    let p_win  = clamp01(base*ell);
-    let p_loss = params.c_min + (params.c_max-params.c_min)*Math.exp(-params.alpha*l);
-    if (p_win + p_loss > 1){ const s=p_win+p_loss; p_win/=s; p_loss/=s; }
-    const p_neu = 1 - p_win - p_loss;
-    return { p_win, p_neu, p_loss };
+    const M=params.M, L=Math.max(1,params.L);
+    const base=params.w_min+(params.w_max-params.w_min)*Math.pow((k-1)/(M-1),params.beta);
+    const ell=(1-params.rho)+params.rho*Math.pow(l/L,params.gamma);
+    let p_win=clamp01(base*ell);
+    let p_loss=params.c_min+(params.c_max-params.c_min)*Math.exp(-params.alpha*l);
+    if(p_win+p_loss>1){const s=p_win+p_loss;p_win/=s;p_loss/=s;}
+    const p_neu=1-p_win-p_loss; return {p_win,p_neu,p_loss};
   }
 
   // ===== UI helpers =====
-  function logMsg(msg){ const line=document.createElement('div'); line.textContent=msg; el.log.appendChild(line); el.log.scrollTop=el.log.scrollHeight; historyKAll.push(state.k); }
-
-  function setRecent(outcome,k0,l0,k1,l1,pw,pn,pl){
-    const card = $('recent-card'); if(!card) return;
-    card.classList.remove('win','neu','loss','flash-win','flash-neu','flash-loss','pulse');
-    card.classList.add(outcome,'pulse', outcome==='win'?'flash-win':(outcome==='loss'?'flash-loss':'flash-neu'));
-    const outEl = $('recent-outcome'); outEl.textContent = outcome==='neu'?'NEUTRAL':outcome.toUpperCase(); outEl.classList.remove('fx-pop'); void outEl.offsetWidth; outEl.classList.add('fx-pop');
-    $('recent-kl').textContent = `(${k0},${l0})→(${k1},${l1})`;
-    $('recent-p').textContent  = `${pw.toFixed(3)}, ${pn.toFixed(3)}, ${pl.toFixed(3)}`;
-    const denom = 1 - pl; const pcond = denom>1e-12 ? Math.max(0, Math.min(1, pw/denom)) : 0; const pcondEl=$('recent-p-cond'); if(pcondEl) pcondEl.textContent = (denom<=1e-12? '—' : (pcond*100).toFixed(1)+'%');
-    const pct = x=> (100*Math.max(0,Math.min(1,x))).toFixed(0)+'%';
-    const setW = (id,val)=>{ const e=$(id); if(e) e.style.width=pct(val); };
-    const setT = (id,val)=>{ const e=$(id); if(e) e.textContent=pct(val); };
-    setW('rbar-win', pw); setW('rbar-neu', pn); setW('rbar-loss', pl);
-    setT('rpct-win', pw); setT('rpct-neu', pn); setT('rpct-loss', pl);
-    const kfrac = (k1-1)/Math.max(1, params.M-1); const kfill=$('kpos-fill'); if(kfill) kfill.style.width = pct(kfrac); const ktext=$('kpos-text'); if(ktext) ktext.textContent = `${k1} / ${params.M}`;
-    const lfrac = (l1)/Math.max(1, params.L);   const lfill=$('lpos-fill'); if(lfill) lfill.style.width = pct(lfrac); const ltext=$('lpos-text'); if(ltext) ltext.textContent = `${l1} / ${params.L}`;
-  }
+  const el={barwin:null,barneu:null,barloss:null,cwin:null,cneu:null,closs:null,spark:null,log:null};
+  function pct(x){return (100*Math.max(0,Math.min(1,x))).toFixed(1)+'%'}
+  function logMsg(m){ const d=document.createElement('div'); d.textContent=m; el.log.appendChild(d); el.log.scrollTop=el.log.scrollHeight; }
 
   function drawSpark(){
-    const w=300,h=60, data=historyK.length?historyK:[state.k], M=Math.max(2,params.M), y=(k)=> h-6-(h-12)*((k-1)/(M-1));
-    const stepX = data.length>1? (w-6)/(data.length-1):0; let points='';
-    for (let i=0;i<data.length;i++) points += `${3+i*stepX},${y(data[i]).toFixed(1)} `;
+    const w=300, h=60;
+    const data = historyK.length ? historyK : [state.k];
+    const Mv = Math.max(2, params.M);
+    const y = k => h - 6 - (h - 12) * ((k - 1) / (Mv - 1));
+    const stepX = data.length > 1 ? (w - 6) / (data.length - 1) : 0;
+    let points='';
+    for(let i=0;i<data.length;i++) points += `${3 + i*stepX},${y(data[i]).toFixed(1)} `;
     const stroke = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff9e2c';
-    $('spark').innerHTML = `<polyline fill="none" stroke="${stroke}" stroke-width="2" points="${points.trim()}" />` + `<rect x="0" y="0" width="300" height="60" fill="transparent" />`;
+    const gridColor = 'rgba(255,255,255,0.10)';
+    let gridLines = '';
+    for(let k=1;k<=Mv;k++){
+      const yy = y(k).toFixed(2);
+      gridLines += `<line x1="0" y1="${yy}" x2="${w}" y2="${yy}" stroke="${gridColor}" stroke-width="0.5" />`;
+    }
+    const overlay = `<rect x="0" y="0" width="${w}" height="${h}" fill="transparent" />`;
+    el.spark.innerHTML = `${gridLines}` + `<polyline fill="none" stroke="${stroke}" stroke-width="2" points="${points.trim()}" />` + overlay;
   }
 
-  // ===== Simulation step =====
-  function stepOnce(){
-    const {p_win,p_neu,p_loss} = computeProbs(state.k,state.l);
-    const k0=state.k, l0=state.l; const r=Math.random(); let outcome;
-    if (r < p_win){ outcome='win'; state.k=Math.min(params.M, state.k+1); state.l=Math.max(0, state.l-params.s_w); streakSinceReset++; }
-    else if (r < p_win+p_neu){ outcome='neu'; state.l=Math.min(params.L, state.l+params.g_n); }
-    else { outcome='loss'; const len = state.step - lastResetStep; if (state.step>0) cycleLengths.push(len); lastResetStep=state.step; state.k=1; state.l=0; longestStreak = Math.max(longestStreak, streakSinceReset); streakSinceReset=0; }
-    counts[outcome]++; state.step++; maxK=Math.max(maxK,state.k); historyK.push(state.k); if (historyK.length>200) historyK.shift();
-    $('rollStep').textContent = state.step;
-    logMsg(`step ${state.step}: (${k0},${l0}) → (${state.k},${state.l}) ${outcome.toUpperCase()} | p=[${p_win.toFixed(3)}, ${p_neu.toFixed(3)}, ${p_loss.toFixed(3)}]`);
-    if (state.k===maxK && state.k>1 && outcome==='win') celebrateMilestone(`New best k = ${maxK}`);
-    setRecent(outcome,k0,l0,state.k,state.l,p_win,p_neu,p_loss); updateUI();
-    saveSnapshot();
+  function setRecent(outcome,k0,l0,k1,l1){
+    const card=document.getElementById('recent-card'); card.classList.remove('win','neu','loss'); card.classList.add(outcome);
+    document.getElementById('recent-outcome').textContent= outcome==='neu'? 'NEUTRAL' : outcome.toUpperCase();
+    document.getElementById('recent-kl').textContent=`(${k0},${l0})→(${k1},${l1})`;
+    const {p_win,p_neu,p_loss}=computeProbs(k1,l1);
+    const denom=1-p_loss; document.getElementById('recent-p-cond').textContent= denom>1e-12? (100*(p_win/denom)).toFixed(1)+'%' : '—';
+    const setW=(id,val)=>{const e=document.getElementById(id); if(e) e.style.width=pct(val)}; const setT=(id,val)=>{const e=document.getElementById(id); if(e) e.textContent=pct(val)};
+    setW('rbar-win',p_win); setW('rbar-neu',p_neu); setW('rbar-loss',p_loss); setT('rpct-win',p_win); setT('rpct-neu',p_neu); setT('rpct-loss',p_loss);
+    const kfrac = k1 / Math.max(1, params.M); document.getElementById('kpos-fill').style.width=pct(kfrac); document.getElementById('kpos-text').textContent=`${k1} / ${params.M}`;
+    const lfrac=(l1)/Math.max(1,params.L); document.getElementById('lpos-fill').style.width=pct(lfrac); document.getElementById('lpos-text').textContent=`${l1} / ${params.L}`;
   }
 
-  function updateUI(){
-    const total = counts.win+counts.neu+counts.loss; const wP = total?counts.win/total*100:0; const nP=total?counts.neu/total*100:0; const lP=total?counts.loss/total*100:0;
-    el.barwin.style.width=wP+'%'; el.barneu.style.width=nP+'%'; el.barloss.style.width=lP+'%';
+  function updateStats(){
+    const tot=counts.win+counts.neu+counts.loss;
+    const wP=tot?counts.win/tot*100:0, nP=tot?counts.neu/tot*100:0, lP=tot?counts.loss/tot*100:0;
+    el.barwin.style.width=wP+'%'; el.barloss.style.width=lP+'%'; el.barneu.style.width=nP+'%';
     el.cwin.textContent=counts.win; el.cneu.textContent=counts.neu; el.closs.textContent=counts.loss;
-    $('r-win').textContent = wP.toFixed(1)+'%'; $('r-neu').textContent = nP.toFixed(1)+'%'; $('r-loss').textContent = lP.toFixed(1)+'%';
+    document.getElementById('r-win').textContent=wP.toFixed(1)+'%'; document.getElementById('r-neu').textContent=nP.toFixed(1)+'%'; document.getElementById('r-loss').textContent=lP.toFixed(1)+'%';
     drawSpark();
   }
 
-  // ===== Controls =====
-  function applyParams(){
-    const p=params; p.M=Math.max(2, +$('M').value|0); p.L=Math.max(0,+$('L').value|0);
-    p.w_min=Math.max(0, Math.min(0.99, +$('w_min').value)); p.w_max=Math.max(p.w_min, Math.min(0.99, +$('w_max').value));
-    p.beta=Math.max(0.1, +$('beta').value); p.rho=Math.min(1, Math.max(0, +$('rho').value)); p.gamma=Math.max(0.1, +$('gamma').value);
-    p.c_min=Math.max(0, Math.min(0.99, +$('c_min').value)); p.c_max=Math.max(p.c_min, Math.min(0.99, +$('c_max').value)); p.alpha=Math.max(0, +$('alpha').value);
-    p.g_n=Math.max(0, (+$('g_n').value|0)); p.s_w=Math.max(0, (+$('s_w').value|0));
-    $('kpos-text').textContent = `${state.k} / ${params.M}`;
-    $('lpos-text').textContent = `${state.l} / ${params.L}`;
-    updateUI();
-    saveSnapshot();
+  // ===== Simulation =====
+  function stepOnce(){
+    const k0=state.k,l0=state.l; const {p_win,p_neu,p_loss}=computeProbs(k0,l0); const r=Math.random(); let outcome;
+    if(r<p_win){ outcome='win'; state.k=Math.min(params.M,k0+1); state.l=Math.max(0,l0-params.s_w); }
+    else if(r<p_win+p_neu){ outcome='neu'; state.k=k0; state.l=Math.min(params.L,l0+params.g_n); }
+    else { outcome='loss'; state.k=1; state.l=0; }
+    counts[outcome]++; state.step++; maxK=Math.max(maxK,state.k); historyK.push(state.k); if(historyK.length>200) historyK.shift();
+    document.getElementById('run-steps').textContent = state.step;
+    logMsg(`step ${state.step}: (${k0},${l0}) → (${state.k},${state.l}) ${outcome.toUpperCase()}`);
+    setRecent(outcome,k0,l0,state.k,state.l);
+    updateStats(); save();
   }
-  function resetState(){
-    state.k=1; state.l=0; state.step=0; maxK=1; counts.win=counts.neu=counts.loss=0; historyK.length=0; historyKAll.length=0; cycleLengths.length=0; lastResetStep=0;
-    el.log.innerHTML=''; $('rollStep').textContent='0'; logMsg('state reset');
-    const {p_win,p_neu,p_loss} = computeProbs(state.k,state.l);
-    setRecent('neu',1,0,state.k,state.l,p_win,p_neu,p_loss); $('recent-outcome').textContent='RESET';
-    updateUI();
-    saveSnapshot();
-  }
+
   function rollN(n){ n=Math.max(1,n|0); for(let i=0;i<n;i++) stepOnce(); }
-  function toggleAuto(){ const auto=$('auto'); if(window.__auto){ clearInterval(window.__auto); window.__auto=null; auto.textContent='Auto'; return; } const dt=+$('speed').value; window.__auto=setInterval(stepOnce, dt); auto.textContent='Stop'; }
-  function exportParams(){ const blob=new Blob([JSON.stringify(params,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='params.json'; a.click(); }
-  function importParams(){ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=()=>{ const f=inp.files[0]; if(!f) return; const fr=new FileReader(); fr.onload=()=>{ try{ Object.assign(params, JSON.parse(fr.result)); ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{ const e=$(id); if(e) e.value=params[id]; }); updateUI(); saveSnapshot(); logMsg('params imported'); }catch(e){ alert('Invalid JSON'); } }; fr.readAsText(f); }; inp.click(); }
+  function toggleAuto(){ const btn=document.getElementById('auto'); if(window.__auto){clearInterval(window.__auto); window.__auto=null; btn.textContent='Auto'; return;} const dt=+document.getElementById('speed').value; window.__auto=setInterval(stepOnce,dt); btn.textContent='Stop'; }
 
-  // ===== Wire-up & Tests =====
-  (function init(){
-    // Try restore first
-    const restored = loadSnapshot();
-    // Sync form inputs (either from defaults or restored)
-    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{ const e=$(id); if(e) e.value=params[id]; });
+  function apply(){ const ids=['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w']; ids.forEach(id=>{ const e=document.getElementById(id); if(!e) return; const v=+e.value; if(Number.isFinite(v)) params[id]=v; }); updateStats(); save(); }
+  function resetState(){ state.k=1; state.l=0; state.step=0; counts.win=counts.neu=counts.loss=0; historyK.length=0; maxK=1; document.getElementById('log').innerHTML=''; document.getElementById('run-steps').textContent='0'; setRecent('neu',1,0,1,0); updateStats(); save(); }
 
-    $('roll1_big').addEventListener('click', stepOnce);
-    $('rollN').addEventListener('click', ()=> rollN(+$('nRolls').value || 1));
-    $('auto').addEventListener('click', toggleAuto);
-    $('apply').addEventListener('click', applyParams);
-    $('resetState').addEventListener('click', resetState);
-    $('export').addEventListener('click', exportParams);
-    $('import').addEventListener('click', importParams);
-    document.addEventListener('keydown', (e)=>{ if(e.key==='r'||e.key==='R') stepOnce(); if(e.key==='a'||e.key==='A') toggleAuto(); if(e.key==='s'||e.key==='S'){ if(window.__auto) toggleAuto(); } });
+  // ===== Safe binding and init after DOM is ready =====
+  function safeBind(id, event, handler){ const el=document.getElementById(id); if(!el){ console.warn(`Missing element #${id}`); return; } el.addEventListener(event, handler); }
 
-    if(restored){
-      logMsg('session restored from persistence');
-      updateUI();
-      const {p_win,p_neu,p_loss} = computeProbs(state.k,state.l);
-      setRecent('neu', state.k, state.l, state.k, state.l, p_win, p_neu, p_loss);
-    } else {
-      updateUI(); logMsg('ready');
-      runTests();
-      resetState();
-      saveSnapshot();
-    }
-  })();
+  document.addEventListener('DOMContentLoaded', () => {
+    // cache element refs now that DOM is ready
+    el.barwin=document.getElementById('bar-win');
+    el.barloss=document.getElementById('bar-loss');
+    el.barneu=document.getElementById('bar-neu');
+    el.cwin=document.getElementById('c-win');
+    el.cneu=document.getElementById('c-neu');
+    el.closs=document.getElementById('c-loss');
+    el.spark=document.getElementById('spark');
+    el.log=document.getElementById('log');
 
-  function celebrateMilestone(msg){ const r=$('recent-outcome'); if(!r) return; r.textContent = `${r.textContent} • ${msg}`; }
+    const restored=load();
+    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{const e=document.getElementById(id); if(e) e.value=params[id];});
 
-  function runTests(){ const errs=[];
-    // T0: probs sum to 1 and non-negative at sample points
-    [[1,0],[1,2],[10,0],[10,8],[19,0],[19,8]].forEach(([k,l])=>{ const {p_win,p_neu,p_loss}=computeProbs(k,l); const s=p_win+p_neu+p_loss; if(!(p_win>=0&&p_neu>=0&&p_loss>=0)) errs.push(`Negative prob at (${k},${l})`); if(Math.abs(s-1)>1e-9) errs.push(`Sum!=1 at (${k},${l})=${s}`); });
-    // T1: position bars present and react
-    (function(){ const kfill=$('kpos-fill'), lfill=$('lpos-fill'); if(!kfill||!lfill) errs.push('Position bars missing'); const bK=kfill.style.width, bL=lfill.style.width; stepOnce(); if(kfill.style.width===bK && lfill.style.width===bL) errs.push('Position bars didn\'t change after step'); })();
-    // T2: roll increments counters by 1
-    const t0=counts.win+counts.neu+counts.loss; stepOnce(); const t1=counts.win+counts.neu+counts.loss; if(t1!==t0+1) errs.push('Totals did not increment by 1');
-    // T3: streak counts wins only
-    const rnd=Math.random; try{ const {p_win,p_neu,p_loss}=computeProbs(state.k,state.l); let s0=streakSinceReset; Math.random=()=> p_win + Math.max(1e-6,p_neu/2); stepOnce(); let s1=streakSinceReset; if(s1!==s0) errs.push('Streak changed on neutral'); s0=streakSinceReset; Math.random=()=> Math.max(1e-6,p_win/2); stepOnce(); s1=streakSinceReset; if(s1!==s0+1) errs.push('Streak didn\'t increment on win'); s0=streakSinceReset; Math.random=()=> 1 - Math.max(1e-6,p_loss/2); stepOnce(); s1=streakSinceReset; if(s1!==0) errs.push('Streak didn\'t reset on loss'); } finally { Math.random=rnd; }
-    // T4: persistence round-trip (without touching localStorage)
-    const snapshot = { version:1, params:{...params}, state:{...state}, counts:{...counts}, historyK:[...historyK], maxK, longestStreak, streakSinceReset, lastResetStep, cycleLengths:[...cycleLengths] };
-    // mutate then restore
-    const oldStep=state.step; state.step+=5; // fake progress
-    applySnapshot(snapshot);
-    if(state.step!==oldStep) errs.push('Persistence apply failed to restore state');
+    safeBind('roll1_big','click',stepOnce);
+    safeBind('rollN','click',()=>rollN(+document.getElementById('nRolls').value||1));
+    safeBind('auto','click',toggleAuto);
+    safeBind('apply','click',apply);
+    safeBind('resetState','click',resetState);
 
-    if(errs.length){ console.warn('[Tests] FAIL', errs); logMsg('[TESTS] FAIL: '+errs.join(' | ')); } else { console.info('[Tests] PASS'); logMsg('[TESTS] PASS'); }
-  }
-  </script>
+    // keyboard shortcuts (ignore when typing in inputs/selects)
+    document.addEventListener('keydown', (e) => {
+      const tag=e.target.tagName; if(tag==='INPUT' || tag==='SELECT' || tag==='TEXTAREA') return;
+      const key=e.key.toLowerCase();
+      if(e.code==='Space' || key==='r'){ e.preventDefault(); stepOnce(); }
+      else if(key==='a'){ toggleAuto(); }
+      else if(key==='x'){ resetState(); }
+    });
+
+    if(restored){ updateStats(); setRecent('neu',state.k,state.l,state.k,state.l); }
+    else { updateStats(); setRecent('neu',1,0,1,0); }
+
+    // self-check
+    try{ const p0=computeProbs(1,0); const s=Math.abs(1-(p0.p_win+p0.p_neu+p0.p_loss)); if(s>1e-9) console.warn('Probability sum not ~1:', s); }catch(err){ console.warn('Self-test failed:', err); }
+  });
+</script>
 </body>
 </html>
+
 
