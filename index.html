@@ -66,7 +66,7 @@
           <div class="row recent-bar"><span style="width:46px">loss</span><div class="bar" style="flex:1"><div id="rbar-loss" class="loss" style="width:0%"></div></div><span id="rpct-loss" class="small mono">0.0%</span></div>
           <div class="kpos"><div class="kpos-track"><div id="kpos-fill" class="kpos-fill" style="width:0%"></div></div><div class="small">k-position: <span id="kpos-text">1 / 20</span></div></div>
           <div class="lpos" style="margin-top:4px"><div class="lpos-track"><div id="lpos-fill" class="lpos-fill" style="width:0%"></div></div><div class="small">ℓ-position: <span id="lpos-text">0 / 20</span></div></div>
-          <div class="row tiny" style="margin-top:2px">win loss differential: <span id="recent-p-cond">—</span></div>
+          <div class="row tiny" style="margin-top:2px">p(win | no loss): <span id="recent-p-cond">—</span></div>
         </div>
       </div>
 
@@ -181,8 +181,7 @@
     document.getElementById('recent-outcome').textContent= outcome==='neu'? 'NEUTRAL' : outcome.toUpperCase();
     document.getElementById('recent-kl').textContent=`(${k0},${l0})→(${k1},${l1})`;
     const {p_win,p_neu,p_loss}=computeProbs(k1,l1);
-    const denom=1-p_loss; 
-    document.getElementById('recent-p-cond').textContent= (100*(p_win-p_loss)).toFixed(1)+'%' : '—';
+    const denom=1-p_loss; document.getElementById('recent-p-cond').textContent= denom>1e-12? (100*(p_win/denom)).toFixed(1)+'%' : '—';
     const setW=(id,val)=>{const e=document.getElementById(id); if(e) e.style.width=pct(val)}; const setT=(id,val)=>{const e=document.getElementById(id); if(e) e.textContent=pct(val)};
     setW('rbar-win',p_win); setW('rbar-neu',p_neu); setW('rbar-loss',p_loss); setT('rpct-win',p_win); setT('rpct-neu',p_neu); setT('rpct-loss',p_loss);
     const kfrac = k1 / Math.max(1, params.M); document.getElementById('kpos-fill').style.width=pct(kfrac); document.getElementById('kpos-text').textContent=`${k1} / ${params.M}`;
@@ -258,5 +257,3 @@
 </script>
 </body>
 </html>
-
-
