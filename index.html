@@ -140,7 +140,7 @@
   const historyK = [];
   let maxK=1;
   let longestCycle=0; // longest cycle since last reset
-  let topHitGrid=null; // H[k][l] ≈ P(top hit eventually | start at (k,l))
+  let topHitGrid=null; // H[k][l] ≈ P(top hit before next catastrophe | start at (k,l))
 
   // ===== Persistence =====
   const STORAGE_KEY='sisyphus_ruin_game_v1';
@@ -201,15 +201,15 @@
           if(k === M){
             const l_neu = Math.min(L, l + params.g_n);
             const H_neu = H[M][l_neu];
-            const H_loss = H[1][0];
-            newVal = p_win*1 + p_neu*H_neu + p_loss*H_loss;
+            // p_loss leads to immediate catastrophe (failure), value 0
+            newVal = p_win*1 + p_neu*H_neu;
           } else {
             const l_win = Math.max(0, l - params.s_w);
             const l_neu = Math.min(L, l + params.g_n);
             const H_win = H[k+1][l_win];
             const H_neu = H[k][l_neu];
-            const H_loss = H[1][0];
-            newVal = p_win*H_win + p_neu*H_neu + p_loss*H_loss;
+            // p_loss leads to immediate catastrophe (failure), value 0
+            newVal = p_win*H_win + p_neu*H_neu;
           }
           H[k][l] = newVal;
           const diff = Math.abs(newVal - old);
@@ -275,10 +275,14 @@
     document.getElementById('recent-p-cond').textContent =
       (outcome==='top' || denom<=1e-12) ? '—' : (100*(p_win/denom)).toFixed(1)+'%';
 
-    // P(top hit eventually) from the new state
+    // P(top hit before next catastrophe) from the new state
     let pTopText = '—';
     if(outcome!=='top' && topHitGrid && topHitGrid[k1] && typeof topHitGrid[k1][l1] === 'number'){
-      pTopText = (100*topHitGrid[k1][l1]).toFixed(1)+'%';
+      // format odds + percent
+      const p = topHitGrid[k1][l1];
+      let odds = '1 in ' + Math.max(1, Math.round(1 / Math.max(p,1e-12)));
+      let pctStr = (100*p).toFixed(2) + '%';
+      pTopText = odds + ' (' + pctStr + ')';(1)+'%';
     }
     const pTopEl = document.getElementById('recent-p-top');
     if(pTopEl) pTopEl.textContent = pTopText;
