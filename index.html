@@ -129,26 +129,38 @@
         <div class="desc">Neutral: ℓ += g_n (capped at L). Win: ℓ -= s_w (floored at 0).</div>
         <div class="row"><button class="btn" id="apply">Apply</button><button class="btn" id="resetState">Reset State</button></div>
       </div>
+
+      <!-- Expectations -->
+      <div class="card"><h2 style="margin:0 0 8px">Expectations</h2>
+        <div class="tiny">Theoretical expectations under current parameters, assuming each cycle starts from (1,0).</div>
+        <div class="row tiny" style="margin-top:6px;flex-direction:column;align-items:flex-start;gap:2px">
+          <div>win rate (per roll): <span class="mono" id="exp-win-rate">—</span></div>
+          <div>loss rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
+          <div>average cycle length: <span class="mono" id="exp-cycle-len">—</span> rolls</div>
+          <div>E[first top hit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 <script>
-  // ===== Parameters & State =====
   const params = { M:20, L:20, w_min:0.10, w_max:0.90, beta:1.6, rho:0.6, gamma:1.5, c_min:0.03, c_max:0.10, alpha:0.6, g_n:1, s_w:5 };
   const state  = { k:1, l:0, step:0, topHit:false, cycleSteps:0 };
   const counts = { win:0, neu:0, loss:0 };
   const historyK = [];
   let maxK=1;
-  let longestCycle=0; // longest cycle since last reset
-  let topHitGrid=null; // H[k][l] ≈ P(top hit before next catastrophe | start at (k,l))
+  let longestCycle=0;
+  let topHitGrid=null;
+  let cycleLenGrid=null;
+  let winCountGrid=null;
 
-  // ===== Persistence =====
   const STORAGE_KEY='sisyphus_ruin_game_v1';
   const $=id=>document.getElementById(id);
+
   function save(){
     try{
       localStorage.setItem(STORAGE_KEY, JSON.stringify({params,state,counts,historyK,maxK,longestCycle}));
-    }catch(_){/* ignore */}
+    }catch(_){ }
   }
   function load(){
     try{
@@ -164,96 +176,162 @@
     }catch(_){return false}
   }
 
-  // ===== Probs =====
   const clamp01=x=>Math.min(1,Math.max(0,x));
   function computeProbs(k,l){
-    const M=params.M, L=Math.max(1,params.L);
-    const base=params.w_min+(params.w_max-params.w_min)*Math.pow((k-1)/(M-1),params.beta);
+    const M=Math.max(1,params.M|0);
+    const L=Math.max(1,params.L|0);
+    const frac = M>1 ? (k-1)/(M-1) : 1;
+    const base=params.w_min+(params.w_max-params.w_min)*Math.pow(frac,params.beta);
     const ell=(1-params.rho)+params.rho*Math.pow(l/L,params.gamma);
     let p_win=clamp01(base*ell);
     let p_loss=params.c_min+(params.c_max-params.c_min)*Math.exp(-params.alpha*l);
     if(p_win+p_loss>1){
-      const s=p_win+p_loss;
-      p_win/=s; p_loss/=s;
+      const s=p_win+p_loss; p_win/=s; p_loss/=s;
     }
     const p_neu=1-p_win-p_loss;
     return {p_win,p_neu,p_loss};
   }
 
-  // ===== Top Hit grid (value iteration) =====
   function recomputeTopHitGrid(){
-    const M = Math.max(1, params.M|0);
-    const L = Math.max(0, params.L|0);
-    const H = new Array(M+1);
-    for(let k=0;k<=M;k++){
-      H[k] = new Array(L+1).fill(0);
-    }
-    const maxIter = 400;
-    const tol = 1e-6;
-
+    const M=Math.max(1,params.M|0);
+    const L=Math.max(0,params.L|0);
+    const H=Array.from({length:M+1},()=>Array(L+1).fill(0));
+    const maxIter=400, tol=1e-6;
     for(let it=0; it<maxIter; it++){
-      let maxDiff = 0;
+      let maxDiff=0;
       for(let k=1;k<=M;k++){
         for(let l=0;l<=L;l++){
-          const old = H[k][l];
-          const {p_win,p_neu,p_loss} = computeProbs(k,l);
-          let newVal;
-          if(k === M){
-            const l_neu = Math.min(L, l + params.g_n);
-            const H_neu = H[M][l_neu];
-            // p_loss leads to immediate catastrophe (failure), value 0
-            newVal = p_win*1 + p_neu*H_neu;
-          } else {
-            const l_win = Math.max(0, l - params.s_w);
-            const l_neu = Math.min(L, l + params.g_n);
-            const H_win = H[k+1][l_win];
-            const H_neu = H[k][l_neu];
-            // p_loss leads to immediate catastrophe (failure), value 0
-            newVal = p_win*H_win + p_neu*H_neu;
+          const old=H[k][l];
+          const {p_win,p_neu}=computeProbs(k,l);
+          let nv;
+          if(k===M){
+            const l_neu=Math.min(L,l+params.g_n);
+            const H_neu=H[M][l_neu];
+            nv=p_win*1 + p_neu*H_neu;
+          }else{
+            const l_win=Math.max(0,l-params.s_w);
+            const l_neu=Math.min(L,l+params.g_n);
+            const H_win=H[k+1][l_win];
+            const H_neu=H[k][l_neu];
+            nv=p_win*H_win + p_neu*H_neu;
           }
-          H[k][l] = newVal;
-          const diff = Math.abs(newVal - old);
-          if(diff > maxDiff) maxDiff = diff;
+          H[k][l]=nv;
+          const d=Math.abs(nv-old); if(d>maxDiff) maxDiff=d;
         }
       }
-      if(maxDiff < tol) break;
+      if(maxDiff<tol) break;
     }
-    topHitGrid = H;
+    topHitGrid=H;
   }
 
-  // ===== UI helpers =====
+  function recomputeCycleLenGrid(){
+    const M=Math.max(1,params.M|0);
+    const L=Math.max(0,params.L|0);
+    const T=Array.from({length:M+1},()=>Array(L+1).fill(0));
+    const maxIter=400, tol=1e-6;
+    for(let it=0; it<maxIter; it++){
+      let maxDiff=0;
+      for(let k=1;k<=M;k++){
+        for(let l=0;l<=L;l++){
+          const old=T[k][l];
+          const {p_win,p_neu}=computeProbs(k,l);
+          let nv;
+          if(k===M){
+            const l_neu=Math.min(L,l+params.g_n);
+            const T_neu=T[M][l_neu];
+            nv=1 + p_neu*T_neu;
+          }else{
+            const l_win=Math.max(0,l-params.s_w);
+            const l_neu=Math.min(L,l+params.g_n);
+            const T_win=T[k+1][l_win];
+            const T_neu=T[k][l_neu];
+            nv=1 + p_win*T_win + p_neu*T_neu;
+          }
+          T[k][l]=nv;
+          const d=Math.abs(nv-old); if(d>maxDiff) maxDiff=d;
+        }
+      }
+      if(maxDiff<tol) break;
+    }
+    cycleLenGrid=T;
+  }
+
+  function recomputeWinCountGrid(){
+    const M=Math.max(1,params.M|0);
+    const L=Math.max(0,params.L|0);
+    const W=Array.from({length:M+1},()=>Array(L+1).fill(0));
+    const maxIter=400, tol=1e-6;
+    for(let it=0; it<maxIter; it++){
+      let maxDiff=0;
+      for(let k=1;k<=M;k++){
+        for(let l=0;l<=L;l++){
+          const old=W[k][l];
+          const {p_win,p_neu}=computeProbs(k,l);
+          let nv;
+          if(k===M){
+            const l_neu=Math.min(L,l+params.g_n);
+            const W_neu=W[M][l_neu];
+            nv=p_win*1 + p_neu*W_neu;
+          }else{
+            const l_win=Math.max(0,l-params.s_w);
+            const l_neu=Math.min(L,l+params.g_n);
+            const W_win=W[k+1][l_win];
+            const W_neu=W[k][l_neu];
+            nv=p_win*(1+W_win) + p_neu*W_neu;
+          }
+          W[k][l]=nv;
+          const d=Math.abs(nv-old); if(d>maxDiff) maxDiff=d;
+        }
+      }
+      if(maxDiff<tol) break;
+    }
+    winCountGrid=W;
+  }
+
+  function recomputeExpectations(){
+    recomputeTopHitGrid();
+    recomputeCycleLenGrid();
+    recomputeWinCountGrid();
+    updateExpectationsBox();
+  }
+
   const el={barwin:null,barneu:null,barloss:null,cwin:null,cneu:null,closs:null,spark:null,log:null};
-  function pct(x){return (100*Math.max(0,Math.min(1,x))).toFixed(1)+'%'}
+  const pct=x=>(100*Math.max(0,Math.min(1,x))).toFixed(1)+'%';
   function logMsg(m){
-    const d=document.createElement('div');
-    d.textContent=m;
-    el.log.appendChild(d);
-    el.log.scrollTop=el.log.scrollHeight;
+    const d=document.createElement('div'); d.textContent=m;
+    el.log.appendChild(d); el.log.scrollTop=el.log.scrollHeight;
   }
 
   function drawSpark(){
-    const w=300, h=60;
-    const data = historyK.length ? historyK : [state.k];
-    const Mv = Math.max(2, params.M);
-    const y = k => h - 6 - (h - 12) * ((k - 1) / (Mv - 1));
-    const stepX = data.length > 1 ? (w - 6) / (data.length - 1) : 0;
-    let points='';
-    for(let i=0;i<data.length;i++) points += `${3 + i*stepX},${y(data[i]).toFixed(1)} `;
-    const stroke = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff9e2c';
-    const gridColor = 'rgba(255,255,255,0.10)';
-    let gridLines = '';
+    const w=300,h=60;
+    const data=historyK.length?historyK:[state.k];
+    const Mv=Math.max(2,params.M|0);
+    const y=k=>h-6-(h-12)*((k-1)/(Mv-1));
+    const stepX=data.length>1?(w-6)/(data.length-1):0;
+    let pts='';
+    for(let i=0;i<data.length;i++) pts+=`${3+i*stepX},${y(data[i]).toFixed(1)} `;
+    const stroke=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#ff9e2c';
+    const gridColor='rgba(255,255,255,0.10)';
+    let grid='';
     for(let k=1;k<=Mv;k++){
-      const yy = y(k).toFixed(2);
-      gridLines += `<line x1="0" y1="${yy}" x2="${w}" y2="${yy}" stroke="${gridColor}" stroke-width="0.5" />`;
+      const yy=y(k).toFixed(2);
+      grid+=`<line x1="0" y1="${yy}" x2="${w}" y2="${yy}" stroke="${gridColor}" stroke-width="0.5" />`;
     }
-    const overlay = `<rect x="0" y="0" width="${w}" height="${h}" fill="transparent" />`;
-    el.spark.innerHTML = `${gridLines}` + `<polyline fill="none" stroke="${stroke}" stroke-width="2" points="${points.trim()}" />` + overlay;
+    const overlay=`<rect x="0" y="0" width="${w}" height="${h}" fill="transparent" />`;
+    el.spark.innerHTML=grid+`<polyline fill="none" stroke="${stroke}" stroke-width="2" points="${pts.trim()}" />`+overlay;
+  }
+
+  function formatOddsAndPercent(p){
+    if(p<=0 || !Number.isFinite(p)) return '—';
+    const odds=Math.max(1,Math.round(1/Math.max(p,1e-12)));
+    const pctStr=(100*p).toFixed(2)+'%';
+    return `1 in ${odds} (${pctStr})`;
   }
 
   function setRecent(outcome,k0,l0,k1,l1){
-    const card=document.getElementById('recent-card');
+    const card=$('recent-card');
     card.classList.remove('win','neu','loss');
-    const cls = (outcome==='top' ? 'win' : outcome); // top hit uses win styling
+    const cls=(outcome==='top'?'win':outcome);
     if(cls) card.classList.add(cls);
 
     let label;
@@ -261,43 +339,33 @@
     else if(outcome==='top') label='TOP HIT';
     else if(outcome) label=outcome.toUpperCase();
     else label='—';
-    document.getElementById('recent-outcome').textContent = label;
+    $('recent-outcome').textContent=label;
+    $('recent-kl').textContent=`(${k0},${l0})→(${k1},${l1})`;
 
-    document.getElementById('recent-kl').textContent=`(${k0},${l0})→(${k1},${l1})`;
-
-    let p_win=0, p_neu=0, p_loss=0;
+    let p_win=0,p_neu=0,p_loss=0;
     if(outcome!=='top'){
-      const probs = computeProbs(k1,l1);
-      p_win = probs.p_win; p_neu = probs.p_neu; p_loss = probs.p_loss;
+      const p=computeProbs(k1,l1); p_win=p.p_win; p_neu=p.p_neu; p_loss=p.p_loss;
     }
-
     const denom=p_win+p_loss;
-    document.getElementById('recent-p-cond').textContent =
-      (outcome==='top' || denom<=1e-12) ? '—' : (100*(p_win/denom)).toFixed(1)+'%';
+    $('recent-p-cond').textContent=(outcome==='top'||denom<=1e-12)?'—':(100*(p_win/denom)).toFixed(1)+'%';
 
-    // P(top hit before next catastrophe) from the new state
-    let pTopText = '—';
-    if(outcome!=='top' && topHitGrid && topHitGrid[k1] && typeof topHitGrid[k1][l1] === 'number'){
-      // format odds + percent
-      const p = topHitGrid[k1][l1];
-      let odds = '1 in ' + Math.max(1, Math.round(1 / Math.max(p,1e-12)));
-      let pctStr = (100*p).toFixed(2) + '%';
-      pTopText = odds + ' (' + pctStr + ')';(1)+'%';
+    let pTopText='—';
+    if(outcome!=='top' && topHitGrid && topHitGrid[k1] && typeof topHitGrid[k1][l1]==='number'){
+      pTopText=formatOddsAndPercent(topHitGrid[k1][l1]);
     }
-    const pTopEl = document.getElementById('recent-p-top');
-    if(pTopEl) pTopEl.textContent = pTopText;
+    $('recent-p-top').textContent=pTopText;
 
-    const setW=(id,val)=>{const e=document.getElementById(id); if(e) e.style.width=pct(val)};
-    const setT=(id,val)=>{const e=document.getElementById(id); if(e) e.textContent=pct(val)};
+    const setW=(id,val)=>{$(id).style.width=pct(val)};
+    const setT=(id,val)=>{$(id).textContent=pct(val)};
     setW('rbar-win',p_win); setW('rbar-neu',p_neu); setW('rbar-loss',p_loss);
     setT('rpct-win',p_win); setT('rpct-neu',p_neu); setT('rpct-loss',p_loss);
 
-    const kfrac = k1 / Math.max(1, params.M);
-    document.getElementById('kpos-fill').style.width=pct(kfrac);
-    document.getElementById('kpos-text').textContent=`${k1} / ${params.M}`;
-    const lfrac = (l1) / Math.max(1, params.L);
-    document.getElementById('lpos-fill').style.width=pct(lfrac);
-    document.getElementById('lpos-text').textContent=`${l1} / ${params.L}`;
+    const kfrac=k1/Math.max(1,params.M|0);
+    $('kpos-fill').style.width=pct(kfrac);
+    $('kpos-text').textContent=`${k1} / ${params.M}`;
+    const lfrac=l1/Math.max(1,params.L|0);
+    $('lpos-fill').style.width=pct(lfrac);
+    $('lpos-text').textContent=`${l1} / ${params.L}`;
   }
 
   function updateStats(){
@@ -305,215 +373,154 @@
     const wP=tot?counts.win/tot*100:0;
     const nP=tot?counts.neu/tot*100:0;
     const lP=tot?counts.loss/tot*100:0;
-
     el.barwin.style.width=wP+'%';
     el.barloss.style.width=lP+'%';
     el.barneu.style.width=nP+'%';
-
     el.cwin.textContent=counts.win;
     el.cneu.textContent=counts.neu;
     el.closs.textContent=counts.loss;
-
-    document.getElementById('r-win').textContent=wP.toFixed(1)+'%';
-    document.getElementById('r-neu').textContent=nP.toFixed(1)+'%';
-    document.getElementById('r-loss').textContent=lP.toFixed(1)+'%';
-
-    const lcEl = document.getElementById('longest-cycle');
-    if(lcEl) lcEl.textContent = longestCycle;
-    const maxEl = document.getElementById('max-k');
-    if(maxEl) maxEl.textContent = maxK;
-
+    $('r-win').textContent=wP.toFixed(1)+'%';
+    $('r-neu').textContent=nP.toFixed(1)+'%';
+    $('r-loss').textContent=lP.toFixed(1)+'%';
+    $('longest-cycle').textContent=longestCycle;
+    $('max-k').textContent=maxK;
     drawSpark();
   }
 
-  // ===== Simulation =====
+  function updateExpectationsBox(){
+    const winSpan=$('exp-win-rate');
+    const lossSpan=$('exp-loss-rate');
+    const cycSpan=$('exp-cycle-len');
+    const topSpan=$('exp-time-top');
+    if(!winSpan||!lossSpan||!cycSpan||!topSpan) return;
+    if(!topHitGrid||!cycleLenGrid||!winCountGrid||!topHitGrid[1]||!cycleLenGrid[1]||!winCountGrid[1]){
+      winSpan.textContent=lossSpan.textContent=cycSpan.textContent=topSpan.textContent='—';
+      return;
+    }
+    const pCycleTop=topHitGrid[1][0];
+    const c=cycleLenGrid[1][0];
+    const w=winCountGrid[1][0];
+    if(typeof pCycleTop!=='number'||typeof c!=='number'||typeof w!=='number'||c<=0){
+      winSpan.textContent=lossSpan.textContent=cycSpan.textContent=topSpan.textContent='—';
+      return;
+    }
+    const winRatePerRoll=w/c;
+    const lossRatePerRoll=(1-pCycleTop)/c;
+    winSpan.textContent=(100*winRatePerRoll).toFixed(3)+'%';
+    lossSpan.textContent=(100*lossRatePerRoll).toFixed(3)+'%';
+    cycSpan.textContent=c.toFixed(1);
+    if(pCycleTop<=1e-12) topSpan.textContent='∞';
+    else topSpan.textContent=(c/pCycleTop).toFixed(1);
+  }
+
   function stepOnce(){
     if(state.topHit){
       logMsg('Top hit already reached — reset state to play again.');
       return;
     }
-
-    const k0=state.k, l0=state.l;
+    const k0=state.k,l0=state.l;
     const {p_win,p_neu,p_loss}=computeProbs(k0,l0);
     const r=Math.random();
     let outcome;
-
-    if(r < p_win){
-      if(k0 === params.M){
-        // Absorbing Top Hit: record state as-is, no ℓ reduction
+    if(r<p_win){
+      if(k0===params.M){
         outcome='top';
-        state.k = k0;
-        state.l = l0;
-        state.topHit = true;
-        // end any auto loop
-        if(window.__auto){
-          clearInterval(window.__auto);
-          window.__auto=null;
-          const btnAuto=document.getElementById('auto');
-          if(btnAuto) btnAuto.textContent='Auto';
-        }
-      } else {
+        state.k=k0; state.l=l0; state.topHit=true;
+        if(window.__auto){ clearInterval(window.__auto); window.__auto=null; $('auto').textContent='Auto'; }
+      }else{
         outcome='win';
-        state.k = Math.min(params.M, k0+1);
-        state.l = Math.max(0, l0-params.s_w);
+        state.k=Math.min(params.M,k0+1);
+        state.l=Math.max(0,l0-params.s_w);
       }
-    }
-    else if(r < p_win + p_neu){
+    }else if(r<p_win+p_neu){
       outcome='neu';
-      state.k = k0;
-      state.l = Math.min(params.L, l0+params.g_n);
-    }
-    else {
+      state.k=k0;
+      state.l=Math.min(params.L,l0+params.g_n);
+    }else{
       outcome='loss';
-      state.k = 1;
-      state.l = 0;
+      state.k=1; state.l=0;
     }
-
-    counts[outcome] = (counts[outcome]||0) + 1;
+    counts[outcome]=(counts[outcome]||0)+1;
     state.step++;
     state.cycleSteps++;
-
-    // A "cycle" is from the last loss (or reset) up to the next loss or top hit
-    if(outcome === 'loss' || outcome === 'top'){
-      if(state.cycleSteps > longestCycle) longestCycle = state.cycleSteps;
-      if(outcome === 'loss') state.cycleSteps = 0; // new cycle begins after catastrophe
+    if(outcome==='loss' || outcome==='top'){
+      if(state.cycleSteps>longestCycle) longestCycle=state.cycleSteps;
+      if(outcome==='loss') state.cycleSteps=0;
     }
-
-    maxK = Math.max(maxK, state.k);
-    historyK.push(state.k);
-    if(historyK.length>200) historyK.shift();
-    document.getElementById('run-steps').textContent = state.step;
-
-    if(outcome === 'top'){
-      logMsg(`step ${state.step}: (${k0},${l0}) → TOP HIT at k=${state.k}, ℓ=${state.l}`);
-    } else {
-      logMsg(`step ${state.step}: (${k0},${l0}) → (${state.k},${state.l}) ${outcome.toUpperCase()}`);
-    }
-
+    maxK=Math.max(maxK,state.k);
+    historyK.push(state.k); if(historyK.length>200) historyK.shift();
+    $('run-steps').textContent=state.step;
+    if(outcome==='top') logMsg(`step ${state.step}: (${k0},${l0}) → TOP HIT at k=${state.k}, ℓ=${state.l}`);
+    else logMsg(`step ${state.step}: (${k0},${l0}) → (${state.k},${state.l}) ${outcome.toUpperCase()}`);
     setRecent(outcome,k0,l0,state.k,state.l);
     updateStats();
     save();
   }
 
-  function rollN(n){
-    n = Math.max(1, n|0);
-    for(let i=0;i<n;i++) stepOnce();
-  }
+  function rollN(n){ n=Math.max(1,n|0); for(let i=0;i<n;i++) stepOnce(); }
 
   function toggleAuto(){
-    const btn=document.getElementById('auto');
-    if(window.__auto){
-      clearInterval(window.__auto);
-      window.__auto=null;
-      btn.textContent='Auto';
-      return;
-    }
-    if(state.topHit){
-      logMsg('Top hit already reached — reset state to play again.');
-      return;
-    }
-    const dt = +document.getElementById('speed').value;
-    window.__auto = setInterval(stepOnce, dt);
-    btn.textContent = 'Stop';
+    const btn=$('auto');
+    if(window.__auto){ clearInterval(window.__auto); window.__auto=null; btn.textContent='Auto'; return; }
+    if(state.topHit){ logMsg('Top hit already reached — reset state to play again.'); return; }
+    const dt=+$('speed').value||100;
+    window.__auto=setInterval(stepOnce,dt);
+    btn.textContent='Stop';
   }
 
   function apply(){
-    const ids=['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'];
-    ids.forEach(id=>{
-      const e=document.getElementById(id);
-      if(!e) return;
-      const v=+e.value;
-      if(Number.isFinite(v)) params[id]=v;
+    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{
+      const e=$(id); if(!e) return; const v=+e.value; if(Number.isFinite(v)) params[id]=v;
     });
-    recomputeTopHitGrid();
+    recomputeExpectations();
     updateStats();
     save();
   }
 
   function resetState(){
-    state.k=1;
-    state.l=0;
-    state.step=0;
-    state.topHit=false;
-    state.cycleSteps=0;
-    longestCycle=0;
-    counts.win=counts.neu=counts.loss=0;
-    historyK.length=0;
-    maxK=1;
-    document.getElementById('log').innerHTML='';
-    document.getElementById('run-steps').textContent='0';
+    state.k=1; state.l=0; state.step=0; state.topHit=false; state.cycleSteps=0;
+    longestCycle=0; counts.win=counts.neu=counts.loss=0; historyK.length=0; maxK=1;
+    $('log').innerHTML=''; $('run-steps').textContent='0';
     setRecent('neu',1,0,1,0);
     updateStats();
     save();
   }
 
-  // ===== Safe binding and init after DOM is ready =====
-  function safeBind(id, event, handler){
-    const el=document.getElementById(id);
-    if(!el){ console.warn(`Missing element #${id}`); return; }
-    el.addEventListener(event, handler);
-  }
+  function safeBind(id,ev,fn){ const e=$(id); if(e) e.addEventListener(ev,fn); }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    // cache element refs now that DOM is ready
-    el.barwin=document.getElementById('bar-win');
-    el.barloss=document.getElementById('bar-loss');
-    el.barneu=document.getElementById('bar-neu');
-    el.cwin=document.getElementById('c-win');
-    el.cneu=document.getElementById('c-neu');
-    el.closs=document.getElementById('c-loss');
-    el.spark=document.getElementById('spark');
-    el.log=document.getElementById('log');
+  document.addEventListener('DOMContentLoaded',()=>{
+    el.barwin=$('bar-win'); el.barloss=$('bar-loss'); el.barneu=$('bar-neu');
+    el.cwin=$('c-win'); el.cneu=$('c-neu'); el.closs=$('c-loss');
+    el.spark=$('spark'); el.log=$('log');
 
     const restored=load();
-    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{
-      const e=document.getElementById(id);
-      if(e) e.value=params[id];
-    });
+    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{ const e=$(id); if(e) e.value=params[id]; });
 
-    // compute grid once on load
-    recomputeTopHitGrid();
+    recomputeExpectations();
 
     safeBind('roll1_big','click',stepOnce);
-    safeBind('rollN','click',()=>rollN(+document.getElementById('nRolls').value||1));
+    safeBind('rollN','click',()=>rollN(+$('nRolls').value||1));
     safeBind('auto','click',toggleAuto);
     safeBind('apply','click',apply);
     safeBind('resetState','click',resetState);
 
-    // keyboard shortcuts (ignore when typing in inputs/selects)
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown',e=>{
       const tag=e.target.tagName;
-      if(tag==='INPUT' || tag==='SELECT' || tag==='TEXTAREA') return;
+      if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA') return;
       const key=e.key.toLowerCase();
-      if(e.code==='Space' || key==='r'){
-        e.preventDefault();
-        stepOnce();
-      }
-      else if(key==='a'){
-        toggleAuto();
-      }
-      else if(key==='x'){
-        resetState();
-      }
+      if(e.code==='Space'||key==='r'){ e.preventDefault(); stepOnce(); }
+      else if(key==='a') toggleAuto();
+      else if(key==='x') resetState();
     });
 
-    if(restored){
-      updateStats();
-      setRecent('neu',state.k,state.l,state.k,state.l);
-    }
-    else {
-      updateStats();
-      setRecent('neu',1,0,1,0);
-    }
+    if(restored){ updateStats(); setRecent('neu',state.k,state.l,state.k,state.l); }
+    else{ updateStats(); setRecent('neu',1,0,1,0); }
 
-    // self-check
     try{
       const p0=computeProbs(1,0);
       const s=Math.abs(1-(p0.p_win+p0.p_neu+p0.p_loss));
-      if(s>1e-9) console.warn('Probability sum not ~1:', s);
-    }catch(err){
-      console.warn('Self-test failed:', err);
-    }
+      if(s>1e-6) console.warn('Probabilities do not sum to 1 at (1,0):',p0);
+    }catch(err){ console.warn('Self-test failed:',err); }
   });
 </script>
 </body>
