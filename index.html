@@ -109,8 +109,17 @@
         </div>
       </div>
 
+      <!-- System Explanation -->
+      <div class="card"><h2 style="margin:0 0 8px">System</h2>
+        <div class="tiny" style="line-height:1.45">
+          This process tracks a state <strong>(k, ℓ)</strong> where k is progress up a ladder (1 → M) and ℓ is momentum (0 → L).<br>
+          On each roll you get a <strong>win</strong> (k increases, ℓ drops), <strong>neutral</strong> (k stays, ℓ rises), or <strong>loss</strong> (reset to k=1, ℓ=0).<br>
+          At k = M, a win becomes a <strong>Top Hit</strong>, ending the run.<br><br><strong>Probabilities:</strong> Probabilities depend on k, ℓ, and the parameters.
+        </div>
+      </div>
+
       <!-- Parameters -->
-      <div class="card"><h2 style="margin:0 0 8px">Parameters</h2>
+      <div class="card"><h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Parameters</h3>
         <div class="row"><label title="Number of progress levels">M (k levels)</label><input id="M" type="number" min="2" max="200" step="1" value="20"></div>
         <div class="desc">How many rungs in the ladder.</div>
         <div class="row"><label title="Maximum momentum index">L (ℓ max)</label><input id="L" type="number" min="0" max="200" step="1" value="20"></div>
@@ -131,7 +140,7 @@
       </div>
 
       <!-- Expectations -->
-      <div class="card"><h2 style="margin:0 0 8px">Expectations</h2>
+      <div class="card"><h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Expectations</h3>
         <div class="tiny">Theoretical expectations under current parameters, assuming each cycle starts from (1,0).</div>
         <div class="row tiny" style="margin-top:6px;flex-direction:column;align-items:flex-start;gap:2px">
           <div>win rate (per roll): <span class="mono" id="exp-win-rate">—</span></div>
@@ -150,6 +159,9 @@
   const historyK = [];
   let maxK=1;
   let longestCycle=0;
+  // Cycle tracking
+  let cycleId=1;
+  let currentCycle={ id:1, length:0, wins:0, neus:0, maxK:1, path:'' };
   let topHitGrid=null;
   let cycleLenGrid=null;
   let winCountGrid=null;
@@ -447,11 +459,51 @@
       if(state.cycleSteps>longestCycle) longestCycle=state.cycleSteps;
       if(outcome==='loss') state.cycleSteps=0;
     }
+
+    // Update cycle tracking
+    let symbol='';
+    if(outcome==='win') symbol='+';
+    else if(outcome==='neu') symbol='.';
+    else if(outcome==='loss') symbol='X';
+    else if(outcome==='top') symbol='★';
+    if(symbol){
+      currentCycle.length++;
+      if(outcome==='win') currentCycle.wins++;
+      if(outcome==='neu') currentCycle.neus++;
+      currentCycle.maxK=Math.max(currentCycle.maxK,state.k);
+      currentCycle.path+=symbol;
+    }
+
     maxK=Math.max(maxK,state.k);
     historyK.push(state.k); if(historyK.length>200) historyK.shift();
     $('run-steps').textContent=state.step;
     if(outcome==='top') logMsg(`step ${state.step}: (${k0},${l0}) → TOP HIT at k=${state.k}, ℓ=${state.l}`);
     else logMsg(`step ${state.step}: (${k0},${l0}) → (${state.k},${state.l}) ${outcome.toUpperCase()}`);
+
+    // Cycle summaries
+    if(outcome==='loss'){
+      logMsg(`=== Cycle ${currentCycle.id} (LOSS) ===`);
+      logMsg('Path:');
+      logMsg(currentCycle.path);
+      logMsg(`Length:   ${currentCycle.length} rolls`);
+      logMsg(`Wins:     ${currentCycle.wins}`);
+      logMsg(`Neutrals: ${currentCycle.neus}`);
+      logMsg(`Max k:    ${currentCycle.maxK}`);
+      cycleId++;
+      currentCycle={ id:cycleId, length:0, wins:0, neus:0, maxK:state.k, path:'' };
+    }else if(outcome==='top'){
+      const totalSteps=state.step;
+      const winRate=totalSteps?counts.win/totalSteps:0;
+      const lossRate=totalSteps?counts.loss/totalSteps:0;
+      logMsg(`=== Cycle ${currentCycle.id} (TOP HIT) ===`);
+      logMsg('Path:');
+      logMsg(currentCycle.path);
+      logMsg(`Run win rate:  ${(100*winRate).toFixed(2)}%`);
+      logMsg(`Run loss rate: ${(100*lossRate).toFixed(2)}%`);
+      cycleId++;
+      currentCycle={ id:cycleId, length:0, wins:0, neus:0, maxK:state.k, path:'' };
+    }
+
     setRecent(outcome,k0,l0,state.k,state.l);
     updateStats();
     save();
@@ -480,6 +532,8 @@
   function resetState(){
     state.k=1; state.l=0; state.step=0; state.topHit=false; state.cycleSteps=0;
     longestCycle=0; counts.win=counts.neu=counts.loss=0; historyK.length=0; maxK=1;
+    cycleId=1;
+    currentCycle={ id:1, length:0, wins:0, neus:0, maxK:1, path:'' };
     $('log').innerHTML=''; $('run-steps').textContent='0';
     setRecent('neu',1,0,1,0);
     updateStats();
