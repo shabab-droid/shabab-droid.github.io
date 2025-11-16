@@ -782,11 +782,13 @@
     div.appendChild(header);
     div.appendChild(pathDiv);
     div.appendChild(meta);
-    box.appendChild(div);
+
+    // NEWEST FIRST: prepend instead of append
+    box.prepend(div);
 
     const maxEntries=5;
     while(box.children.length>maxEntries){
-      box.removeChild(box.firstChild);
+      box.removeChild(box.lastChild);
     }
   }
 
@@ -907,7 +909,9 @@
     cycleId=1;
     currentCycle={ id:1, length:0, wins:0, neus:0, maxK:1, path:'' };
     resetDistributions();
-    $('log').innerHTML=''; $('run-steps').textContent='0';
+    $('log').innerHTML='';
+    $('cycle-box').innerHTML='';
+    $('run-steps').textContent='0';
     setRecent('neu',1,0,1,0);
     updateStats();
     save();
