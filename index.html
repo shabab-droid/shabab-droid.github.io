@@ -314,6 +314,15 @@
     el.log.appendChild(d); el.log.scrollTop=el.log.scrollHeight;
   }
 
+  // Log long cycle paths over multiple explicit lines (mobile-friendly)
+  function logPathMultiline(path){
+    const chunk = 32; // characters per line
+    if(!path || typeof path !== 'string'){ return; }
+    for(let i=0; i<path.length; i+=chunk){
+      logMsg(path.slice(i, i+chunk));
+    }
+  }
+
   function drawSpark(){
     const w=300,h=60;
     const data=historyK.length?historyK:[state.k];
@@ -484,7 +493,7 @@
     if(outcome==='loss'){
       logMsg(`=== Cycle ${currentCycle.id} (LOSS) ===`);
       logMsg('Path:');
-      logMsg(currentCycle.path);
+      logPathMultiline(currentCycle.path);
       logMsg(`Length:   ${currentCycle.length} rolls`);
       logMsg(`Wins:     ${currentCycle.wins}`);
       logMsg(`Neutrals: ${currentCycle.neus}`);
@@ -497,7 +506,7 @@
       const lossRate=totalSteps?counts.loss/totalSteps:0;
       logMsg(`=== Cycle ${currentCycle.id} (TOP HIT) ===`);
       logMsg('Path:');
-      logMsg(currentCycle.path);
+      logPathMultiline(currentCycle.path);
       logMsg(`Run win rate:  ${(100*winRate).toFixed(2)}%`);
       logMsg(`Run loss rate: ${(100*lossRate).toFixed(2)}%`);
       cycleId++;
