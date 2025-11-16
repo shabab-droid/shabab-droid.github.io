@@ -149,6 +149,19 @@
           <div>E[first top hit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
         </div>
       </div>
+
+      <!-- Distribution Explorer -->
+      <div class="card"><h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Distribution Explorer</h3>
+        <div class="tiny">Empirical distributions from this run.</div>
+        <div class="tiny" style="margin-top:6px">Time spent at k:</div>
+        <div id="hist-k" class="tiny" style="margin-top:2px;min-height:24px"></div>
+        <div class="tiny" style="margin-top:6px">Time spent at ℓ:</div>
+        <div id="hist-l" class="tiny" style="margin-top:2px;min-height:24px"></div>
+        <div class="tiny" style="margin-top:6px">Cycle lengths (last 40):</div>
+        <div id="hist-cycle-len" class="tiny" style="margin-top:2px"></div>
+      </div>
+    </div>
+      </div>
     </div>
   </div>
 </div>
@@ -162,6 +175,10 @@
   // Cycle tracking
   let cycleId=1;
   let currentCycle={ id:1, length:0, wins:0, neus:0, maxK:1, path:'' };
+  // Empirical distributions
+  let kCounts=[];
+  let lCounts=[];
+  let cycleLenSamples=[];
   let topHitGrid=null;
   let cycleLenGrid=null;
   let winCountGrid=null;
@@ -406,6 +423,7 @@
     $('longest-cycle').textContent=longestCycle;
     $('max-k').textContent=maxK;
     drawSpark();
+    renderDistributions();
   }
 
   function updateExpectationsBox(){
@@ -432,6 +450,149 @@
     cycSpan.textContent=c.toFixed(1);
     if(pCycleTop<=1e-12) topSpan.textContent='∞';
     else topSpan.textContent=(c/pCycleTop).toFixed(1);
+  }
+
+  function resetDistributions(){
+    const M=Math.max(1,params.M|0);
+    const L=Math.max(0,params.L|0);
+    kCounts=new Array(M+1).fill(0);
+    lCounts=new Array(L+1).fill(0);
+    cycleLenSamples.length=0;
+  }
+
+  function renderKDist(){
+    const host=$('hist-k'); if(!host) return;
+    const M=Math.max(1,params.M|0);
+    const total=kCounts.reduce((a,b)=>a+(b||0),0);
+    host.innerHTML='';
+    if(!total){ host.textContent='—'; return; }
+
+    // Compact vertical strip, similar scale to cycle length histogram
+    let maxFrac=0;
+    for(let k=1;k<=M;k++){
+      const v=kCounts[k]||0;
+      const f=total? v/total:0;
+      if(f>maxFrac) maxFrac=f;
+    }
+    const wrapper=document.createElement('div');
+    wrapper.style.display='flex';
+    wrapper.style.alignItems='flex-end';
+    wrapper.style.gap='2px';
+    for(let k=1;k<=M;k++){
+      const v=kCounts[k]||0;
+      const frac=total? v/total:0;
+      const bar=document.createElement('div');
+      bar.style.width='3px';
+      const h=6 + (maxFrac? (24*frac/maxFrac):0);
+      bar.style.height=h+'px';
+      bar.style.borderRadius='2px';
+      bar.style.background='linear-gradient(180deg,var(--accent-3),var(--accent-2))';
+      wrapper.appendChild(bar);
+    }
+    host.appendChild(wrapper);
+  }
+
+  function renderLDist(){
+    const host=$('hist-l'); if(!host) return;
+    const L=Math.max(0,params.L|0);
+    const total=lCounts.reduce((a,b)=>a+(b||0),0);
+    host.innerHTML='';
+    if(!total){ host.textContent='—'; return; }
+
+    let maxFrac=0;
+    for(let l=0;l<=L;l++){
+      const v=lCounts[l]||0;
+      const f=total? v/total:0;
+      if(f>maxFrac) maxFrac=f;
+    }
+    const wrapper=document.createElement('div');
+    wrapper.style.display='flex';
+    wrapper.style.alignItems='flex-end';
+    wrapper.style.gap='2px';
+    for(let l=0;l<=L;l++){
+      const v=lCounts[l]||0;
+      const frac=total? v/total:0;
+      const bar=document.createElement('div');
+      bar.style.width='3px';
+      const h=6 + (maxFrac? (24*frac/maxFrac):0);
+      bar.style.height=h+'px';
+      bar.style.borderRadius='2px';
+      bar.style.background='linear-gradient(180deg,var(--accent-3),var(--accent-4))';
+      wrapper.appendChild(bar);
+    }
+    host.appendChild(wrapper);
+  }
+
+  function renderCycleLenDist(){
+    const host=$('hist-l'); if(!host) return;
+    const L=Math.max(0,params.L|0);
+    const total=lCounts.reduce((a,b)=>a+(b||0),0);
+    host.innerHTML='';
+    if(!total){ host.textContent='—'; return; }
+    let maxFrac=0;
+    for(let l=0;l<=L;l++){
+      const v=lCounts[l]||0;
+      const f=total? v/total:0;
+      if(f>maxFrac) maxFrac=f;
+    }
+    for(let l=0;l<=L;l++){
+      const v=lCounts[l]||0;
+      const frac=total? v/total:0;
+      const row=document.createElement('div');
+      row.className='row tiny';
+      row.style.marginBottom='2px';
+      const label=document.createElement('span');
+      label.textContent=`ℓ=${l}`;
+      label.style.width='42px';
+      const bar=document.createElement('div');
+      bar.className='bar';
+      bar.style.flex='1';
+      bar.style.height='6px';
+      const fill=document.createElement('div');
+      fill.className='neu';
+      fill.style.width=(maxFrac? (frac/maxFrac*100):0)+'%';
+      bar.appendChild(fill);
+      const pctSpan=document.createElement('span');
+      pctSpan.className='mono';
+      pctSpan.style.marginLeft='4px';
+      pctSpan.textContent=(100*frac).toFixed(1)+'%';
+      row.appendChild(label);
+      row.appendChild(bar);
+      row.appendChild(pctSpan);
+      host.appendChild(row);
+    }
+  }
+
+  function renderCycleLenDist(){
+    const host=$('hist-cycle-len'); if(!host) return;
+    host.innerHTML='';
+    if(!cycleLenSamples.length){ host.textContent='—'; return; }
+    const maxLen=Math.max(...cycleLenSamples);
+    const wrapper=document.createElement('div');
+    wrapper.style.display='flex';
+    wrapper.style.alignItems='flex-end';
+    wrapper.style.gap='2px';
+    cycleLenSamples.forEach(len=>{
+      const bar=document.createElement('div');
+      bar.style.width='4px';
+      const h=8 + (maxLen? (32*len/maxLen):0);
+      bar.style.height=h+'px';
+      bar.style.borderRadius='2px';
+      bar.style.background='linear-gradient(180deg,var(--accent-3),var(--accent-2))';
+      wrapper.appendChild(bar);
+    });
+    host.appendChild(wrapper);
+    const meta=document.createElement('div');
+    meta.className='tiny';
+    meta.style.marginTop='2px';
+    meta.textContent=`last ${cycleLenSamples.length} cycles`;
+    host.appendChild(meta);
+  }
+
+  function renderDistributions(){
+    renderKDist();
+    renderLDist();
+    renderCycleLenDist();
   }
 
   function stepOnce(){
@@ -469,6 +630,12 @@
       if(outcome==='loss') state.cycleSteps=0;
     }
 
+    // Update empirical distributions (state AFTER this step)
+    const Mk=kCounts.length-1;
+    const Ml=lCounts.length-1;
+    if(Mk>0 && state.k<=Mk) kCounts[state.k]=(kCounts[state.k]||0)+1;
+    if(Ml>=0 && state.l<=Ml) lCounts[state.l]=(lCounts[state.l]||0)+1;
+
     // Update cycle tracking
     let symbol='';
     if(outcome==='win') symbol='+';
@@ -498,6 +665,8 @@
       logMsg(`Wins:     ${currentCycle.wins}`);
       logMsg(`Neutrals: ${currentCycle.neus}`);
       logMsg(`Max k:    ${currentCycle.maxK}`);
+      cycleLenSamples.push(currentCycle.length);
+      if(cycleLenSamples.length>40) cycleLenSamples.shift();
       cycleId++;
       currentCycle={ id:cycleId, length:0, wins:0, neus:0, maxK:state.k, path:'' };
     }else if(outcome==='top'){
@@ -509,6 +678,8 @@
       logPathMultiline(currentCycle.path);
       logMsg(`Run win rate:  ${(100*winRate).toFixed(2)}%`);
       logMsg(`Run loss rate: ${(100*lossRate).toFixed(2)}%`);
+      cycleLenSamples.push(currentCycle.length);
+      if(cycleLenSamples.length>40) cycleLenSamples.shift();
       cycleId++;
       currentCycle={ id:cycleId, length:0, wins:0, neus:0, maxK:state.k, path:'' };
     }
@@ -533,6 +704,7 @@
     ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{
       const e=$(id); if(!e) return; const v=+e.value; if(Number.isFinite(v)) params[id]=v;
     });
+    resetDistributions();
     recomputeExpectations();
     updateStats();
     save();
@@ -543,6 +715,7 @@
     longestCycle=0; counts.win=counts.neu=counts.loss=0; historyK.length=0; maxK=1;
     cycleId=1;
     currentCycle={ id:1, length:0, wins:0, neus:0, maxK:1, path:'' };
+    resetDistributions();
     $('log').innerHTML=''; $('run-steps').textContent='0';
     setRecent('neu',1,0,1,0);
     updateStats();
@@ -559,6 +732,7 @@
     const restored=load();
     ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{ const e=$(id); if(e) e.value=params[id]; });
 
+    resetDistributions();
     recomputeExpectations();
 
     safeBind('roll1_big','click',stepOnce);
