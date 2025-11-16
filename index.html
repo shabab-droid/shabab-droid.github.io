@@ -9,41 +9,111 @@
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
     --accent:#ff9e2c; --accent-2:#ff00b8; --accent-3:#00b7ff; --accent-4:#ff4efc;
   }
-  body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);
-    background:radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%),
-               radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%),
-               linear-gradient(180deg,#0b0014 0%, #050010 100%)}
+  body{
+    margin:0;
+    font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%),
+      radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%),
+      linear-gradient(180deg,#0b0014 0%, #050010 100%);
+  }
   .app{max-width:1100px;margin:0 auto;padding:12px}
-  h1{text-align:center;font-size:clamp(22px,3vw,30px);margin:14px 0 12px;letter-spacing:.5px;
-    background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--accent-3));-webkit-background-clip:text;color:transparent}
+  h1{
+    text-align:center;
+    font-size:clamp(22px,3vw,30px);
+    margin:14px 0 12px;
+    letter-spacing:.5px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--accent-3));
+    -webkit-background-clip:text;
+    color:transparent;
+  }
   .grid{display:grid;grid-template-columns:1fr 360px;gap:12px}
   @media(max-width:900px){.grid{grid-template-columns:1fr}}
   .card{background:transparent;padding:14px;border:none}
-  .btn{appearance:none;background:#1c0130;border:none;color:var(--text);
-    border-radius:6px;padding:10px 14px;cursor:pointer;font-weight:600;letter-spacing:.3px;
-    transition:background .15s ease,transform .1s ease;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+  .btn{
+    appearance:none;
+    background:#1c0130;
+    border:none;
+    color:var(--text);
+    border-radius:6px;
+    padding:10px 14px;
+    cursor:pointer;
+    font-weight:600;
+    letter-spacing:.3px;
+    transition:background .15s ease,transform .1s ease;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
+  }
   .btn:hover{background:#2d0048}
   .btn:active{transform:scale(.97)}
-  .btn.big{display:block;width:100%;font-size:20px;padding:16px;margin-bottom:14px;background:#ff9e2c;color:#120026;font-weight:700}
+  .btn.big{
+    display:block;
+    width:100%;
+    font-size:20px;
+    padding:16px;
+    margin-bottom:14px;
+    background:#ff9e2c;
+    color:#120026;
+    font-weight:700;
+  }
   .btn.big:hover{background:#ffb64d}
   label{width:120px;font-size:12px;color:var(--muted)}
-  input[type="number"],select{background:#140026;color:var(--text);border:none;border-radius:4px;padding:6px 8px;min-width:80px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+  input[type="number"],select{
+    background:#140026;
+    color:var(--text);
+    border:none;
+    border-radius:4px;
+    padding:6px 8px;
+    min-width:80px;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
+  }
   .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .bar{height:10px;background:rgba(255,255,255,.06);border-radius:8px;overflow:hidden;margin:3px 0;border:1px solid rgba(255,166,0,.12)}
+  .bar{
+    height:10px;
+    background:rgba(255,255,255,.06);
+    border-radius:8px;
+    overflow:hidden;
+    margin:3px 0;
+    border:1px solid rgba(255,166,0,.12);
+  }
   .bar>div{height:100%}
   .bar .win{background:linear-gradient(90deg,#ffd94d,var(--accent))}
   .bar .neu{background:linear-gradient(90deg,var(--accent-3),var(--accent-2))}
   .bar .loss{background:linear-gradient(90deg,var(--accent-4),#ff2400)}
-  .kpos-track,.lpos-track{height:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,166,0,.12);border-radius:6px;overflow:hidden}
+  .kpos-track,.lpos-track{
+    height:6px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,166,0,.12);
+    border-radius:6px;
+    overflow:hidden;
+  }
   .kpos-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-4))}
   .lpos-fill{height:100%;background:linear-gradient(90deg,var(--accent-3),var(--accent-2))}
-  #log{height:160px;overflow:auto;background:rgba(18,0,38,.35);border:1px solid rgba(255,166,0,.12);border-radius:10px;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word}
+  #log{
+    height:160px;
+    overflow:auto;
+    background:rgba(18,0,38,.35);
+    border:1px solid rgba(255,166,0,.12);
+    border-radius:10px;
+    padding:8px;
+    font-family:monospace;
+    font-size:12px;
+    white-space:pre-wrap;
+    overflow-wrap:break-word;
+    word-break:break-word;
+  }
   svg#spark{width:100%;height:60px}
   .tiny{font-size:11px;opacity:.65;color:var(--muted)}
   .desc{font-size:11px;opacity:.6;color:var(--muted);margin:-2px 0 8px}
-  .recent.win #recent-outcome{color:#ffd54a;text-shadow:0 0 6px rgba(255,213,74,.65),0 0 18px rgba(255,180,0,.4)}
+  .recent.win #recent-outcome{
+    color:#ffd54a;
+    text-shadow:0 0 6px rgba(255,213,74,.65),0 0 18px rgba(255,180,0,.4);
+  }
   .recent.neu #recent-outcome{color:#a98dff}
-  .recent.loss #recent-outcome{color:#ff4d4d;text-shadow:0 0 6px rgba(255,77,77,.65),0 0 18px rgba(255,40,40,.4)}
+  .recent.loss #recent-outcome{
+    color:#ff4d4d;
+    text-shadow:0 0 6px rgba(255,77,77,.65),0 0 18px rgba(255,40,40,.4);
+  }
 </style>
 </head>
 <body>
@@ -107,6 +177,12 @@
             <option value="10">Fast</option>
           </select>
         </div>
+        <div class="row" style="margin-top:8px">
+          <span class="tiny" style="min-width:110px">Set state (k, ℓ):</span>
+          <input id="set-k" type="number" min="1" value="1" style="width:60px">
+          <input id="set-l" type="number" min="0" value="0" style="width:60px">
+          <button class="btn" id="setStateBtn">Set</button>
+        </div>
       </div>
 
       <!-- System Explanation -->
@@ -157,28 +233,47 @@
         <div id="hist-k" class="tiny" style="margin-top:2px;min-height:24px"></div>
         <div class="tiny" style="margin-top:6px">Time spent at ℓ:</div>
         <div id="hist-l" class="tiny" style="margin-top:2px;min-height:24px"></div>
+        <div class="tiny" style="margin-top:6px">Time spent at (k, ℓ):</div>
+        <div id="hist-kl" class="tiny" style="margin-top:2px;min-height:32px"></div>
         <div class="tiny" style="margin-top:6px">Cycle lengths (last 40):</div>
         <div id="hist-cycle-len" class="tiny" style="margin-top:2px"></div>
-      </div>
-    </div>
       </div>
     </div>
   </div>
 </div>
 <script>
-  const params = { M:20, L:20, w_min:0.10, w_max:0.90, beta:1.6, rho:0.6, gamma:1.5, c_min:0.03, c_max:0.10, alpha:0.6, g_n:1, s_w:5 };
+  // Core params and state
+  const params = {
+    M:20,
+    L:20,
+    w_min:0.10,
+    w_max:0.90,
+    beta:1.6,
+    rho:0.6,
+    gamma:1.5,
+    c_min:0.03,
+    c_max:0.10,
+    alpha:0.6,
+    g_n:1,
+    s_w:5
+  };
   const state  = { k:1, l:0, step:0, topHit:false, cycleSteps:0 };
   const counts = { win:0, neu:0, loss:0 };
   const historyK = [];
   let maxK=1;
   let longestCycle=0;
+
   // Cycle tracking
   let cycleId=1;
   let currentCycle={ id:1, length:0, wins:0, neus:0, maxK:1, path:'' };
+
   // Empirical distributions
   let kCounts=[];
   let lCounts=[];
+  let klCounts=[];
   let cycleLenSamples=[];
+
+  // Grids for expectations
   let topHitGrid=null;
   let cycleLenGrid=null;
   let winCountGrid=null;
@@ -188,12 +283,29 @@
 
   function save(){
     try{
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({params,state,counts,historyK,maxK,longestCycle}));
-    }catch(_){ }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        params,
+        state,
+        counts,
+        historyK,
+        maxK,
+        longestCycle,
+        cycleId,
+        currentCycle,
+        kCounts,
+        lCounts,
+        klCounts,
+        cycleLenSamples
+      }));
+    }catch(_){
+      // ignore storage errors
+    }
   }
+
   function load(){
     try{
-      const s=localStorage.getItem(STORAGE_KEY); if(!s) return false;
+      const s=localStorage.getItem(STORAGE_KEY);
+      if(!s) return false;
       const o=JSON.parse(s);
       Object.assign(params,o.params||{});
       Object.assign(state,o.state||{});
@@ -201,21 +313,38 @@
       historyK.length=0; (o.historyK||[]).forEach(v=>historyK.push(v));
       maxK=o.maxK||1;
       longestCycle=o.longestCycle||0;
+      cycleId=o.cycleId||1;
+      const fallbackCycle={ id:cycleId, length:0, wins:0, neus:0, maxK:state.k||1, path:'' };
+      currentCycle=Object.assign(fallbackCycle,o.currentCycle||{});
+      if(!currentCycle.id) currentCycle.id=cycleId;
+
+      if(o.kCounts && o.lCounts && o.klCounts){
+        kCounts=o.kCounts;
+        lCounts=o.lCounts;
+        klCounts=o.klCounts;
+        cycleLenSamples=o.cycleLenSamples||[];
+      }else{
+        resetDistributions();
+      }
       return true;
-    }catch(_){return false}
+    }catch(_){
+      return false;
+    }
   }
 
   const clamp01=x=>Math.min(1,Math.max(0,x));
+
   function computeProbs(k,l){
     const M=Math.max(1,params.M|0);
     const L=Math.max(1,params.L|0);
-    const frac = M>1 ? (k-1)/(M-1) : 1;
+    const frac=M>1 ? (k-1)/(M-1) : 1;
     const base=params.w_min+(params.w_max-params.w_min)*Math.pow(frac,params.beta);
     const ell=(1-params.rho)+params.rho*Math.pow(l/L,params.gamma);
     let p_win=clamp01(base*ell);
     let p_loss=params.c_min+(params.c_max-params.c_min)*Math.exp(-params.alpha*l);
     if(p_win+p_loss>1){
-      const s=p_win+p_loss; p_win/=s; p_loss/=s;
+      const s=p_win+p_loss;
+      p_win/=s; p_loss/=s;
     }
     const p_neu=1-p_win-p_loss;
     return {p_win,p_neu,p_loss};
@@ -326,17 +455,19 @@
 
   const el={barwin:null,barneu:null,barloss:null,cwin:null,cneu:null,closs:null,spark:null,log:null};
   const pct=x=>(100*Math.max(0,Math.min(1,x))).toFixed(1)+'%';
+
   function logMsg(m){
-    const d=document.createElement('div'); d.textContent=m;
-    el.log.appendChild(d); el.log.scrollTop=el.log.scrollHeight;
+    const d=document.createElement('div');
+    d.textContent=m;
+    el.log.appendChild(d);
+    el.log.scrollTop=el.log.scrollHeight;
   }
 
-  // Log long cycle paths over multiple explicit lines (mobile-friendly)
   function logPathMultiline(path){
-    const chunk = 32; // characters per line
-    if(!path || typeof path !== 'string'){ return; }
-    for(let i=0; i<path.length; i+=chunk){
-      logMsg(path.slice(i, i+chunk));
+    const chunk=32;
+    if(!path || typeof path!=='string') return;
+    for(let i=0;i<path.length;i+=chunk){
+      logMsg(path.slice(i,i+chunk));
     }
   }
 
@@ -356,7 +487,8 @@
       grid+=`<line x1="0" y1="${yy}" x2="${w}" y2="${yy}" stroke="${gridColor}" stroke-width="0.5" />`;
     }
     const overlay=`<rect x="0" y="0" width="${w}" height="${h}" fill="transparent" />`;
-    el.spark.innerHTML=grid+`<polyline fill="none" stroke="${stroke}" stroke-width="2" points="${pts.trim()}" />`+overlay;
+    el.spark.innerHTML=
+      grid+`<polyline fill="none" stroke="${stroke}" stroke-width="2" points="${pts.trim()}" />`+overlay;
   }
 
   function formatOddsAndPercent(p){
@@ -457,6 +589,7 @@
     const L=Math.max(0,params.L|0);
     kCounts=new Array(M+1).fill(0);
     lCounts=new Array(L+1).fill(0);
+    klCounts=Array.from({length:M+1},()=>new Array(L+1).fill(0));
     cycleLenSamples.length=0;
   }
 
@@ -467,7 +600,6 @@
     host.innerHTML='';
     if(!total){ host.textContent='—'; return; }
 
-    // Compact vertical strip, similar scale to cycle length histogram
     let maxFrac=0;
     for(let k=1;k<=M;k++){
       const v=kCounts[k]||0;
@@ -523,44 +655,46 @@
     host.appendChild(wrapper);
   }
 
-  function renderCycleLenDist(){
-    const host=$('hist-l'); if(!host) return;
-    const L=Math.max(0,params.L|0);
-    const total=lCounts.reduce((a,b)=>a+(b||0),0);
+  function renderKLHeatmap(){
+    const host=$('hist-kl'); if(!host) return;
     host.innerHTML='';
-    if(!total){ host.textContent='—'; return; }
-    let maxFrac=0;
-    for(let l=0;l<=L;l++){
-      const v=lCounts[l]||0;
-      const f=total? v/total:0;
-      if(f>maxFrac) maxFrac=f;
+    const M=Math.max(1,params.M|0);
+    const L=Math.max(0,params.L|0);
+    if(!klCounts.length){ host.textContent='—'; return; }
+
+    let maxC=0;
+    for(let k=1;k<=M;k++){
+      const row=klCounts[k]; if(!row) continue;
+      for(let l=0;l<=L;l++){
+        const c=row[l]||0;
+        if(c>maxC) maxC=c;
+      }
     }
-    for(let l=0;l<=L;l++){
-      const v=lCounts[l]||0;
-      const frac=total? v/total:0;
-      const row=document.createElement('div');
-      row.className='row tiny';
-      row.style.marginBottom='2px';
-      const label=document.createElement('span');
-      label.textContent=`ℓ=${l}`;
-      label.style.width='42px';
-      const bar=document.createElement('div');
-      bar.className='bar';
-      bar.style.flex='1';
-      bar.style.height='6px';
-      const fill=document.createElement('div');
-      fill.className='neu';
-      fill.style.width=(maxFrac? (frac/maxFrac*100):0)+'%';
-      bar.appendChild(fill);
-      const pctSpan=document.createElement('span');
-      pctSpan.className='mono';
-      pctSpan.style.marginLeft='4px';
-      pctSpan.textContent=(100*frac).toFixed(1)+'%';
-      row.appendChild(label);
-      row.appendChild(bar);
-      row.appendChild(pctSpan);
-      host.appendChild(row);
+    if(!maxC){ host.textContent='—'; return; }
+
+    const grid=document.createElement('div');
+    grid.style.display='grid';
+    grid.style.gridTemplateColumns=`repeat(${M}, minmax(4px, 1fr))`;
+    grid.style.gap='1px';
+
+    const logMax=Math.log(1+maxC);
+
+    for(let l=L;l>=0;l--){
+      for(let k=1;k<=M;k++){
+        const cell=document.createElement('div');
+        const row=klCounts[k];
+        const c=row ? (row[l]||0) : 0;
+        const fracLog=c>0 ? Math.log(1+c)/logMax : 0;
+        const frac=fracLog;
+        const alpha=0.08+0.92*frac;
+        cell.style.aspectRatio='1 / 1';
+        cell.style.borderRadius='2px';
+        cell.style.background=`rgba(0,183,255,${alpha.toFixed(3)})`;
+        cell.title=`k=${k}, ℓ=${l}, visits=${c}`;
+        grid.appendChild(cell);
+      }
     }
+    host.appendChild(grid);
   }
 
   function renderCycleLenDist(){
@@ -592,6 +726,7 @@
   function renderDistributions(){
     renderKDist();
     renderLDist();
+    renderKLHeatmap();
     renderCycleLenDist();
   }
 
@@ -630,13 +765,16 @@
       if(outcome==='loss') state.cycleSteps=0;
     }
 
-    // Update empirical distributions (state AFTER this step)
+    // update empirical distributions (state AFTER this step)
     const Mk=kCounts.length-1;
     const Ml=lCounts.length-1;
     if(Mk>0 && state.k<=Mk) kCounts[state.k]=(kCounts[state.k]||0)+1;
     if(Ml>=0 && state.l<=Ml) lCounts[state.l]=(lCounts[state.l]||0)+1;
+    if(klCounts.length>state.k && klCounts[state.k].length>state.l){
+      klCounts[state.k][state.l]=(klCounts[state.k][state.l]||0)+1;
+    }
 
-    // Update cycle tracking
+    // cycle tracking
     let symbol='';
     if(outcome==='win') symbol='+';
     else if(outcome==='neu') symbol='.';
@@ -656,28 +794,23 @@
     if(outcome==='top') logMsg(`step ${state.step}: (${k0},${l0}) → TOP HIT at k=${state.k}, ℓ=${state.l}`);
     else logMsg(`step ${state.step}: (${k0},${l0}) → (${state.k},${state.l}) ${outcome.toUpperCase()}`);
 
-    // Cycle summaries
+    // cycle summaries
     if(outcome==='loss'){
-      logMsg(`=== Cycle ${currentCycle.id} (LOSS) ===`);
-      logMsg('Path:');
+      logMsg(`=== Cycle ${currentCycle.id} (LOSS CYCLE SUMMARY) ===`);
       logPathMultiline(currentCycle.path);
-      logMsg(`Length:   ${currentCycle.length} rolls`);
-      logMsg(`Wins:     ${currentCycle.wins}`);
-      logMsg(`Neutrals: ${currentCycle.neus}`);
-      logMsg(`Max k:    ${currentCycle.maxK}`);
+      logMsg(`Cycle length: ${currentCycle.length} rolls`);
+      logMsg(`Wins this cycle: ${currentCycle.wins}`);
       cycleLenSamples.push(currentCycle.length);
       if(cycleLenSamples.length>40) cycleLenSamples.shift();
       cycleId++;
       currentCycle={ id:cycleId, length:0, wins:0, neus:0, maxK:state.k, path:'' };
     }else if(outcome==='top'){
       const totalSteps=state.step;
-      const winRate=totalSteps?counts.win/totalSteps:0;
-      const lossRate=totalSteps?counts.loss/totalSteps:0;
-      logMsg(`=== Cycle ${currentCycle.id} (TOP HIT) ===`);
-      logMsg('Path:');
+      const winRate=totalSteps?counts.win/totalSteps:0; // kept for future use
+      const lossRate=totalSteps?counts.loss/totalSteps:0; // kept for future use
+      logMsg(`=== Cycle ${currentCycle.id} (TOP HIT CYCLE SUMMARY) ===`);
       logPathMultiline(currentCycle.path);
-      logMsg(`Run win rate:  ${(100*winRate).toFixed(2)}%`);
-      logMsg(`Run loss rate: ${(100*lossRate).toFixed(2)}%`);
+      logMsg(`Cycle length: ${currentCycle.length} rolls`);
       cycleLenSamples.push(currentCycle.length);
       if(cycleLenSamples.length>40) cycleLenSamples.shift();
       cycleId++;
@@ -722,6 +855,24 @@
     save();
   }
 
+  function setManualState(){
+    let k=+($('set-k')?.value||1);
+    let l=+($('set-l')?.value||0);
+    const M=Math.max(1,params.M|0);
+    const L=Math.max(0,params.L|0);
+    if(k<1) k=1; if(k>M) k=M;
+    if(l<0) l=0; if(l>L) l=L;
+    const k0=state.k, l0=state.l;
+    state.k=k; state.l=l;
+    state.topHit=false;
+    maxK=Math.max(maxK,k);
+    historyK.push(k); if(historyK.length>200) historyK.shift();
+    logMsg(`State manually set: (${k0},${l0}) → (${k},${l})`);
+    setRecent('neu',k0,l0,k,l);
+    updateStats();
+    save();
+  }
+
   function safeBind(id,ev,fn){ const e=$(id); if(e) e.addEventListener(ev,fn); }
 
   document.addEventListener('DOMContentLoaded',()=>{
@@ -730,9 +881,11 @@
     el.spark=$('spark'); el.log=$('log');
 
     const restored=load();
-    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{ const e=$(id); if(e) e.value=params[id]; });
+    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(id=>{
+      const e=$(id); if(e) e.value=params[id];
+    });
 
-    resetDistributions();
+    if(!restored){ resetDistributions(); }
     recomputeExpectations();
 
     safeBind('roll1_big','click',stepOnce);
@@ -740,24 +893,34 @@
     safeBind('auto','click',toggleAuto);
     safeBind('apply','click',apply);
     safeBind('resetState','click',resetState);
+    safeBind('setStateBtn','click',setManualState);
 
     document.addEventListener('keydown',e=>{
       const tag=e.target.tagName;
       if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA') return;
       const key=e.key.toLowerCase();
-      if(e.code==='Space'||key==='r'){ e.preventDefault(); stepOnce(); }
-      else if(key==='a') toggleAuto();
+      if(e.code==='Space'||key==='r'){
+        e.preventDefault(); stepOnce();
+      }else if(key==='a') toggleAuto();
       else if(key==='x') resetState();
     });
 
-    if(restored){ updateStats(); setRecent('neu',state.k,state.l,state.k,state.l); }
-    else{ updateStats(); setRecent('neu',1,0,1,0); }
+    if(restored){
+      updateStats();
+      setRecent('neu',state.k,state.l,state.k,state.l);
+    }else{
+      updateStats();
+      setRecent('neu',1,0,1,0);
+    }
 
+    // light self-test on probabilities
     try{
       const p0=computeProbs(1,0);
       const s=Math.abs(1-(p0.p_win+p0.p_neu+p0.p_loss));
       if(s>1e-6) console.warn('Probabilities do not sum to 1 at (1,0):',p0);
-    }catch(err){ console.warn('Self-test failed:',err); }
+    }catch(err){
+      console.warn('Self-test failed:',err);
+    }
   });
 </script>
 </body>
