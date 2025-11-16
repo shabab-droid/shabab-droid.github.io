@@ -114,6 +114,26 @@
     color:#ff4d4d;
     text-shadow:0 0 6px rgba(255,77,77,.65),0 0 18px rgba(255,40,40,.4);
   }
+  .cycle-entry{
+    font-family:monospace;
+    font-size:11px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,.12);
+    padding:6px 8px;
+    margin-bottom:6px;
+    background:rgba(12,0,32,0.8);
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .cycle-entry-header{
+    font-weight:600;
+    letter-spacing:.5px;
+    margin-bottom:2px;
+  }
+  .cycle-entry.loss{border-color:rgba(255,90,90,.8);}
+  .cycle-entry.top{border-color:rgba(255,210,90,.9);}
+  .cycle-entry-path{margin:2px 0 2px;}
+  .cycle-entry-meta{opacity:.8;}
 </style>
 </head>
 <body>
@@ -161,7 +181,11 @@
         </div>
       </div>
 
-      <div class="card"><div id="log"></div></div>
+      <div class="card"><div id="log"></div>
+      </div>
+
+      <!-- Cycle Summaries -->
+      <div class="card" id="cycle-summaries"><h2 style="margin:0 0 8px">Cycle Summaries</h2><div id="cycle-box" class="tiny"></div></div>
     </div>
 
     <div>
@@ -730,6 +754,42 @@
     renderCycleLenDist();
   }
 
+  function appendCycleSummary(outcome, cycle){
+    const box=$('cycle-box');
+    if(!box || !cycle) return;
+    const div=document.createElement('div');
+    div.className='cycle-entry '+(outcome==='top'?'top':'loss');
+
+    const header=document.createElement('div');
+    header.className='cycle-entry-header';
+    header.textContent=`Cycle ${cycle.id} — ${outcome==='top'?'TOP HIT':'LOSS'}`;
+
+    const pathDiv=document.createElement('div');
+    pathDiv.className='cycle-entry-path';
+    const chunk=32;
+    const p=cycle.path||'';
+    let wrapped='';
+    for(let i=0;i<p.length;i+=chunk){
+      wrapped+=p.slice(i,i+chunk);
+      if(i+chunk<p.length) wrapped+='\n';
+    }
+    pathDiv.textContent=wrapped || '(no steps)';
+
+    const meta=document.createElement('div');
+    meta.className='cycle-entry-meta';
+    meta.textContent=`Length: ${cycle.length} rolls • Wins: ${cycle.wins}`;
+
+    div.appendChild(header);
+    div.appendChild(pathDiv);
+    div.appendChild(meta);
+    box.appendChild(div);
+
+    const maxEntries=5;
+    while(box.children.length>maxEntries){
+      box.removeChild(box.firstChild);
+    }
+  }
+
   function stepOnce(){
     if(state.topHit){
       logMsg('Top hit already reached — reset state to play again.');
@@ -796,21 +856,19 @@
 
     // cycle summaries
     if(outcome==='loss'){
-      logMsg(`=== Cycle ${currentCycle.id} (LOSS CYCLE SUMMARY) ===`);
-      logPathMultiline(currentCycle.path);
-      logMsg(`Cycle length: ${currentCycle.length} rolls`);
-      logMsg(`Wins this cycle: ${currentCycle.wins}`);
+      appendCycleSummary('loss', currentCycle);
       cycleLenSamples.push(currentCycle.length);
       if(cycleLenSamples.length>40) cycleLenSamples.shift();
       cycleId++;
       currentCycle={ id:cycleId, length:0, wins:0, neus:0, maxK:state.k, path:'' };
     }else if(outcome==='top'){
       const totalSteps=state.step;
-      const winRate=totalSteps?counts.win/totalSteps:0; // kept for future use
-      const lossRate=totalSteps?counts.loss/totalSteps:0; // kept for future use
-      logMsg(`=== Cycle ${currentCycle.id} (TOP HIT CYCLE SUMMARY) ===`);
-      logPathMultiline(currentCycle.path);
-      logMsg(`Cycle length: ${currentCycle.length} rolls`);
+      const winRate=totalSteps?counts.win/totalSteps:0; // kept for potential future use
+      const lossRate=totalSteps?counts.loss/totalSteps:0; // kept for potential future use
+
+      // Show the top-hit cycle summary in the Cycle Summaries box instead of the log
+      appendCycleSummary('top', currentCycle);
+
       cycleLenSamples.push(currentCycle.length);
       if(cycleLenSamples.length>40) cycleLenSamples.shift();
       cycleId++;
@@ -913,13 +971,16 @@
       setRecent('neu',1,0,1,0);
     }
 
-    // light self-test on probabilities
+    // light self-tests on probabilities
     try{
       const p0=computeProbs(1,0);
-      const s=Math.abs(1-(p0.p_win+p0.p_neu+p0.p_loss));
-      if(s>1e-6) console.warn('Probabilities do not sum to 1 at (1,0):',p0);
+      const sum0=p0.p_win+p0.p_neu+p0.p_loss;
+      if(Math.abs(1-sum0)>1e-6) console.warn('Probabilities do not sum to 1 at (1,0):',p0);
+      const pEdge=computeProbs(params.M,params.L>0?params.L:0);
+      const sumEdge=pEdge.p_win+pEdge.p_neu+pEdge.p_loss;
+      if(Math.abs(1-sumEdge)>1e-6) console.warn('Probabilities do not sum to 1 at (M,L):',pEdge);
     }catch(err){
-      console.warn('Self-test failed:',err);
+      console.warn('Self-tests failed:',err);
     }
   });
 </script>
