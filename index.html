@@ -10,15 +10,25 @@
     --accent:#ff9e2c; --accent-2:#ff00b8; --accent-3:#00b7ff; --accent-4:#ff4efc;
   }
   body{
-    margin:0;
-    font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
-    color:var(--text);
-    background-color:#050010; /* solid fallback behind gradients */
-    background:
-      radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%),
-      radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%),
-      linear-gradient(180deg,#0b0014 0%, #050010 100%);
-  }
+  margin:0;
+  font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+
+  /* Make sure body always covers the viewport */
+  min-height: 100vh;
+
+  /* Solid base color */
+  background-color:#050010;
+
+  /* Gradients layered on top of that solid color */
+  background-image:
+    radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%),
+    radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%),
+    linear-gradient(180deg,#0b0014 0%, #050010 100%);
+
+  background-repeat:no-repeat;
+  background-size:cover;
+}
   .app{max-width:1100px;margin:0 auto;padding:12px}
   h1{
     text-align:center;
