@@ -287,9 +287,16 @@
   let maxK=1;
   let longestCycle=0;
 
+  // Last roll tracking (for persistence of most recent roll display)
+  let lastOutcome = null;
+  let lastK0 = 1, lastL0 = 0, lastK1 = 1, lastL1 = 0;
+
   // Cycle tracking
   let cycleId=1;
   let currentCycle={ id:1, length:0, wins:0, neus:0, maxK:1, path:'' };
+
+  // Persisted last 5 cycle summaries
+  let lastCycles = [];
 
   // Empirical distributions
   let kCounts=[];
@@ -319,7 +326,13 @@
         kCounts,
         lCounts,
         klCounts,
-        cycleLenSamples
+        cycleLenSamples,
+        lastOutcome,
+        lastK0,
+        lastL0,
+        lastK1,
+        lastL1,
+        cycleSummaries: lastCycles
       }));
     }catch(_){
       // ignore storage errors
@@ -350,6 +363,19 @@
       }else{
         resetDistributions();
       }
+
+      lastOutcome = (typeof o.lastOutcome === 'string') ? o.lastOutcome : null;
+      lastK0 = (typeof o.lastK0 === 'number') ? o.lastK0 : 1;
+      lastL0 = (typeof o.lastL0 === 'number') ? o.lastL0 : 0;
+      lastK1 = (typeof o.lastK1 === 'number') ? o.lastK1 : state.k || 1;
+      lastL1 = (typeof o.lastL1 === 'number') ? o.lastL1 : state.l || 0;
+
+      if (Array.isArray(o.cycleSummaries)) {
+        lastCycles = o.cycleSummaries;
+      } else {
+        lastCycles = [];
+      }
+
       return true;
     }catch(_){
       return false;
@@ -531,17 +557,18 @@
     let label;
     if(outcome==='neu') label='NEUTRAL';
     else if(outcome==='top') label='TOP HIT';
-    else if(outcome) label=outcome.toUpperCase();
-    else label='—';
+    else if(outcome==='win') label='WIN';
+    else if(outcome==='loss') label='LOSS';
+    else label='No rolls yet';
     $('recent-outcome').textContent=label;
     $('recent-kl').textContent=`(${k0},${l0})→(${k1},${l1})`;
 
     let p_win=0,p_neu=0,p_loss=0;
-    if(outcome!=='top'){
+    if(outcome && outcome!=='top'){
       const p=computeProbs(k1,l1); p_win=p.p_win; p_neu=p.p_neu; p_loss=p.p_loss;
     }
     const denom=p_win+p_loss;
-    $('recent-p-cond').textContent=(outcome==='top'||denom<=1e-12)?'—':(100*(p_win/denom)).toFixed(1)+'%';
+    $('recent-p-cond').textContent=(outcome && outcome!=='top' && denom>1e-12)?(100*(p_win/denom)).toFixed(1)+'%':'—';
 
     let pTopText='—';
     if(outcome!=='top' && topHitGrid && topHitGrid[k1] && typeof topHitGrid[k1][l1]==='number'){
@@ -856,11 +883,29 @@
     if(outcome==='top') logMsg(`step ${state.step}: (${k0},${l0}) → TOP HIT at k=${state.k}, ℓ=${state.l}`);
     else logMsg(`step ${state.step}: (${k0},${l0}) → (${state.k},${state.l}) ${outcome.toUpperCase()}`);
 
-    // cycle summaries
+    // Persist last roll info for reload
+    lastOutcome = outcome;
+    lastK0 = k0; lastL0 = l0;
+    lastK1 = state.k; lastL1 = state.l;
+
+    // cycle summaries + persistence of last 5
     if(outcome==='loss'){
       appendCycleSummary('loss', currentCycle);
       cycleLenSamples.push(currentCycle.length);
       if(cycleLenSamples.length>40) cycleLenSamples.shift();
+
+      // update lastCycles (newest first)
+      lastCycles.unshift({
+        outcome: 'loss',
+        id: currentCycle.id,
+        length: currentCycle.length,
+        wins: currentCycle.wins,
+        neus: currentCycle.neus,
+        maxK: currentCycle.maxK,
+        path: currentCycle.path || ''
+      });
+      if(lastCycles.length>5) lastCycles.length=5;
+
       cycleId++;
       currentCycle={ id:cycleId, length:0, wins:0, neus:0, maxK:state.k, path:'' };
     }else if(outcome==='top'){
@@ -873,11 +918,23 @@
 
       cycleLenSamples.push(currentCycle.length);
       if(cycleLenSamples.length>40) cycleLenSamples.shift();
+
+      lastCycles.unshift({
+        outcome: 'top',
+        id: currentCycle.id,
+        length: currentCycle.length,
+        wins: currentCycle.wins,
+        neus: currentCycle.neus,
+        maxK: currentCycle.maxK,
+        path: currentCycle.path || ''
+      });
+      if(lastCycles.length>5) lastCycles.length=5;
+
       cycleId++;
       currentCycle={ id:cycleId, length:0, wins:0, neus:0, maxK:state.k, path:'' };
     }
 
-    setRecent(outcome,k0,l0,state.k,state.l);
+    setRecent(lastOutcome,lastK0,lastL0,lastK1,lastL1);
     updateStats();
     save();
   }
@@ -912,7 +969,13 @@
     $('log').innerHTML='';
     $('cycle-box').innerHTML='';
     $('run-steps').textContent='0';
-    setRecent('neu',1,0,1,0);
+
+    // Clear last roll + cycle summaries for reset
+    lastOutcome = null;
+    lastK0 = 1; lastL0 = 0; lastK1 = 1; lastL1 = 0;
+    lastCycles.length = 0;
+
+    setRecent(null,1,0,1,0);
     updateStats();
     save();
   }
@@ -930,6 +993,9 @@
     maxK=Math.max(maxK,k);
     historyK.push(k); if(historyK.length>200) historyK.shift();
     logMsg(`State manually set: (${k0},${l0}) → (${k},${l})`);
+
+    // manual state change is not a "roll"; don't change lastOutcome,
+    // but we still want the recent pane to show the transition
     setRecent('neu',k0,l0,k,l);
     updateStats();
     save();
@@ -938,7 +1004,7 @@
   function safeBind(id,ev,fn){ const e=$(id); if(e) e.addEventListener(ev,fn); }
 
   document.addEventListener('DOMContentLoaded',()=>{
-    el.barwin=$('bar-win'); el.barloss=$('bar-loss'); el.barneu=$('bar-neu');
+    el.barwin=$('bar-win'); el.barloss=$('bar-loss'); el.barlneu=el.barneu=$('bar-neu');
     el.cwin=$('c-win'); el.cneu=$('c-neu'); el.closs=$('c-loss');
     el.spark=$('spark'); el.log=$('log');
 
@@ -967,12 +1033,39 @@
       else if(key==='x') resetState();
     });
 
+    updateStats();
+
     if(restored){
-      updateStats();
-      setRecent('neu',state.k,state.l,state.k,state.l);
+      // Restore recent roll display, if we have one
+      if(lastOutcome){
+        setRecent(lastOutcome,lastK0,lastL0,lastK1,lastL1);
+      }else{
+        setRecent(null,state.k,state.l,state.k,state.l);
+      }
+
+      // Rebuild cycle summaries from persisted lastCycles (newest on top)
+      if(lastCycles.length){
+        const box=$('cycle-box');
+        if(box){
+          box.innerHTML='';
+          for(let i=lastCycles.length-1;i>=0;i--){
+            const c=lastCycles[i];
+            appendCycleSummary(
+              c.outcome || 'loss',
+              {
+                id: c.id,
+                length: c.length,
+                wins: c.wins,
+                neus: c.neus || 0,
+                maxK: c.maxK || 1,
+                path: c.path || ''
+              }
+            );
+          }
+        }
+      }
     }else{
-      updateStats();
-      setRecent('neu',1,0,1,0);
+      setRecent(null,1,0,1,0);
     }
 
     // light self-tests on probabilities
