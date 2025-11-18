@@ -13,6 +13,7 @@
     margin:0;
     font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
     color:var(--text);
+    background-color:#050010; /* solid fallback behind gradients */
     background:
       radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%),
       radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%),
@@ -295,7 +296,7 @@
   let cycleId=1;
   let currentCycle={ id:1, length:0, wins:0, neus:0, maxK:1, path:'' };
 
-  // Persisted last 5 cycle summaries
+  // Persisted last 5 cycle summaries (newest first)
   let lastCycles = [];
 
   // Empirical distributions
@@ -364,6 +365,7 @@
         resetDistributions();
       }
 
+      // restore last roll + last cycles if present
       lastOutcome = (typeof o.lastOutcome === 'string') ? o.lastOutcome : null;
       lastK0 = (typeof o.lastK0 === 'number') ? o.lastK0 : 1;
       lastL0 = (typeof o.lastL0 === 'number') ? o.lastL0 : 0;
@@ -557,18 +559,17 @@
     let label;
     if(outcome==='neu') label='NEUTRAL';
     else if(outcome==='top') label='TOP HIT';
-    else if(outcome==='win') label='WIN';
-    else if(outcome==='loss') label='LOSS';
-    else label='No rolls yet';
+    else if(outcome) label=outcome.toUpperCase();
+    else label='—';
     $('recent-outcome').textContent=label;
     $('recent-kl').textContent=`(${k0},${l0})→(${k1},${l1})`;
 
     let p_win=0,p_neu=0,p_loss=0;
-    if(outcome && outcome!=='top'){
+    if(outcome!=='top'){
       const p=computeProbs(k1,l1); p_win=p.p_win; p_neu=p.p_neu; p_loss=p.p_loss;
     }
     const denom=p_win+p_loss;
-    $('recent-p-cond').textContent=(outcome && outcome!=='top' && denom>1e-12)?(100*(p_win/denom)).toFixed(1)+'%':'—';
+    $('recent-p-cond').textContent=(outcome==='top'||denom<=1e-12)?'—':(100*(p_win/denom)).toFixed(1)+'%';
 
     let pTopText='—';
     if(outcome!=='top' && topHitGrid && topHitGrid[k1] && typeof topHitGrid[k1][l1]==='number'){
@@ -596,7 +597,7 @@
     const lP=tot?counts.loss/tot*100:0;
     el.barwin.style.width=wP+'%';
     el.barloss.style.width=lP+'%';
-    el.barneu.style.width=nP+'%';
+    el.barlneu=el.barneu; el.barneu.style.width=nP+'%';
     el.cwin.textContent=counts.win;
     el.cneu.textContent=counts.neu;
     el.closs.textContent=counts.loss;
@@ -883,18 +884,18 @@
     if(outcome==='top') logMsg(`step ${state.step}: (${k0},${l0}) → TOP HIT at k=${state.k}, ℓ=${state.l}`);
     else logMsg(`step ${state.step}: (${k0},${l0}) → (${state.k},${state.l}) ${outcome.toUpperCase()}`);
 
-    // Persist last roll info for reload
+    // store last roll info for persistence
     lastOutcome = outcome;
     lastK0 = k0; lastL0 = l0;
     lastK1 = state.k; lastL1 = state.l;
 
-    // cycle summaries + persistence of last 5
+    // cycle summaries
     if(outcome==='loss'){
       appendCycleSummary('loss', currentCycle);
       cycleLenSamples.push(currentCycle.length);
       if(cycleLenSamples.length>40) cycleLenSamples.shift();
 
-      // update lastCycles (newest first)
+      // update stored summaries (newest first)
       lastCycles.unshift({
         outcome: 'loss',
         id: currentCycle.id,
@@ -970,7 +971,7 @@
     $('cycle-box').innerHTML='';
     $('run-steps').textContent='0';
 
-    // Clear last roll + cycle summaries for reset
+    // clear persisted last roll + summaries on reset
     lastOutcome = null;
     lastK0 = 1; lastL0 = 0; lastK1 = 1; lastL1 = 0;
     lastCycles.length = 0;
@@ -993,9 +994,6 @@
     maxK=Math.max(maxK,k);
     historyK.push(k); if(historyK.length>200) historyK.shift();
     logMsg(`State manually set: (${k0},${l0}) → (${k},${l})`);
-
-    // manual state change is not a "roll"; don't change lastOutcome,
-    // but we still want the recent pane to show the transition
     setRecent('neu',k0,l0,k,l);
     updateStats();
     save();
@@ -1004,7 +1002,7 @@
   function safeBind(id,ev,fn){ const e=$(id); if(e) e.addEventListener(ev,fn); }
 
   document.addEventListener('DOMContentLoaded',()=>{
-    el.barwin=$('bar-win'); el.barloss=$('bar-loss'); el.barlneu=el.barneu=$('bar-neu');
+    el.barwin=$('bar-win'); el.barloss=$('bar-loss'); el.barneu=$('bar-neu');
     el.cwin=$('c-win'); el.cneu=$('c-neu'); el.closs=$('c-loss');
     el.spark=$('spark'); el.log=$('log');
 
@@ -1033,17 +1031,17 @@
       else if(key==='x') resetState();
     });
 
-    updateStats();
-
     if(restored){
-      // Restore recent roll display, if we have one
+      updateStats();
+
+      // restore recent roll if we have one, otherwise just show current state
       if(lastOutcome){
         setRecent(lastOutcome,lastK0,lastL0,lastK1,lastL1);
       }else{
         setRecent(null,state.k,state.l,state.k,state.l);
       }
 
-      // Rebuild cycle summaries from persisted lastCycles (newest on top)
+      // rebuild cycle summaries from stored lastCycles (newest first)
       if(lastCycles.length){
         const box=$('cycle-box');
         if(box){
@@ -1065,6 +1063,7 @@
         }
       }
     }else{
+      updateStats();
       setRecent(null,1,0,1,0);
     }
 
