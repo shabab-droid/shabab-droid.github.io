@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin — Global Stats</title>
+<title>Sisyphus' Ruin — Final v3 (Bugfix)</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -41,7 +41,6 @@
   .btn.big:hover{background:#ffb64d}
   label{width:120px;font-size:12px;color:var(--muted)}
   
-  /* INPUT SIZING */
   input[type="number"],select{
     background:#140026; color:var(--text); border:none; border-radius:4px;
     padding:6px 8px; 
@@ -95,21 +94,11 @@
   .cycle-meta { font-weight: 400; opacity: 0.65; font-size: 10px; }
   .cycle-entry-path { opacity: 0.75; font-size: 10px; line-height: 1.1; letter-spacing: 1px; margin-top: 1px; }
 
-  /* -- NEW GLOBAL STATS -- */
   .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 4px;
-    margin-top: 6px;
-    background: rgba(255,255,255,0.03);
-    padding: 6px;
-    border-radius: 6px;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 6px;
+    background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px;
   }
-  .stat-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+  .stat-box { display: flex; flex-direction: column; align-items: center; }
   .stat-label { font-size: 10px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.5px; }
   .stat-val { font-family: monospace; font-size: 13px; font-weight: 600; color: var(--accent-3); }
 </style>
@@ -320,7 +309,6 @@ class SisyphusMath {
     return { TopHit, CycleLen, WinCount };
   }
 
-  // Simple quantile calculator
   static getQuantiles(data) {
     if (!data || data.length === 0) return null;
     const sorted = [...data].sort((a, b) => a - b);
@@ -363,7 +351,7 @@ class SisyphusModel {
     this.cycleId = 1;
     this.currentCycle = this._newCycle();
     this.cycleSummaries = []; 
-    this.allCycles = []; // GLOBAL TRACKING (Full History)
+    this.allCycles = []; 
 
     const M = Math.max(1, this.params.M);
     const L = Math.max(0, this.params.L);
@@ -371,7 +359,7 @@ class SisyphusModel {
       k: Array(M+1).fill(0), 
       l: Array(L+1).fill(0), 
       kl: Array.from({length: M+1}, () => Array(L+1).fill(0)),
-      cycles: [] // Keeps last 40 for sparkbar
+      cycles: []
     };
     
     this.lastRoll = null; 
@@ -452,10 +440,8 @@ class SisyphusModel {
     }
 
     if (outcome === 'loss' || outcome === 'top') {
-      // 1. Global History (Unlimited)
       this.allCycles.push(this.currentCycle.length);
       
-      // 2. Local Recent History (Last 40)
       this.distributions.cycles.push(this.currentCycle.length);
       if (this.distributions.cycles.length > 40) this.distributions.cycles.shift();
 
@@ -616,7 +602,6 @@ class SisyphusUI {
   }
 
   _renderDistributions() {
-    // K Histogram
     const dist = this.model.distributions;
     const renderBar = (hostId, data, M) => {
       const host = this.els[hostId];
@@ -637,7 +622,6 @@ class SisyphusUI {
     renderBar('hist-k', dist.k, this.model.params.M);
     renderBar('hist-l', dist.l, this.model.params.L);
 
-    // Cycle Length Histogram (Recent)
     const clSamples = dist.cycles;
     const hostCl = this.els['hist-cycle-len'];
     hostCl.innerHTML = '';
@@ -656,7 +640,6 @@ class SisyphusUI {
       hostCl.textContent = '—';
     }
 
-    // Heatmap
     const hostHM = this.els['hist-kl'];
     hostHM.innerHTML = '';
     const klData = dist.kl;
@@ -756,14 +739,12 @@ class GameController {
   toggleAuto() {
     const btn = document.getElementById('auto');
     if (this.isAuto) {
-      // STOPPING
       clearInterval(this.timer);
       cancelAnimationFrame(this.renderReq);
       this.isAuto = false;
       btn.textContent = 'Auto';
-      this.ui.render(this.grids, true); // Force FULL render on stop
+      this.ui.render(this.grids, true); 
     } else {
-      // STARTING
       this.isAuto = true;
       btn.textContent = 'Stop';
       const speed = +document.getElementById('speed').value || 100;
@@ -780,7 +761,6 @@ class GameController {
       const loop = () => {
         if(!this.isAuto) return;
         frameCount++;
-        // Full render (distributions) every 60 frames (~1 sec)
         const isFullRender = (frameCount % 60 === 0);
         this.ui.render(this.grids, isFullRender); 
         this.renderReq = requestAnimationFrame(loop);
@@ -819,16 +799,17 @@ class GameController {
       historyK: this.model.historyK,
       cycleSummaries: this.model.cycleSummaries,
       distributions: this.model.distributions,
-      allCycles: this.model.allCycles, // PERSIST GLOBAL STATS
+      allCycles: this.model.allCycles,
       lastRoll: this.model.lastRoll,
-      cycleId: this.model.cycleId
+      cycleId: this.model.cycleId,
+      currentCycle: this.model.currentCycle
     };
-    localStorage.setItem('sisyphus_v6_persist', JSON.stringify(data));
+    localStorage.setItem('sisyphus_v7_persist', JSON.stringify(data));
   }
 
   load() {
     try {
-      const raw = localStorage.getItem('sisyphus_v6_persist');
+      const raw = localStorage.getItem('sisyphus_v7_persist');
       if(raw) {
         const data = JSON.parse(raw);
         Object.assign(this.model.params, data.params);
@@ -841,6 +822,7 @@ class GameController {
         if(data.allCycles) this.model.allCycles = data.allCycles;
         if(data.lastRoll) this.model.lastRoll = data.lastRoll;
         if(data.cycleId) this.model.cycleId = data.cycleId;
+        if(data.currentCycle) this.model.currentCycle = data.currentCycle;
 
         Object.keys(this.model.params).forEach(k => {
            const el = document.getElementById(k);
