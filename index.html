@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin — Docked</title>
+<title>Sisyphus' Ruin — Optimized</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -22,7 +22,7 @@
   h1{
     text-align:center; font-size:clamp(22px,3vw,30px); margin:14px 0 12px; letter-spacing:.5px;
     background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--accent-3));
-    -webkit-background-clip:text; color:transparent;
+    -webkit-background-clip:text; background-clip:text; color:transparent;
   }
   .grid{display:grid;grid-template-columns:1fr 360px;gap:12px}
   @media(max-width:900px){.grid{grid-template-columns:1fr}}
@@ -34,15 +34,16 @@
   }
   .btn:hover{background:#2d0048}
   .btn:active{transform:scale(.97)}
+  .btn:focus{outline:2px solid var(--accent);outline-offset:2px}
   
   /* DOCKED ROLL BUTTON STYLES */
   .docked-control {
     position: sticky;
     top: 0;
     z-index: 1000;
-    background: rgba(5, 0, 16, 0.85); /* Translucent dark bg */
-    backdrop-filter: blur(8px); /* Glass effect */
-    margin: -12px -12px 12px -12px; /* Pull out of parent padding */
+    background: rgba(5, 0, 16, 0.85);
+    backdrop-filter: blur(8px);
+    margin: -12px -12px 12px -12px;
     padding: 12px;
     border-bottom: 1px solid rgba(255, 166, 0, 0.15);
     display: flex;
@@ -51,10 +52,9 @@
 
   .btn.big{
     display:block; width:100%; font-size:20px; padding:16px;
-    /* margin-bottom removed as padding handles spacing in docked view */
     margin-bottom:0; 
     background:#ff9e2c; color:#120026; font-weight:700;
-    max-width: 600px; /* Prevent it from getting too wide on desktop */
+    max-width: 600px;
   }
   .btn.big:hover{background:#ffb64d}
   
@@ -120,9 +120,84 @@
   .stat-box { display: flex; flex-direction: column; align-items: center; }
   .stat-label { font-size: 10px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.5px; }
   .stat-val { font-family: monospace; font-size: 13px; font-weight: 600; color: var(--accent-3); }
+
+  /* Accessibility improvements */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Performance indicator */
+  .perf-indicator {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.8);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: monospace;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* Help modal */
+  .help-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(20,0,38,0.95);
+    border: 2px solid var(--accent);
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 2000;
+    max-width: 400px;
+  }
+  .help-modal.show { display: block; }
+  .help-modal h3 { margin-top: 0; color: var(--accent); }
+  .help-modal kbd {
+    background: rgba(255,255,255,0.1);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
 </style>
 </head>
 <body>
+
+<!-- Screen reader announcements -->
+<div role="status" aria-live="polite" aria-atomic="true" class="sr-only" id="aria-announcer"></div>
+
+<!-- Help Modal -->
+<div class="help-modal" id="help-modal" role="dialog" aria-labelledby="help-title">
+  <h3 id="help-title">Keyboard Shortcuts</h3>
+  <dl>
+    <dt><kbd>Space</kbd> or <kbd>Enter</kbd></dt>
+    <dd>Roll once</dd>
+    <dt><kbd>A</kbd></dt>
+    <dd>Toggle auto-play</dd>
+    <dt><kbd>R</kbd></dt>
+    <dd>Reset game</dd>
+    <dt><kbd>?</kbd></dt>
+    <dd>Show/hide this help</dd>
+    <dt><kbd>Esc</kbd></dt>
+    <dd>Close this help</dd>
+  </dl>
+  <button class="btn" onclick="document.getElementById('help-modal').classList.remove('show')">Close</button>
+</div>
+
+<!-- Performance indicator -->
+<div class="perf-indicator" id="perf-indicator"></div>
 
 <template id="tpl-cycle-entry">
   <div class="cycle-entry">
@@ -138,12 +213,14 @@
   <h1>Sisyphus' Ruin</h1>
 
   <div class="docked-control">
-    <button class="btn big" id="roll1_big">Roll</button>
+    <button class="btn big" id="roll1_big" 
+            aria-label="Roll the dice once" 
+            aria-keyshortcuts="Space Enter">Roll</button>
   </div>
 
   <div class="grid">
     <div>
-      <div class="card recent" id="recent-card">
+      <div class="card recent" id="recent-card" role="region" aria-label="Recent roll result">
         <div style="display:flex;flex-direction:column;gap:2px">
           <div id="recent-outcome" style="font-weight:900;letter-spacing:1px;font-size:clamp(20px,3.2vw,32px)">No rolls yet</div>
           <div class="tiny mono">(k,ℓ): <span id="recent-kl">(1,0)→(1,0)</span></div>
@@ -159,13 +236,13 @@
         </div>
       </div>
 
-      <div class="card"><h2 style="margin:0 0 8px">Sparkline</h2><svg id="spark" viewBox="0 0 300 60" preserveAspectRatio="none"></svg></div>
+      <div class="card"><h2 style="margin:0 0 8px">Sparkline</h2><svg id="spark" viewBox="0 0 300 60" preserveAspectRatio="none" role="img" aria-label="Progress history chart"></svg></div>
 
       <div class="card"><h2 style="margin:0 0 8px">Run Stats</h2>
         <div class="small" style="margin-bottom:6px">steps: <span class="mono" id="run-steps">0</span></div>
-        <div class="bar"><div class="win" id="bar-win" style="width:0%"></div></div>
-        <div class="bar"><div class="neu" id="bar-neu" style="width:0%"></div></div>
-        <div class="bar"><div class="loss" id="bar-loss" style="width:0%"></div></div>
+        <div class="bar" role="progressbar" aria-label="Win percentage"><div class="win" id="bar-win" style="width:0%"></div></div>
+        <div class="bar" role="progressbar" aria-label="Neutral percentage"><div class="neu" id="bar-neu" style="width:0%"></div></div>
+        <div class="bar" role="progressbar" aria-label="Loss percentage"><div class="loss" id="bar-loss" style="width:0%"></div></div>
         <div class="row" style="justify-content:space-between">
           <div>win: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
           <div>neutral: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
@@ -177,7 +254,7 @@
         </div>
       </div>
 
-      <div class="card"><div id="log"></div></div>
+      <div class="card"><div id="log" role="log" aria-label="Game log"></div></div>
 
       <div class="card"><h2 style="margin:0 0 8px">Cycle Summaries</h2><div id="cycle-box" class="tiny"></div></div>
     </div>
@@ -185,10 +262,10 @@
     <div>
       <div class="card"><h2 style="margin:0 0 8px">Play Controls</h2>
         <div class="row">
-          <input id="nRolls" type="number" value="20">
+          <input id="nRolls" type="number" value="20" aria-label="Number of rolls">
           <button class="btn" id="rollN">Roll N</button>
-          <button class="btn" id="auto">Auto</button>
-          <select id="speed">
+          <button class="btn" id="auto" aria-keyshortcuts="A">Auto</button>
+          <select id="speed" aria-label="Auto-play speed">
             <option value="1000">Slow</option>
             <option value="100" selected>Normal</option>
             <option value="10">Fast (Turbo)</option>
@@ -196,8 +273,8 @@
         </div>
         <div class="row" style="margin-top:8px">
           <span class="tiny" style="min-width:110px">Set state (k, ℓ):</span>
-          <input id="set-k" type="number" min="1" value="1">
-          <input id="set-l" type="number" min="0" value="0">
+          <input id="set-k" type="number" min="1" value="1" aria-label="Set k value">
+          <input id="set-l" type="number" min="0" value="0" aria-label="Set l value">
           <button class="btn" id="setStateBtn">Set</button>
         </div>
       </div>
@@ -212,23 +289,23 @@
 
       <div class="card" id="params-container">
         <h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Parameters</h3>
-        <div class="row"><label>M (k levels)</label><input id="M" type="number" value="20"></div>
+        <div class="row"><label for="M">M (k levels)</label><input id="M" type="number" value="20"></div>
         <div class="desc">How many rungs in the ladder.</div>
-        <div class="row"><label>L (ℓ max)</label><input id="L" type="number" value="20"></div>
+        <div class="row"><label for="L">L (ℓ max)</label><input id="L" type="number" value="20"></div>
         <div class="desc">Momentum scale; ℓ ∈ [0, L].</div>
-        <div class="row"><label>w_min → w_max</label><input id="w_min" type="number" step="0.01" value="0.10"><input id="w_max" type="number" step="0.01" value="0.90"></div>
+        <div class="row"><label>w_min → w_max</label><input id="w_min" type="number" step="0.01" value="0.10" aria-label="Minimum win probability"><input id="w_max" type="number" step="0.01" value="0.90" aria-label="Maximum win probability"></div>
         <div class="desc">Win rises from w_min at k=1 to w_max at k=M.</div>
-        <div class="row"><label>β (k ramp)</label><input id="beta" type="number" step="0.1" value="1.5"></div>
+        <div class="row"><label for="beta">β (k ramp)</label><input id="beta" type="number" step="0.1" value="1.5"></div>
         <div class="desc">β > 1 makes late k much easier.</div>
-        <div class="row"><label>ρ, γ (ℓ boost)</label><input id="rho" type="number" step="0.05" value="0.6"><input id="gamma" type="number" step="0.1" value="1.5"></div>
+        <div class="row"><label>ρ, γ (ℓ boost)</label><input id="rho" type="number" step="0.05" value="0.6" aria-label="Rho parameter"><input id="gamma" type="number" step="0.1" value="1.5" aria-label="Gamma parameter"></div>
         <div class="desc">Higher ℓ → more win probability.</div>
-        <div class="row"><label>c_min → c_max</label><input id="c_min" type="number" step="0.01" value="0.03"><input id="c_max" type="number" step="0.01" value="0.10"></div>
+        <div class="row"><label>c_min → c_max</label><input id="c_min" type="number" step="0.01" value="0.03" aria-label="Minimum catastrophe probability"><input id="c_max" type="number" step="0.01" value="0.10" aria-label="Maximum catastrophe probability"></div>
         <div class="desc">Loss floor/ceiling.</div>
-        <div class="row"><label>α (loss decay)</label><input id="alpha" type="number" step="0.1" value="0.3"></div>
+        <div class="row"><label for="alpha">α (loss decay)</label><input id="alpha" type="number" step="0.1" value="0.3"></div>
         <div class="desc">Higher ℓ reduces loss via exp decay.</div>
-        <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1"><input id="s_w" type="number" value="20"></div>
+        <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1" aria-label="Momentum gain"><input id="s_w" type="number" value="20" aria-label="Momentum spend"></div>
         <div class="desc">Momentum gain (neutral) vs spend (win).</div>
-        <div class="row"><button class="btn" id="apply">Apply & Reset</button><button class="btn" id="resetState">Reset State</button></div>
+        <div class="row"><button class="btn" id="apply">Apply & Reset</button><button class="btn" id="resetState" aria-keyshortcuts="R">Reset State</button></div>
       </div>
 
       <div class="card"><h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Expectations</h3>
@@ -237,6 +314,7 @@
           <div>loss rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
           <div>average cycle length: <span class="mono" id="exp-cycle-len">—</span> rolls</div>
           <div>E[first top hit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
+          <div>cache hit rate: <span class="mono" id="cache-hit-rate">—</span></div>
         </div>
       </div>
 
@@ -266,13 +344,121 @@
 
 <script>
 /* -------------------------------------------------------------------------- */
+/* MODULE 0: UTILITIES & HELPERS                                             */
+/* -------------------------------------------------------------------------- */
+
+// Probability Cache for memoization
+class ProbabilityCache {
+  constructor(maxSize = 400) {
+    this.cache = new Map();
+    this.maxSize = maxSize;
+    this.hits = 0;
+    this.misses = 0;
+  }
+  
+  makeKey(k, l, params) {
+    return `${k},${l},${params.w_min},${params.w_max},${params.beta},${params.rho},${params.gamma},${params.c_min},${params.c_max},${params.alpha},${params.M},${params.L}`;
+  }
+  
+  get(k, l, params) {
+    const key = this.makeKey(k, l, params);
+    const result = this.cache.get(key);
+    if (result) {
+      this.hits++;
+      return result;
+    }
+    this.misses++;
+    return null;
+  }
+  
+  set(k, l, params, probs) {
+    if (this.cache.size >= this.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      this.cache.delete(firstKey);
+    }
+    const key = this.makeKey(k, l, params);
+    this.cache.set(key, probs);
+    return probs;
+  }
+  
+  clear() {
+    this.cache.clear();
+    this.hits = 0;
+    this.misses = 0;
+  }
+  
+  getStats() {
+    return {
+      size: this.cache.size,
+      hits: this.hits,
+      misses: this.misses,
+      hitRate: this.hits / (this.hits + this.misses) || 0
+    };
+  }
+}
+
+// Aria Announcer for screen readers
+class AriaAnnouncer {
+  constructor() {
+    this.element = document.getElementById('aria-announcer');
+  }
+  
+  announce(message) {
+    this.element.textContent = message;
+    setTimeout(() => {
+      this.element.textContent = '';
+    }, 1000);
+  }
+}
+
+// Performance Monitor
+class PerformanceMonitor {
+  constructor() {
+    this.frameCount = 0;
+    this.lastTime = performance.now();
+    this.fps = 0;
+    this.element = document.getElementById('perf-indicator');
+  }
+  
+  tick() {
+    this.frameCount++;
+    const now = performance.now();
+    const delta = now - this.lastTime;
+    
+    if (delta >= 1000) {
+      this.fps = Math.round(this.frameCount * 1000 / delta);
+      this.frameCount = 0;
+      this.lastTime = now;
+      this.update();
+    }
+  }
+  
+  update() {
+    const cacheStats = SisyphusMath.probCache.getStats();
+    this.element.textContent = `FPS: ${this.fps} | Cache: ${(cacheStats.hitRate * 100).toFixed(0)}%`;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /* MODULE 1: SISYPHUS MATH                                                   */
 /* -------------------------------------------------------------------------- */
 class SisyphusMath {
+  static EPSILON = 1e-10;
+  static probCache = new ProbabilityCache();
+  
   static computeProbs(k, l, p) {
+    // Check cache first
+    const cached = this.probCache.get(k, l, p);
+    if (cached) return cached;
+    
+    // Ensure integer bounds
+    k = Math.round(k);
+    l = Math.round(l);
+    
     const clamp01 = x => Math.min(1, Math.max(0, x));
     const M = Math.max(1, p.M | 0);
     const L = Math.max(1, p.L | 0);
+    
     const frac = M > 1 ? (k - 1) / (M - 1) : 1;
     const base = p.w_min + (p.w_max - p.w_min) * Math.pow(frac, p.beta);
     const ell = (1 - p.rho) + p.rho * Math.pow(l / L, p.gamma);
@@ -280,12 +466,42 @@ class SisyphusMath {
     let p_win = clamp01(base * ell);
     let p_loss = p.c_min + (p.c_max - p.c_min) * Math.exp(-p.alpha * l);
     
-    if (p_win + p_loss > 1) {
-      const s = p_win + p_loss;
-      p_win /= s; p_loss /= s;
+    // Handle normalization with epsilon
+    const sum = p_win + p_loss;
+    if (sum > 1 + this.EPSILON) {
+      p_win /= sum;
+      p_loss /= sum;
+    } else if (sum > 1) {
+      const scale = 1 / sum;
+      p_win *= scale;
+      p_loss *= scale;
     }
-    const p_neu = 1 - p_win - p_loss;
-    return { p_win, p_neu, p_loss };
+    
+    // Ensure p_neu is non-negative
+    let p_neu = Math.max(0, 1 - p_win - p_loss);
+    
+    // Final normalization
+    const total = p_win + p_neu + p_loss;
+    if (Math.abs(total - 1) > this.EPSILON) {
+      p_win /= total;
+      p_neu /= total;
+      p_loss /= total;
+    }
+    
+    const result = { 
+      p_win: clamp01(p_win), 
+      p_neu: clamp01(p_neu), 
+      p_loss: clamp01(p_loss) 
+    };
+    
+    // Cache the result
+    this.probCache.set(k, l, p, result);
+    
+    return result;
+  }
+  
+  static clearCache() {
+    this.probCache.clear();
   }
 
   static solveExpectations(p) {
@@ -416,19 +632,20 @@ class SisyphusModel {
       l1 = Math.min(this.params.L, l0 + this.params.g_n);
     }
 
-    this.state.k = k1; this.state.l = l1;
+    this.state.k = k1; 
+    this.state.l = l1;
     this.state.step++;
     this.state.cycleSteps++;
     
-    if (outcome !== 'top') this.stats[outcome+'s'] = (this.stats[outcome+'s'] || 0) + 1; 
-    else this.stats.wins++; 
-
-    if (outcome === 'win') this.stats.wins++;
+    // Update stats
+    if (outcome === 'win' || outcome === 'top') this.stats.wins++;
     else if (outcome === 'neu') this.stats.neus++;
     else if (outcome === 'loss') this.stats.loss++;
 
     if (outcome === 'loss' || outcome === 'top') {
-      if (this.state.cycleSteps > this.stats.longestCycle) this.stats.longestCycle = this.state.cycleSteps;
+      if (this.state.cycleSteps > this.stats.longestCycle) {
+        this.stats.longestCycle = this.state.cycleSteps;
+      }
       if (outcome === 'loss') this.state.cycleSteps = 0;
     }
 
@@ -489,14 +706,52 @@ class SisyphusUI {
   constructor(model) {
     this.model = model;
     this.els = {};
+    this.pendingUpdates = new Map();
+    this.rafId = null;
+    
     ['rbar-win','rbar-neu','rbar-loss','rpct-win','rpct-neu','rpct-loss',
      'kpos-fill','kpos-text','lpos-fill','lpos-text','recent-p-cond','recent-p-top',
      'recent-outcome','recent-kl','recent-card',
      'bar-win','bar-neu','bar-loss','c-win','c-neu','c-loss',
      'r-win','r-neu','r-loss','run-steps','longest-cycle','max-k',
      'spark','log','cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
-     'global-n','gs-min','gs-25','gs-50','gs-75','gs-max'
+     'global-n','gs-min','gs-25','gs-50','gs-75','gs-max','cache-hit-rate'
     ].forEach(id => this.els[id] = document.getElementById(id));
+  }
+  
+  // Batch update methods
+  batchUpdate(elementId, property, value) {
+    if (!this.pendingUpdates.has(elementId)) {
+      this.pendingUpdates.set(elementId, {});
+    }
+    this.pendingUpdates.get(elementId)[property] = value;
+    
+    if (!this.rafId) {
+      this.rafId = requestAnimationFrame(() => {
+        this.flushUpdates();
+      });
+    }
+  }
+  
+  flushUpdates() {
+    this.pendingUpdates.forEach((updates, elementId) => {
+      const el = this.els[elementId];
+      if (!el) return;
+      
+      Object.entries(updates).forEach(([prop, value]) => {
+        if (prop === 'textContent') {
+          el.textContent = value;
+        } else if (prop === 'className') {
+          el.className = value;
+        } else if (prop.startsWith('style.')) {
+          const styleProp = prop.substring(6);
+          el.style[styleProp] = value;
+        }
+      });
+    });
+    
+    this.pendingUpdates.clear();
+    this.rafId = null;
   }
 
   log(msg) {
@@ -512,24 +767,24 @@ class SisyphusUI {
     const st = m.stats;
     const lr = m.lastRoll || { outcome:null, k0:1, l0:0, k1:s.k, l1:s.l };
 
-    // 1. Recent Card
     const pct = x => (100 * Math.max(0, Math.min(1, x))).toFixed(1) + '%';
     const probs = SisyphusMath.computeProbs(lr.k1, lr.l1, m.params);
     
-    this.els['recent-outcome'].textContent = lr.outcome ? 
-      (lr.outcome === 'neu' ? 'NEUTRAL' : lr.outcome === 'top' ? 'TOP HIT' : lr.outcome.toUpperCase()) : '—';
-    this.els['recent-kl'].textContent = `(${lr.k0},${lr.l0})→(${lr.k1},${lr.l1})`;
-    this.els['recent-card'].className = 'card recent ' + (lr.outcome === 'top' ? 'win' : lr.outcome || '');
+    // Use batch updates for better performance
+    this.batchUpdate('recent-outcome', 'textContent', 
+      lr.outcome ? (lr.outcome === 'neu' ? 'NEUTRAL' : lr.outcome === 'top' ? 'TOP HIT' : lr.outcome.toUpperCase()) : '—');
+    this.batchUpdate('recent-kl', 'textContent', `(${lr.k0},${lr.l0})→(${lr.k1},${lr.l1})`);
+    this.batchUpdate('recent-card', 'className', 'card recent ' + (lr.outcome === 'top' ? 'win' : lr.outcome || ''));
 
-    this.els['rbar-win'].style.width = pct(probs.p_win);
-    this.els['rbar-neu'].style.width = pct(probs.p_neu);
-    this.els['rbar-loss'].style.width = pct(probs.p_loss);
-    this.els['rpct-win'].textContent = pct(probs.p_win);
-    this.els['rpct-neu'].textContent = pct(probs.p_neu);
-    this.els['rpct-loss'].textContent = pct(probs.p_loss);
+    this.batchUpdate('rbar-win', 'style.width', pct(probs.p_win));
+    this.batchUpdate('rbar-neu', 'style.width', pct(probs.p_neu));
+    this.batchUpdate('rbar-loss', 'style.width', pct(probs.p_loss));
+    this.batchUpdate('rpct-win', 'textContent', pct(probs.p_win));
+    this.batchUpdate('rpct-neu', 'textContent', pct(probs.p_neu));
+    this.batchUpdate('rpct-loss', 'textContent', pct(probs.p_loss));
 
     const p_cond = (probs.p_win + probs.p_loss > 0) ? probs.p_win / (probs.p_win + probs.p_loss) : 0;
-    this.els['recent-p-cond'].textContent = (probs.p_win+probs.p_loss < 1e-9) ? '—' : pct(p_cond);
+    this.batchUpdate('recent-p-cond', 'textContent', (probs.p_win+probs.p_loss < 1e-9) ? '—' : pct(p_cond));
 
     let pTopText = '—';
     if (grids && grids.TopHit && grids.TopHit[lr.k1] && typeof grids.TopHit[lr.k1][lr.l1] === 'number') {
@@ -537,29 +792,34 @@ class SisyphusUI {
       const odds = Math.max(1, Math.round(1/Math.max(p, 1e-12)));
       pTopText = `1 in ${odds} (${(100*p).toFixed(2)}%)`;
     }
-    this.els['recent-p-top'].textContent = pTopText;
+    this.batchUpdate('recent-p-top', 'textContent', pTopText);
 
-    this.els['kpos-fill'].style.width = pct(lr.k1 / m.params.M);
-    this.els['kpos-text'].textContent = `${lr.k1} / ${m.params.M}`;
-    this.els['lpos-fill'].style.width = pct(lr.l1 / m.params.L);
-    this.els['lpos-text'].textContent = `${lr.l1} / ${m.params.L}`;
+    this.batchUpdate('kpos-fill', 'style.width', pct(lr.k1 / m.params.M));
+    this.batchUpdate('kpos-text', 'textContent', `${lr.k1} / ${m.params.M}`);
+    this.batchUpdate('lpos-fill', 'style.width', pct(lr.l1 / m.params.L));
+    this.batchUpdate('lpos-text', 'textContent', `${lr.l1} / ${m.params.L}`);
 
-    // 2. Stats
+    // Stats
     const tot = st.wins + st.neus + st.loss;
-    this.els['run-steps'].textContent = s.step;
-    this.els['c-win'].textContent = st.wins;
-    this.els['c-neu'].textContent = st.neus;
-    this.els['c-loss'].textContent = st.loss;
-    this.els['r-win'].textContent = tot ? (100*st.wins/tot).toFixed(1)+'%' : '0%';
-    this.els['r-neu'].textContent = tot ? (100*st.neus/tot).toFixed(1)+'%' : '0%';
-    this.els['r-loss'].textContent = tot ? (100*st.loss/tot).toFixed(1)+'%' : '0%';
+    this.batchUpdate('run-steps', 'textContent', s.step);
+    this.batchUpdate('c-win', 'textContent', st.wins);
+    this.batchUpdate('c-neu', 'textContent', st.neus);
+    this.batchUpdate('c-loss', 'textContent', st.loss);
+    this.batchUpdate('r-win', 'textContent', tot ? (100*st.wins/tot).toFixed(1)+'%' : '0%');
+    this.batchUpdate('r-neu', 'textContent', tot ? (100*st.neus/tot).toFixed(1)+'%' : '0%');
+    this.batchUpdate('r-loss', 'textContent', tot ? (100*st.loss/tot).toFixed(1)+'%' : '0%');
     
-    this.els['bar-win'].style.width = tot ? (100*st.wins/tot)+'%' : '0%';
-    this.els['bar-neu'].style.width = tot ? (100*st.neus/tot)+'%' : '0%';
-    this.els['bar-loss'].style.width = tot ? (100*st.loss/tot)+'%' : '0%';
+    this.batchUpdate('bar-win', 'style.width', tot ? (100*st.wins/tot)+'%' : '0%');
+    this.batchUpdate('bar-neu', 'style.width', tot ? (100*st.neus/tot)+'%' : '0%');
+    this.batchUpdate('bar-loss', 'style.width', tot ? (100*st.loss/tot)+'%' : '0%');
     
-    this.els['longest-cycle'].textContent = st.longestCycle;
-    this.els['max-k'].textContent = st.maxK;
+    this.batchUpdate('longest-cycle', 'textContent', st.longestCycle);
+    this.batchUpdate('max-k', 'textContent', st.maxK);
+    
+    // Update cache hit rate
+    const cacheStats = SisyphusMath.probCache.getStats();
+    this.batchUpdate('cache-hit-rate', 'textContent', 
+      cacheStats.hits + cacheStats.misses > 0 ? (cacheStats.hitRate * 100).toFixed(1) + '%' : '—');
 
     this._drawSpark(m.historyK, m.params.M);
     this._renderCycles();
@@ -584,8 +844,10 @@ class SisyphusUI {
 
   _renderCycles() {
     const box = this.els['cycle-box'];
-    box.innerHTML = '';
     const tpl = document.getElementById('tpl-cycle-entry');
+    
+    // Use DocumentFragment for better performance
+    const fragment = document.createDocumentFragment();
     
     this.model.cycleSummaries.forEach(c => {
       const clone = tpl.content.cloneNode(true);
@@ -602,8 +864,11 @@ class SisyphusUI {
         wrapped += c.path.slice(i, i+chunk) + '\n';
       }
       clone.querySelector('.cycle-entry-path').textContent = wrapped || '-';
-      box.appendChild(clone);
+      fragment.appendChild(clone);
     });
+    
+    box.innerHTML = '';
+    box.appendChild(fragment);
   }
 
   _renderGlobalStats() {
@@ -721,8 +986,11 @@ class GameController {
     this.renderReq = null;
     this.isAuto = false;
     this.grids = null;
+    this.announcer = new AriaAnnouncer();
+    this.perfMonitor = new PerformanceMonitor();
     
     this.bindEvents();
+    this.bindKeyboard();
     this.load(); 
     this.recalcExpectations();
     this.ui.render(this.grids, true); 
@@ -747,11 +1015,65 @@ class GameController {
       this.ui.render(this.grids);
     }
   }
+  
+  bindKeyboard() {
+    document.addEventListener('keydown', (e) => {
+      // Ignore if user is typing in input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+        return;
+      }
+      
+      const helpModal = document.getElementById('help-modal');
+      
+      switch(e.key) {
+        case ' ':  // Space
+        case 'Enter':
+          e.preventDefault();
+          if (!helpModal.classList.contains('show')) {
+            this.stepManually();
+          }
+          break;
+        case 'r':  // R for reset
+        case 'R':
+          if (e.ctrlKey || e.metaKey) return; // Don't interfere with browser refresh
+          e.preventDefault();
+          this.reset();
+          break;
+        case 'a':  // A for auto
+        case 'A':
+          e.preventDefault();
+          this.toggleAuto();
+          break;
+        case '?':  // ? for help
+          e.preventDefault();
+          helpModal.classList.toggle('show');
+          break;
+        case 'Escape':
+          if (helpModal.classList.contains('show')) {
+            e.preventDefault();
+            helpModal.classList.remove('show');
+          }
+          break;
+      }
+    });
+  }
 
   stepManually() {
     if(this.isAuto) this.toggleAuto();
     const res = this.model.step();
-    if(res === 'top') alert("Top Hit Reached!");
+    
+    // Announce result to screen readers
+    if (res === 'top') {
+      this.announcer.announce("Congratulations! Top hit reached!");
+      alert("Top Hit Reached!");
+    } else if (res === 'win') {
+      this.announcer.announce(`Win! Now at level ${this.model.state.k}`);
+    } else if (res === 'loss') {
+      this.announcer.announce("Loss. Reset to level 1");
+    } else if (res === 'neu') {
+      this.announcer.announce("Neutral. Momentum increased");
+    }
+    
     this.ui.render(this.grids);
     if(res && res !== 'top') this.ui.log(`step ${this.model.state.step}: ${this.model.lastRoll.outcome.toUpperCase()}`);
     this.save();
@@ -760,9 +1082,15 @@ class GameController {
   toggleAuto() {
     const btn = document.getElementById('auto');
     if (this.isAuto) {
-      // STOPPING
-      clearInterval(this.timer);
-      cancelAnimationFrame(this.renderReq);
+      // STOPPING - Always clean up
+      if (this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+      if (this.renderReq) {
+        cancelAnimationFrame(this.renderReq);
+        this.renderReq = null;
+      }
       this.isAuto = false;
       btn.textContent = 'Auto';
       this.ui.render(this.grids, true); // Force FULL render on stop
@@ -773,10 +1101,21 @@ class GameController {
       const speed = +document.getElementById('speed').value || 100;
       
       this.timer = setInterval(() => {
-        if(this.model.state.topHit) { this.toggleAuto(); return; }
+        // Check BEFORE and AFTER batch processing
+        if(!this.isAuto || this.model.state.topHit) {
+          this.toggleAuto();
+          return;
+        }
+        
         const batch = speed < 20 ? 10 : 1; 
-        for(let i=0; i<batch; i++) {
-           if(!this.model.state.topHit) this.model.step();
+        for(let i = 0; i < batch; i++) {
+          if(!this.model.state.topHit) {
+            this.model.step();
+          } else {
+            // Stop immediately if top hit during batch
+            this.toggleAuto();
+            return;
+          }
         }
       }, speed);
 
@@ -786,6 +1125,7 @@ class GameController {
         frameCount++;
         const isFullRender = (frameCount % 60 === 0);
         this.ui.render(this.grids, isFullRender); 
+        this.perfMonitor.tick();
         this.renderReq = requestAnimationFrame(loop);
       };
       loop();
@@ -798,6 +1138,10 @@ class GameController {
       const el = document.getElementById(k);
       if(el) p[k] = +el.value;
     });
+    
+    // Clear cache when parameters change
+    SisyphusMath.clearCache();
+    
     this.reset(); 
   }
 
@@ -807,6 +1151,7 @@ class GameController {
     this.ui.render(this.grids, true);
     this.ui.els.log.innerHTML = '';
     this.save();
+    this.announcer.announce("Game reset");
   }
 
   recalcExpectations() {
@@ -827,12 +1172,13 @@ class GameController {
       cycleId: this.model.cycleId,
       currentCycle: this.model.currentCycle
     };
-    localStorage.setItem('sisyphus_v7_persist', JSON.stringify(data));
+    localStorage.setItem('sisyphus_v8_optimized', JSON.stringify(data));
   }
 
   load() {
     try {
-      const raw = localStorage.getItem('sisyphus_v7_persist');
+      const raw = localStorage.getItem('sisyphus_v8_optimized') || 
+                  localStorage.getItem('sisyphus_v7_persist'); // Backwards compat
       if(raw) {
         const data = JSON.parse(raw);
         Object.assign(this.model.params, data.params);
