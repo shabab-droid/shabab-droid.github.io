@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin — Final v3 (Bugfix)</title>
+<title>Sisyphus' Ruin — Docked</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -34,11 +34,30 @@
   }
   .btn:hover{background:#2d0048}
   .btn:active{transform:scale(.97)}
+  
+  /* DOCKED ROLL BUTTON STYLES */
+  .docked-control {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(5, 0, 16, 0.85); /* Translucent dark bg */
+    backdrop-filter: blur(8px); /* Glass effect */
+    margin: -12px -12px 12px -12px; /* Pull out of parent padding */
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 166, 0, 0.15);
+    display: flex;
+    justify-content: center;
+  }
+
   .btn.big{
-    display:block; width:100%; font-size:20px; padding:16px; margin-bottom:14px;
+    display:block; width:100%; font-size:20px; padding:16px;
+    /* margin-bottom removed as padding handles spacing in docked view */
+    margin-bottom:0; 
     background:#ff9e2c; color:#120026; font-weight:700;
+    max-width: 600px; /* Prevent it from getting too wide on desktop */
   }
   .btn.big:hover{background:#ffb64d}
+  
   label{width:120px;font-size:12px;color:var(--muted)}
   
   input[type="number"],select{
@@ -118,7 +137,9 @@
 <div class="app">
   <h1>Sisyphus' Ruin</h1>
 
-  <div class="card"><button class="btn big" id="roll1_big">Roll</button></div>
+  <div class="docked-control">
+    <button class="btn big" id="roll1_big">Roll</button>
+  </div>
 
   <div class="grid">
     <div>
@@ -739,12 +760,14 @@ class GameController {
   toggleAuto() {
     const btn = document.getElementById('auto');
     if (this.isAuto) {
+      // STOPPING
       clearInterval(this.timer);
       cancelAnimationFrame(this.renderReq);
       this.isAuto = false;
       btn.textContent = 'Auto';
-      this.ui.render(this.grids, true); 
+      this.ui.render(this.grids, true); // Force FULL render on stop
     } else {
+      // STARTING
       this.isAuto = true;
       btn.textContent = 'Stop';
       const speed = +document.getElementById('speed').value || 100;
