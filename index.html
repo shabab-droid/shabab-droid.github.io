@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin — Optimized</title>
+<title>Sisyphus' Ruin</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -262,14 +262,17 @@
     <div>
       <div class="card"><h2 style="margin:0 0 8px">Play Controls</h2>
         <div class="row">
-          <input id="nRolls" type="number" value="20" aria-label="Number of rolls">
-          <button class="btn" id="rollN">Roll N</button>
-          <button class="btn" id="auto" aria-keyshortcuts="A">Auto</button>
+          <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1">Auto Play</button>
           <select id="speed" aria-label="Auto-play speed">
             <option value="1000">Slow</option>
             <option value="100" selected>Normal</option>
             <option value="10">Fast (Turbo)</option>
           </select>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <input id="nRolls" type="number" value="20" aria-label="Number of rolls or cycles" style="width:60px">
+          <button class="btn" id="rollN" style="flex:1">Roll N Steps</button>
+          <button class="btn" id="rollNCycles" style="flex:1">Roll N Cycles</button>
         </div>
         <div class="row" style="margin-top:8px">
           <span class="tiny" style="min-width:110px">Set state (k, ℓ):</span>
@@ -314,7 +317,7 @@
           <div>loss rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
           <div>average cycle length: <span class="mono" id="exp-cycle-len">—</span> rolls</div>
           <div>E[first top hit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
-          <div>cache hit rate: <span class="mono" id="cache-hit-rate">—</span></div>
+          <!-- Cache hit rate removed as requested -->
         </div>
       </div>
 
@@ -715,7 +718,8 @@ class SisyphusUI {
      'bar-win','bar-neu','bar-loss','c-win','c-neu','c-loss',
      'r-win','r-neu','r-loss','run-steps','longest-cycle','max-k',
      'spark','log','cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
-     'global-n','gs-min','gs-25','gs-50','gs-75','gs-max','cache-hit-rate'
+     'global-n','gs-min','gs-25','gs-50','gs-75','gs-max',
+     'exp-win-rate', 'exp-loss-rate', 'exp-cycle-len', 'exp-time-top'
     ].forEach(id => this.els[id] = document.getElementById(id));
   }
   
@@ -786,11 +790,24 @@ class SisyphusUI {
     const p_cond = (probs.p_win + probs.p_loss > 0) ? probs.p_win / (probs.p_win + probs.p_loss) : 0;
     this.batchUpdate('recent-p-cond', 'textContent', (probs.p_win+probs.p_loss < 1e-9) ? '—' : pct(p_cond));
 
+    // p(top hit | current state) Display Logic
     let pTopText = '—';
     if (grids && grids.TopHit && grids.TopHit[lr.k1] && typeof grids.TopHit[lr.k1][lr.l1] === 'number') {
       const p = grids.TopHit[lr.k1][lr.l1];
-      const odds = Math.max(1, Math.round(1/Math.max(p, 1e-12)));
-      pTopText = `1 in ${odds} (${(100*p).toFixed(2)}%)`;
+      const odds = p > 0 ? 1/p : Infinity;
+      
+      if (p < 0.0001) { // < 0.01%
+        // Show only odds (1 in X), using scientific notation for very large odds
+        const oddsStr = odds > 1e6 ? odds.toExponential(2) : Math.round(odds).toLocaleString();
+        pTopText = `1 in ${oddsStr}`;
+      } else if (p <= 0.5) { // 0.01% to 50%
+        // Show both odds and probability
+        const oddsStr = Math.round(odds).toLocaleString();
+        pTopText = `1 in ${oddsStr} (${(p*100).toFixed(2)}%)`;
+      } else { // > 50%
+        // Show only probability
+        pTopText = `${(p*100).toFixed(1)}%`;
+      }
     }
     this.batchUpdate('recent-p-top', 'textContent', pTopText);
 
@@ -816,11 +833,6 @@ class SisyphusUI {
     this.batchUpdate('longest-cycle', 'textContent', st.longestCycle);
     this.batchUpdate('max-k', 'textContent', st.maxK);
     
-    // Update cache hit rate
-    const cacheStats = SisyphusMath.probCache.getStats();
-    this.batchUpdate('cache-hit-rate', 'textContent', 
-      cacheStats.hits + cacheStats.misses > 0 ? (cacheStats.hitRate * 100).toFixed(1) + '%' : '—');
-
     this._drawSpark(m.historyK, m.params.M);
     this._renderCycles();
 
@@ -970,7 +982,25 @@ class SisyphusUI {
       el('exp-win-rate').textContent = fmt(w/c);
       el('exp-loss-rate').textContent = fmt((1-pCycleTop)/c);
       el('exp-cycle-len').textContent = c.toFixed(1);
-      el('exp-time-top').textContent = pCycleTop > 1e-12 ? (c/pCycleTop).toFixed(1) : '∞';
+      
+      // E[first top hit] Logic
+      if (pCycleTop > 1e-15) { // Standard range
+        const expected = c / pCycleTop;
+        if (expected > 1e9) {
+           el('exp-time-top').textContent = expected.toExponential(2);
+        } else {
+           el('exp-time-top').textContent = expected.toFixed(1);
+        }
+      } else {
+        // If probability is extremely low (likely 0 due to underflow),
+        // it's technically infinite, but let's display scientific notation 
+        // if we can approximate it, or infinite if it's truly 0
+        if (pCycleTop === 0) {
+           el('exp-time-top').textContent = '∞ (prob ≈ 0)';
+        } else {
+           el('exp-time-top').textContent = (c/pCycleTop).toExponential(2);
+        }
+      }
     }
   }
 }
@@ -1001,10 +1031,36 @@ class GameController {
     $('roll1_big').onclick = () => this.stepManually();
     $('rollN').onclick = () => {
       const n = +$('nRolls').value || 20;
-      for(let i=0; i<n; i++) this.model.step();
+      for(let i=0; i<n; i++) {
+         const res = this.model.step();
+         if (!res) break; // Stop if game finished (top hit)
+         if (res === 'top') break; 
+      }
       this.ui.render(this.grids);
       this.save();
     };
+    
+    // New "Roll N Cycles" button handler
+    $('rollNCycles').onclick = () => {
+      const n = +$('nRolls').value || 1;
+      const targetCycle = this.model.cycleId + n;
+      const maxSteps = 2000000; // Safety break to prevent hanging
+      let steps = 0;
+
+      // Loop until we reach the target cycle ID
+      while(this.model.cycleId < targetCycle && steps < maxSteps) {
+        const res = this.model.step();
+        if (!res) break; // Game over state (top hit previously)
+        if (res === 'top') break; // Stop immediately on top hit, regardless of cycle count
+        steps++;
+      }
+      
+      if (steps >= maxSteps) console.warn("Roll N Cycles: Safety limit reached");
+      
+      this.ui.render(this.grids);
+      this.save();
+    };
+
     $('auto').onclick = () => this.toggleAuto();
     $('apply').onclick = () => this.applyParams();
     $('resetState').onclick = () => this.reset();
@@ -1092,7 +1148,7 @@ class GameController {
         this.renderReq = null;
       }
       this.isAuto = false;
-      btn.textContent = 'Auto';
+      btn.textContent = 'Auto Play';
       this.ui.render(this.grids, true); // Force FULL render on stop
     } else {
       // STARTING
