@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v2.3</title>
+<title>Sisyphus' Ruin v2.4</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -51,7 +51,7 @@
     display: flex; align-items: center; gap: 8px; 
     padding: 0 8px; 
     height: 38px; /* Match button height */
-    width: auto; /* Override global label width to fix spacing */
+    width: auto; 
     cursor: pointer;
     user-select: none;
     opacity: 0.85;
@@ -406,6 +406,66 @@
 /* -------------------------------------------------------------------------- */
 /* MODULE 0: UTILITIES & HELPERS                                             */
 /* -------------------------------------------------------------------------- */
+
+// Background Timer Worker to bypass browser throttling
+class BackgroundTimer {
+  constructor() {
+    const blob = new Blob([`
+      const timers = new Map();
+      self.onmessage = function(e) {
+        const { id, type, delay } = e.data;
+        if (type === 'clear') {
+          const t = timers.get(id);
+          if (t) {
+            clearTimeout(t);
+            clearInterval(t);
+            timers.delete(id);
+          }
+        } else if (type === 'setTimeout') {
+          const t = setTimeout(() => {
+            self.postMessage({ id, type: 'timeout' });
+            timers.delete(id);
+          }, delay);
+          timers.set(id, t);
+        } else if (type === 'setInterval') {
+          const t = setInterval(() => {
+            self.postMessage({ id, type: 'interval' });
+          }, delay);
+          timers.set(id, t);
+        }
+      };
+    `], { type: 'application/javascript' });
+    this.worker = new Worker(URL.createObjectURL(blob));
+    this.callbacks = new Map();
+    this.nextId = 1;
+    
+    this.worker.onmessage = (e) => {
+      const { id } = e.data;
+      const cb = this.callbacks.get(id);
+      if (cb) cb();
+    };
+  }
+
+  setTimeout(callback, delay) {
+    const id = this.nextId++;
+    this.callbacks.set(id, callback);
+    this.worker.postMessage({ id, type: 'setTimeout', delay });
+    return id;
+  }
+
+  setInterval(callback, delay) {
+    const id = this.nextId++;
+    this.callbacks.set(id, callback);
+    this.worker.postMessage({ id, type: 'setInterval', delay });
+    return id;
+  }
+
+  clear(id) {
+    if (!id) return;
+    this.worker.postMessage({ id, type: 'clear' });
+    this.callbacks.delete(id);
+  }
+}
 
 // Probability Cache for memoization
 class ProbabilityCache {
@@ -1132,7 +1192,8 @@ class GameController {
   constructor() {
     this.model = new SisyphusModel();
     this.ui = new SisyphusUI(this.model);
-    this.autoTimer = null;
+    this.autoTimerId = null;
+    this.bgTimer = new BackgroundTimer(); // Worker-based timer
     this.renderReq = null;
     this.isAuto = false;
     this.controlsLocked = false;
@@ -1256,15 +1317,15 @@ class GameController {
     const originalText = "Roll";
     btn.disabled = true;
     
-    // Use a timestamp target instead of decrements
-    // This ensures the timer respects real time even if the tab is backgrounded
     const endTime = Date.now() + duration;
     
-    const updateTimer = setInterval(() => {
+    // Use BackgroundTimer to ensure the unlock event fires even if tab is backgrounded.
+    // We use a 50ms tick to update the UI text if visible.
+    const timerId = this.bgTimer.setInterval(() => {
       const remaining = endTime - Date.now();
       
       if (remaining <= 0) {
-        clearInterval(updateTimer);
+        this.bgTimer.clear(timerId);
         this.controlsLocked = false;
         btn.disabled = false;
         btn.textContent = originalText;
@@ -1281,8 +1342,10 @@ class GameController {
     
     if (this.isAuto) {
       // STOPPING
-      clearTimeout(this.autoTimer);
-      this.autoTimer = null;
+      if (this.autoTimerId) {
+        this.bgTimer.clear(this.autoTimerId);
+        this.autoTimerId = null;
+      }
       if (this.renderReq) {
         cancelAnimationFrame(this.renderReq);
         this.renderReq = null;
@@ -1323,17 +1386,14 @@ class GameController {
           return;
         }
 
-        // CHECKBOX ONLY APPLIES TO AUTO PLAY
         const useDelay = document.getElementById('use-delay').checked;
         let delay = 0;
 
         if (useDelay) {
           delay = this.getDynamicDelay();
-          if (delay === 0) delay = 50; // Fallback if param is 0 but box is checked
+          if (delay === 0) delay = 50;
         } else {
-          // Use dropdown speed
           delay = +document.getElementById('speed').value || 100;
-          // Turbo batching if delay is short and variable delay is OFF
           if (delay < 20) {
             for(let i=0; i<9; i++) { 
               if(!this.model.state.topHit) this.model.step(); 
@@ -1341,7 +1401,8 @@ class GameController {
           }
         }
 
-        this.autoTimer = setTimeout(logicLoop, delay);
+        // Use background timer for next step to prevent throttling
+        this.autoTimerId = this.bgTimer.setTimeout(logicLoop, delay);
       };
 
       logicLoop();
