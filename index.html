@@ -36,6 +36,16 @@
   .btn:active{transform:scale(.97)}
   .btn:focus{outline:2px solid var(--accent);outline-offset:2px}
   
+  /* Disabled State for Delay */
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #2a2a2a !important;
+    color: #aaa !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+  
   /* DOCKED ROLL BUTTON STYLES */
   .docked-control {
     position: sticky;
@@ -261,14 +271,22 @@
 
     <div>
       <div class="card"><h2 style="margin:0 0 8px">Play Controls</h2>
-        <div class="row">
+        <!-- UPDATED ROW FOR DELAY -->
+        <div class="row" style="align-items: center;">
           <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1">Auto Play</button>
+          
+          <div style="display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.2); padding:6px 8px; border-radius:4px;">
+            <input type="checkbox" id="use-delay" style="width:auto; margin:0; cursor:pointer;">
+            <label for="use-delay" style="width:auto; margin:0; cursor:pointer; font-weight:600; color:var(--accent);">Delay</label>
+          </div>
+
           <select id="speed" aria-label="Auto-play speed">
             <option value="1000">Slow</option>
             <option value="100" selected>Normal</option>
             <option value="10">Fast (Turbo)</option>
           </select>
         </div>
+        <!-- END UPDATED ROW -->
         <div class="row" style="margin-top:8px">
           <input id="nRolls" type="number" value="20" aria-label="Number of rolls or cycles" style="width:60px">
           <button class="btn" id="rollN" style="flex:1">Roll N Steps</button>
@@ -308,6 +326,12 @@
         <div class="desc">Higher ℓ reduces loss via exp decay.</div>
         <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1" aria-label="Momentum gain"><input id="s_w" type="number" value="20" aria-label="Momentum spend"></div>
         <div class="desc">Momentum gain (neutral) vs spend (win).</div>
+        
+        <!-- NEW MAX DELAY PARAM -->
+        <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="2.0"></div>
+        <div class="desc">Cooldown time. Reduces as k and ℓ increase.</div>
+        <!-- END NEW PARAM -->
+
         <div class="row"><button class="btn" id="apply">Apply & Reset</button><button class="btn" id="resetState" aria-keyshortcuts="R">Reset State</button></div>
       </div>
 
@@ -317,7 +341,6 @@
           <div>loss rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
           <div>average cycle length: <span class="mono" id="exp-cycle-len">—</span> rolls</div>
           <div>E[first top hit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
-          <!-- Cache hit rate removed as requested -->
         </div>
       </div>
 
@@ -579,7 +602,8 @@ class SisyphusModel {
   constructor() {
     this.params = {
       M:20, L:20, w_min:0.10, w_max:0.90, beta:1.5, rho:0.6, gamma:1.5,
-      c_min:0.03, c_max:0.10, alpha:0.3, g_n:1, s_w:20
+      c_min:0.03, c_max:0.10, alpha:0.3, g_n:1, s_w:20,
+      max_delay: 2.0 // Added Max Delay Parameter
     };
     this.reset();
   }
@@ -797,15 +821,12 @@ class SisyphusUI {
       const odds = p > 0 ? 1/p : Infinity;
       
       if (p < 0.0001) { // < 0.01%
-        // Show only odds (1 in X), using scientific notation for very large odds
         const oddsStr = odds > 1e6 ? odds.toExponential(2) : Math.round(odds).toLocaleString();
         pTopText = `1 in ${oddsStr}`;
       } else if (p <= 0.5) { // 0.01% to 50%
-        // Show both odds and probability
         const oddsStr = Math.round(odds).toLocaleString();
         pTopText = `1 in ${oddsStr} (${(p*100).toFixed(2)}%)`;
       } else { // > 50%
-        // Show only probability
         pTopText = `${(p*100).toFixed(1)}%`;
       }
     }
@@ -857,8 +878,6 @@ class SisyphusUI {
   _renderCycles() {
     const box = this.els['cycle-box'];
     const tpl = document.getElementById('tpl-cycle-entry');
-    
-    // Use DocumentFragment for better performance
     const fragment = document.createDocumentFragment();
     
     this.model.cycleSummaries.forEach(c => {
@@ -983,8 +1002,7 @@ class SisyphusUI {
       el('exp-loss-rate').textContent = fmt((1-pCycleTop)/c);
       el('exp-cycle-len').textContent = c.toFixed(1);
       
-      // E[first top hit] Logic
-      if (pCycleTop > 1e-15) { // Standard range
+      if (pCycleTop > 1e-15) { 
         const expected = c / pCycleTop;
         if (expected > 1e9) {
            el('exp-time-top').textContent = expected.toExponential(2);
@@ -992,9 +1010,6 @@ class SisyphusUI {
            el('exp-time-top').textContent = expected.toFixed(1);
         }
       } else {
-        // If probability is extremely low (likely 0 due to underflow),
-        // it's technically infinite, but let's display scientific notation 
-        // if we can approximate it, or infinite if it's truly 0
         if (pCycleTop === 0) {
            el('exp-time-top').textContent = '∞ (prob ≈ 0)';
         } else {
@@ -1012,9 +1027,10 @@ class GameController {
   constructor() {
     this.model = new SisyphusModel();
     this.ui = new SisyphusUI(this.model);
-    this.timer = null;
+    this.autoTimer = null;
     this.renderReq = null;
     this.isAuto = false;
+    this.controlsLocked = false;
     this.grids = null;
     this.announcer = new AriaAnnouncer();
     this.perfMonitor = new PerformanceMonitor();
@@ -1033,30 +1049,26 @@ class GameController {
       const n = +$('nRolls').value || 20;
       for(let i=0; i<n; i++) {
          const res = this.model.step();
-         if (!res) break; // Stop if game finished (top hit)
+         if (!res) break; 
          if (res === 'top') break; 
       }
       this.ui.render(this.grids);
       this.save();
     };
     
-    // New "Roll N Cycles" button handler
     $('rollNCycles').onclick = () => {
       const n = +$('nRolls').value || 1;
       const targetCycle = this.model.cycleId + n;
-      const maxSteps = 2000000; // Safety break to prevent hanging
+      const maxSteps = 2000000; 
       let steps = 0;
 
-      // Loop until we reach the target cycle ID
       while(this.model.cycleId < targetCycle && steps < maxSteps) {
         const res = this.model.step();
-        if (!res) break; // Game over state (top hit previously)
-        if (res === 'top') break; // Stop immediately on top hit, regardless of cycle count
+        if (!res) break; 
+        if (res === 'top') break; 
         steps++;
       }
-      
       if (steps >= maxSteps) console.warn("Roll N Cycles: Safety limit reached");
-      
       this.ui.render(this.grids);
       this.save();
     };
@@ -1074,33 +1086,30 @@ class GameController {
   
   bindKeyboard() {
     document.addEventListener('keydown', (e) => {
-      // Ignore if user is typing in input
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
         return;
       }
-      
       const helpModal = document.getElementById('help-modal');
-      
       switch(e.key) {
-        case ' ':  // Space
+        case ' ':  
         case 'Enter':
           e.preventDefault();
           if (!helpModal.classList.contains('show')) {
             this.stepManually();
           }
           break;
-        case 'r':  // R for reset
+        case 'r':  
         case 'R':
-          if (e.ctrlKey || e.metaKey) return; // Don't interfere with browser refresh
+          if (e.ctrlKey || e.metaKey) return; 
           e.preventDefault();
           this.reset();
           break;
-        case 'a':  // A for auto
+        case 'a':  
         case 'A':
           e.preventDefault();
           this.toggleAuto();
           break;
-        case '?':  // ? for help
+        case '?':  
           e.preventDefault();
           helpModal.classList.toggle('show');
           break;
@@ -1114,11 +1123,143 @@ class GameController {
     });
   }
 
-  stepManually() {
-    if(this.isAuto) this.toggleAuto();
-    const res = this.model.step();
+  getDynamicDelay() {
+    const p = this.model.params;
+    const s = this.model.state;
     
-    // Announce result to screen readers
+    // If param is 0, disabled
+    if (p.max_delay <= 0) return 0;
+
+    const kRatio = Math.max(0, (s.k - 1) / (p.M - 1 || 1));
+    const lRatio = Math.max(0, s.l / (p.L || 1));
+    
+    // Weighted progress (k is dominant)
+    const reduction = (0.8 * kRatio) + (0.2 * lRatio);
+    
+    // Cubic decay: (1 - progress)^3
+    // This makes the delay drop very quickly as you start making progress
+    const ms = (p.max_delay * 1000) * Math.pow(1 - Math.min(1, reduction), 3);
+    
+    // If calculated delay is very small, return 0 to skip lock
+    if (ms < 20) return 0;
+    
+    // Otherwise enforce a minimum that makes the UI readable
+    return Math.max(100, ms); 
+  }
+
+  stepManually() {
+    if (this.controlsLocked) return;
+    if(this.isAuto) this.toggleAuto();
+    
+    const res = this.model.step();
+    this.handleStepResult(res); 
+    this.ui.render(this.grids);
+    this.save();
+
+    // Always attempt delay for manual play, based on parameter
+    if (res !== 'top') {
+      const delay = this.getDynamicDelay();
+      if (delay > 0) {
+        this.lockControls(delay);
+      }
+    }
+  }
+
+  lockControls(duration) {
+    this.controlsLocked = true;
+    const btn = document.getElementById('roll1_big');
+    const originalText = "Roll";
+    btn.disabled = true;
+    
+    let remaining = duration;
+    const step = 50;
+    
+    const updateTimer = setInterval(() => {
+      remaining -= step;
+      if (remaining <= 0) {
+        clearInterval(updateTimer);
+        this.controlsLocked = false;
+        btn.disabled = false;
+        btn.textContent = originalText;
+      } else {
+        btn.textContent = `Wait ${(remaining/1000).toFixed(1)}s`;
+      }
+    }, step);
+  }
+
+  toggleAuto() {
+    const btn = document.getElementById('auto');
+    
+    if (this.isAuto) {
+      // STOPPING
+      clearTimeout(this.autoTimer);
+      this.autoTimer = null;
+      if (this.renderReq) {
+        cancelAnimationFrame(this.renderReq);
+        this.renderReq = null;
+      }
+      this.isAuto = false;
+      btn.textContent = 'Auto Play';
+      this.ui.render(this.grids, true);
+    } else {
+      // STARTING
+      this.isAuto = true;
+      btn.textContent = 'Stop';
+      
+      // Separate render loop
+      let frameCount = 0;
+      const renderLoop = () => {
+        if(!this.isAuto) return;
+        frameCount++;
+        this.ui.render(this.grids, frameCount % 60 === 0);
+        this.perfMonitor.tick();
+        this.renderReq = requestAnimationFrame(renderLoop);
+      };
+      renderLoop();
+
+      // Game Logic Loop
+      const logicLoop = () => {
+        if (!this.isAuto) return;
+        if (this.model.state.topHit) {
+          this.toggleAuto();
+          return;
+        }
+
+        const res = this.model.step();
+        this.handleStepResult(res);
+
+        if (res === 'top') {
+          this.toggleAuto();
+          this.ui.render(this.grids, true);
+          return;
+        }
+
+        // CHECKBOX ONLY APPLIES TO AUTO PLAY
+        const useDelay = document.getElementById('use-delay').checked;
+        let delay = 0;
+
+        if (useDelay) {
+          delay = this.getDynamicDelay();
+          if (delay === 0) delay = 50; // Fallback if param is 0 but box is checked
+        } else {
+          // Use dropdown speed
+          delay = +document.getElementById('speed').value || 100;
+          // Turbo batching if delay is short and variable delay is OFF
+          if (delay < 20) {
+            for(let i=0; i<9; i++) { 
+              if(!this.model.state.topHit) this.model.step(); 
+            }
+          }
+        }
+
+        this.autoTimer = setTimeout(logicLoop, delay);
+      };
+
+      logicLoop();
+    }
+  }
+
+  handleStepResult(res) {
     if (res === 'top') {
       this.announcer.announce("Congratulations! Top hit reached!");
       alert("Top Hit Reached!");
@@ -1129,75 +1270,16 @@ class GameController {
     } else if (res === 'neu') {
       this.announcer.announce("Neutral. Momentum increased");
     }
-    
-    this.ui.render(this.grids);
     if(res && res !== 'top') this.ui.log(`step ${this.model.state.step}: ${this.model.lastRoll.outcome.toUpperCase()}`);
-    this.save();
-  }
-
-  toggleAuto() {
-    const btn = document.getElementById('auto');
-    if (this.isAuto) {
-      // STOPPING - Always clean up
-      if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = null;
-      }
-      if (this.renderReq) {
-        cancelAnimationFrame(this.renderReq);
-        this.renderReq = null;
-      }
-      this.isAuto = false;
-      btn.textContent = 'Auto Play';
-      this.ui.render(this.grids, true); // Force FULL render on stop
-    } else {
-      // STARTING
-      this.isAuto = true;
-      btn.textContent = 'Stop';
-      const speed = +document.getElementById('speed').value || 100;
-      
-      this.timer = setInterval(() => {
-        // Check BEFORE and AFTER batch processing
-        if(!this.isAuto || this.model.state.topHit) {
-          this.toggleAuto();
-          return;
-        }
-        
-        const batch = speed < 20 ? 10 : 1; 
-        for(let i = 0; i < batch; i++) {
-          if(!this.model.state.topHit) {
-            this.model.step();
-          } else {
-            // Stop immediately if top hit during batch
-            this.toggleAuto();
-            return;
-          }
-        }
-      }, speed);
-
-      let frameCount = 0;
-      const loop = () => {
-        if(!this.isAuto) return;
-        frameCount++;
-        const isFullRender = (frameCount % 60 === 0);
-        this.ui.render(this.grids, isFullRender); 
-        this.perfMonitor.tick();
-        this.renderReq = requestAnimationFrame(loop);
-      };
-      loop();
-    }
   }
 
   applyParams() {
     const p = this.model.params;
-    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w'].forEach(k => {
+    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w','max_delay'].forEach(k => {
       const el = document.getElementById(k);
       if(el) p[k] = +el.value;
     });
-    
-    // Clear cache when parameters change
     SisyphusMath.clearCache();
-    
     this.reset(); 
   }
 
@@ -1228,13 +1310,13 @@ class GameController {
       cycleId: this.model.cycleId,
       currentCycle: this.model.currentCycle
     };
-    localStorage.setItem('sisyphus_v8_optimized', JSON.stringify(data));
+    localStorage.setItem('sisyphus_v9_delay', JSON.stringify(data));
   }
 
   load() {
     try {
-      const raw = localStorage.getItem('sisyphus_v8_optimized') || 
-                  localStorage.getItem('sisyphus_v7_persist'); // Backwards compat
+      const raw = localStorage.getItem('sisyphus_v9_delay') || 
+                  localStorage.getItem('sisyphus_v8_optimized'); 
       if(raw) {
         const data = JSON.parse(raw);
         Object.assign(this.model.params, data.params);
