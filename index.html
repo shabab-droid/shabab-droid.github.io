@@ -1256,20 +1256,24 @@ class GameController {
     const originalText = "Roll";
     btn.disabled = true;
     
-    let remaining = duration;
-    const step = 50;
+    // Use a timestamp target instead of decrements
+    // This ensures the timer respects real time even if the tab is backgrounded
+    const endTime = Date.now() + duration;
     
     const updateTimer = setInterval(() => {
-      remaining -= step;
+      const remaining = endTime - Date.now();
+      
       if (remaining <= 0) {
         clearInterval(updateTimer);
         this.controlsLocked = false;
         btn.disabled = false;
         btn.textContent = originalText;
       } else {
-        btn.textContent = `Wait ${(remaining/1000).toFixed(1)}s`;
+        // Ensure we don't display negative numbers briefly
+        const displayTime = Math.max(0, remaining);
+        btn.textContent = `Wait ${(displayTime/1000).toFixed(1)}s`;
       }
-    }, step);
+    }, 50);
   }
 
   toggleAuto() {
