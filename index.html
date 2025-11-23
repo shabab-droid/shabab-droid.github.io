@@ -292,7 +292,7 @@
           <div>loss: <span class="mono" id="c-loss">0</span> (<span class="mono" id="r-loss">0.0%</span>)</div>
         </div>
         <div class="row tiny" style="margin-top:6px;justify-content:space-between">
-          <div>longest cycle: <span class="mono" id="longest-cycle">0</span></div>
+          <div>run time: <span class="mono" id="run-time">0s</span></div>
           <div>max k: <span class="mono" id="max-k">1</span></div>
         </div>
       </div>
@@ -756,6 +756,7 @@ class SisyphusModel {
     this.currentCycle = this._newCycle();
     this.cycleSummaries = []; 
     this.allCycles = []; 
+    this.startTime = Date.now(); // NEW: Track when this run started
 
     const M = Math.max(1, this.params.M);
     const L = Math.max(0, this.params.L);
@@ -880,7 +881,7 @@ class SisyphusUI {
      'kpos-fill','kpos-text','lpos-fill','lpos-text','recent-p-cond','recent-p-top',
      'recent-outcome','recent-kl','recent-card',
      'bar-win','bar-neu','bar-loss','c-win','c-neu','c-loss',
-     'r-win','r-neu','r-loss','run-steps','longest-cycle','max-k',
+     'r-win','r-neu','r-loss','run-steps','run-time','max-k',
      'spark','log','cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
      'global-n','gs-min','gs-25','gs-50','gs-75','gs-max',
      'exp-win-rate', 'exp-loss-rate', 'exp-cycle-len', 'exp-time-top', 'exp-wins-hour'
@@ -927,6 +928,18 @@ class SisyphusUI {
     div.textContent = msg;
     this.els.log.appendChild(div);
     this.els.log.scrollTop = this.els.log.scrollHeight;
+  }
+
+  // Helper to format elapsed time compactly
+  _formatDuration(ms) {
+    const s = Math.floor(ms / 1000);
+    if(s < 60) return `${s}s`;
+    const m = Math.floor(s / 60);
+    if(m < 60) return `${m}m ${s%60}s`;
+    const h = Math.floor(m / 60);
+    if(h < 24) return `${h}h ${m%60}m`;
+    const d = Math.floor(h / 24);
+    return `${d}d ${h%24}h`;
   }
 
   render(grids, full = true) {
@@ -991,7 +1004,9 @@ class SisyphusUI {
     this.batchUpdate('bar-neu', 'style.width', tot ? (100*st.neus/tot)+'%' : '0%');
     this.batchUpdate('bar-loss', 'style.width', tot ? (100*st.loss/tot)+'%' : '0%');
     
-    this.batchUpdate('longest-cycle', 'textContent', st.longestCycle);
+    // UPDATE TIME IN RUN
+    const elapsed = Math.max(0, Date.now() - m.startTime);
+    this.batchUpdate('run-time', 'textContent', this._formatDuration(elapsed));
     this.batchUpdate('max-k', 'textContent', st.maxK);
     
     this._drawSpark(m.historyK, m.params.M);
@@ -1200,6 +1215,16 @@ class GameController {
     this.grids = null;
     this.announcer = new AriaAnnouncer();
     this.perfMonitor = new PerformanceMonitor();
+    
+    // Start a heartbeat timer to update the "Time in Run" stats every second
+    // This ensures the clock ticks even when the player isn't rolling
+    setInterval(() => {
+      if (this.ui) {
+        const elapsed = Math.max(0, Date.now() - this.model.startTime);
+        const el = document.getElementById('run-time');
+        if (el) el.textContent = this.ui._formatDuration(elapsed);
+      }
+    }, 1000);
     
     this.bindEvents();
     this.bindKeyboard();
@@ -1458,7 +1483,8 @@ class GameController {
       allCycles: this.model.allCycles,
       lastRoll: this.model.lastRoll,
       cycleId: this.model.cycleId,
-      currentCycle: this.model.currentCycle
+      currentCycle: this.model.currentCycle,
+      startTime: this.model.startTime // Save start time
     };
     localStorage.setItem('sisyphus_v9_delay', JSON.stringify(data));
   }
@@ -1480,6 +1506,8 @@ class GameController {
         if(data.lastRoll) this.model.lastRoll = data.lastRoll;
         if(data.cycleId) this.model.cycleId = data.cycleId;
         if(data.currentCycle) this.model.currentCycle = data.currentCycle;
+        if(data.startTime) this.model.startTime = data.startTime;
+        else this.model.startTime = Date.now(); // Backwards compat
 
         Object.keys(this.model.params).forEach(k => {
            const el = document.getElementById(k);
