@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin</title>
+<title>Sisyphus' Ruin v2.3</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -46,6 +46,39 @@
     box-shadow: none !important;
   }
   
+  /* Checkbox Wrapper Styling */
+  .checkbox-wrapper {
+    display: flex; align-items: center; gap: 8px; 
+    padding: 0 8px; 
+    height: 38px; /* Match button height */
+    width: auto; /* Override global label width to fix spacing */
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.85;
+    transition: opacity 0.2s;
+  }
+  .checkbox-wrapper:hover { opacity: 1; }
+  .checkbox-wrapper input[type="checkbox"] {
+    appearance: none;
+    width: 16px; height: 16px;
+    background: #140026;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 3px;
+    cursor: pointer;
+    display: grid; place-content: center;
+    margin: 0;
+  }
+  .checkbox-wrapper input[type="checkbox"]::before {
+    content: ""; width: 8px; height: 8px;
+    background: var(--accent);
+    transform: scale(0);
+    transition: 0.1s transform;
+    border-radius: 1px;
+  }
+  .checkbox-wrapper input[type="checkbox"]:checked::before { transform: scale(1); }
+  .checkbox-wrapper input[type="checkbox"]:checked { border-color: var(--accent); }
+  .checkbox-wrapper label { cursor: pointer; color: var(--text); width: auto; font-size: 13px; font-weight: 500; }
+
   /* DOCKED ROLL BUTTON STYLES */
   .docked-control {
     position: sticky;
@@ -272,13 +305,13 @@
     <div>
       <div class="card"><h2 style="margin:0 0 8px">Play Controls</h2>
         <!-- UPDATED ROW FOR DELAY -->
-        <div class="row" style="align-items: center;">
+        <div class="row" style="align-items: center; gap: 6px;">
           <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1">Auto Play</button>
           
-          <div style="display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.2); padding:6px 8px; border-radius:4px;">
-            <input type="checkbox" id="use-delay" style="width:auto; margin:0; cursor:pointer;">
-            <label for="use-delay" style="width:auto; margin:0; cursor:pointer; font-weight:600; color:var(--accent);">Delay</label>
-          </div>
+          <label class="checkbox-wrapper" for="use-delay">
+            <input type="checkbox" id="use-delay">
+            <span>Delay</span>
+          </label>
 
           <select id="speed" aria-label="Auto-play speed">
             <option value="1000">Slow</option>
@@ -341,6 +374,7 @@
           <div>loss rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
           <div>average cycle length: <span class="mono" id="exp-cycle-len">—</span> rolls</div>
           <div>E[first top hit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
+          <div>Optimal Wins/Hour: <span class="mono" id="exp-wins-hour">—</span></div>
         </div>
       </div>
 
@@ -525,6 +559,27 @@ class SisyphusMath {
     
     return result;
   }
+
+  static getDelay(k, l, p) {
+    // If param is 0, disabled
+    if (p.max_delay <= 0) return 0;
+
+    const kRatio = Math.max(0, (k - 1) / (p.M - 1 || 1));
+    const lRatio = Math.max(0, l / (p.L || 1));
+    
+    // Weighted progress (k is dominant)
+    const reduction = (0.8 * kRatio) + (0.2 * lRatio);
+    
+    // Cubic decay: (1 - progress)^3
+    // This makes the delay drop very quickly as you start making progress
+    const ms = (p.max_delay * 1000) * Math.pow(1 - Math.min(1, reduction), 3);
+    
+    // If calculated delay is very small, return 0 to skip lock
+    if (ms < 20) return 0;
+    
+    // Otherwise enforce a minimum that makes the UI readable
+    return Math.max(100, ms); 
+  }
   
   static clearCache() {
     this.probCache.clear();
@@ -537,14 +592,16 @@ class SisyphusMath {
     const TopHit = Array.from({length: M + 1}, () => Array(L + 1).fill(0));
     const CycleLen = Array.from({length: M + 1}, () => Array(L + 1).fill(0));
     const WinCount = Array.from({length: M + 1}, () => Array(L + 1).fill(0));
+    const TimeLen = Array.from({length: M + 1}, () => Array(L + 1).fill(0)); // NEW
     
     const maxIter = 400, tol = 1e-6;
+    const lossDelay = SisyphusMath.getDelay(1, 0, p) / 1000;
 
     for (let it = 0; it < maxIter; it++) {
       let maxDiff = 0;
       for (let k = 1; k <= M; k++) {
         for (let l = 0; l <= L; l++) {
-          const {p_win, p_neu} = SisyphusMath.computeProbs(k, l, p);
+          const {p_win, p_neu, p_loss} = SisyphusMath.computeProbs(k, l, p);
           
           const l_win = Math.max(0, l - p.s_w);
           const l_neu = Math.min(L, l + p.g_n);
@@ -560,16 +617,39 @@ class SisyphusMath {
           let valWin = 0;
           if (k === M) valWin = p_win * 1 + p_neu * WinCount[M][l_neu];
           else valWin = p_win * (1 + WinCount[k+1][l_win]) + p_neu * WinCount[k][l_neu];
+          
+          // --- Time Expectation Logic ---
+          // Cost of this step (accumulated delay)
+          // If result is Top Hit, delay is 0.
+          // If result is Win(k<M), next state is (k+1, l_win), delay is D(k+1, l_win)
+          // If result is Neu, next state is (k, l_neu), delay is D(k, l_neu)
+          // If result is Loss, next state is (1, 0), delay is D(1, 0)
+          
+          const delayWin = (k === M) ? 0 : (SisyphusMath.getDelay(k+1, l_win, p) / 1000);
+          const delayNeu = SisyphusMath.getDelay(k, l_neu, p) / 1000;
+          // lossDelay is constant D(1,0)
+          
+          const stepCost = (p_win * delayWin) + (p_neu * delayNeu) + (p_loss * lossDelay);
+          
+          let valTime = 0;
+          if (k === M) {
+             // If Top, cycle ends (0 future time). If Neu, continue.
+             valTime = stepCost + p_neu * TimeLen[M][l_neu];
+          } else {
+             // Recurse
+             valTime = stepCost + p_win * TimeLen[k+1][l_win] + p_neu * TimeLen[k][l_neu];
+          }
 
           if(Math.abs(valTop - TopHit[k][l]) > maxDiff) maxDiff = Math.abs(valTop - TopHit[k][l]);
           TopHit[k][l] = valTop;
           CycleLen[k][l] = valCyc;
           WinCount[k][l] = valWin;
+          TimeLen[k][l] = valTime;
         }
       }
       if (maxDiff < tol) break;
     }
-    return { TopHit, CycleLen, WinCount };
+    return { TopHit, CycleLen, WinCount, TimeLen };
   }
 
   static getQuantiles(data) {
@@ -743,7 +823,7 @@ class SisyphusUI {
      'r-win','r-neu','r-loss','run-steps','longest-cycle','max-k',
      'spark','log','cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
      'global-n','gs-min','gs-25','gs-50','gs-75','gs-max',
-     'exp-win-rate', 'exp-loss-rate', 'exp-cycle-len', 'exp-time-top'
+     'exp-win-rate', 'exp-loss-rate', 'exp-cycle-len', 'exp-time-top', 'exp-wins-hour'
     ].forEach(id => this.els[id] = document.getElementById(id));
   }
   
@@ -990,10 +1070,12 @@ class SisyphusUI {
   }
 
   updateExpectations(grids) {
-    const { TopHit, CycleLen, WinCount } = grids;
+    const { TopHit, CycleLen, WinCount, TimeLen } = grids;
     const pCycleTop = TopHit[1][0];
     const c = CycleLen[1][0];
     const w = WinCount[1][0];
+    const timePerCycle = TimeLen[1][0];
+    
     const fmt = x => (100*x).toFixed(3)+'%';
     const el = id => document.getElementById(id);
     
@@ -1009,11 +1091,34 @@ class SisyphusUI {
         } else {
            el('exp-time-top').textContent = expected.toFixed(1);
         }
+        
+        // Calculate Wins/Hour (Any Win Transition)
+        if (this.model.params.max_delay <= 0) {
+          el('exp-wins-hour').textContent = "--";
+        } else {
+          // Rate = Expected Wins / Expected Time
+          // Expected Wins = w (WinCount[1][0])
+          // Expected Time = timePerCycle (TimeLen[1][0])
+          
+          if (timePerCycle > 0.0001) {
+             const winsPerHour = (w / timePerCycle) * 3600;
+             el('exp-wins-hour').textContent = winsPerHour.toFixed(2);
+          } else {
+             el('exp-wins-hour').textContent = "--";
+          }
+        }
       } else {
         if (pCycleTop === 0) {
            el('exp-time-top').textContent = '∞ (prob ≈ 0)';
+           el('exp-wins-hour').textContent = '0.00';
         } else {
            el('exp-time-top').textContent = (c/pCycleTop).toExponential(2);
+           if (timePerCycle > 0.0001) {
+             const winsPerHour = (w / timePerCycle) * 3600;
+             el('exp-wins-hour').textContent = winsPerHour.toFixed(2);
+           } else {
+             el('exp-wins-hour').textContent = "--";
+           }
         }
       }
     }
@@ -1124,27 +1229,7 @@ class GameController {
   }
 
   getDynamicDelay() {
-    const p = this.model.params;
-    const s = this.model.state;
-    
-    // If param is 0, disabled
-    if (p.max_delay <= 0) return 0;
-
-    const kRatio = Math.max(0, (s.k - 1) / (p.M - 1 || 1));
-    const lRatio = Math.max(0, s.l / (p.L || 1));
-    
-    // Weighted progress (k is dominant)
-    const reduction = (0.8 * kRatio) + (0.2 * lRatio);
-    
-    // Cubic decay: (1 - progress)^3
-    // This makes the delay drop very quickly as you start making progress
-    const ms = (p.max_delay * 1000) * Math.pow(1 - Math.min(1, reduction), 3);
-    
-    // If calculated delay is very small, return 0 to skip lock
-    if (ms < 20) return 0;
-    
-    // Otherwise enforce a minimum that makes the UI readable
-    return Math.max(100, ms); 
+    return SisyphusMath.getDelay(this.model.state.k, this.model.state.l, this.model.params);
   }
 
   stepManually() {
