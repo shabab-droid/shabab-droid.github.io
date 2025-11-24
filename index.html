@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v2.11</title>
+<title>Sisyphus' Ruin v2.15</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -12,7 +12,6 @@
   body{
     margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; color:var(--text);
     min-height: 100vh; background-color:#050010;
-    /* Restored Background from v2.4 */
     background-image:
       radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%),
       radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%),
@@ -40,7 +39,7 @@
   
   /* Disabled State for Delay */
   .btn:disabled {
-    opacity: 0.6;
+    opacity: 0.9; 
     cursor: not-allowed;
     background: #2a2a2a !important;
     color: #aaa !important;
@@ -96,13 +95,22 @@
   }
 
   .btn.big{
-    display:block; width:100%; font-size:20px; padding:16px;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    width:100%; 
+    padding:12px;
     margin-bottom:0; 
     background:#ff9e2c; color:#120026; font-weight:700;
     max-width: 600px;
+    min-height: 64px; /* Ensure consistent height */
+    line-height: 1.2;
   }
   .btn.big:hover{background:#ffb64d}
   
+  .btn-main-text { font-size: 20px; text-transform: uppercase; }
+
   label{width:120px;font-size:12px;color:var(--muted)}
   
   input[type="number"],select{
@@ -227,14 +235,13 @@
     position: relative;
     overflow: hidden;
     min-height: 250px;
-    /* CHANGED: Space-between to push header to top and content to bottom */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
   #weather-content {
     position: relative;
-    z-index: 2; /* Sits above canvas */
+    z-index: 2;
   }
   #chaosCanvas {
     position: absolute;
@@ -287,9 +294,9 @@
   <h1>Sisyphus' Ruin</h1>
 
   <div class="docked-control">
-    <button class="btn big" id="roll1_big" 
-            aria-label="Roll the dice once" 
-            aria-keyshortcuts="Space Enter">Roll</button>
+    <button class="btn big" id="roll1_big" aria-label="Roll the dice once" aria-keyshortcuts="Space Enter">
+      <span class="btn-main-text" id="btn-roll-main">ROLL</span>
+    </button>
   </div>
 
   <div class="grid">
@@ -314,10 +321,8 @@
       <div class="card" id="weather-card">
         <canvas id="chaosCanvas"></canvas>
         
-        <!-- MOVED HEADER UP -->
         <h2 style="margin:0 0 8px; position: relative; z-index: 2;">Atmosphere</h2>
         
-        <!-- KEPT CONTENT DOWN -->
         <div id="weather-content">
           <div style="display:flex; justify-content:space-between; align-items:center">
             <div>
@@ -326,13 +331,10 @@
             </div>
             <div style="text-align:right">
               <div class="tiny" style="margin-bottom:2px">DELAY MODIFIER</div>
-              <!-- REMOVED INLINE COLOR -->
               <div id="weather-mod-val" class="mono" style="font-size:18px;">1.0x</div>
             </div>
           </div>
-          <div class="tiny" style="margin-top:8px; opacity:0.6">
-            Chaos in the background influences the resistance.
-          </div>
+          <!-- REMOVED DESCRIPTION TEXT -->
         </div>
       </div>
 
@@ -389,10 +391,8 @@
       </div>
 
       <div class="card"><h2 style="margin:0 0 8px">System</h2>
-        <div class="tiny" style="line-height:1.45">
-          This process tracks a state <strong>(k, ℓ)</strong> where k is progress up a ladder (1 → M) and ℓ is momentum (0 → L).<br>
-          On each roll you get a <strong>win</strong> (k increases, ℓ drops), <strong>neutral</strong> (k stays, ℓ rises), or <strong>loss</strong> (reset to k=1, ℓ=0).<br>
-          At k = M, a win becomes a <strong>Top Hit</strong>.
+        <div class="tiny" style="line-height:1.5; opacity:0.8">
+          The system tracks your ascent (k) and momentum (ℓ). Wins advance position, neutrals build momentum, and losses trigger a full reset. Resistance fades as you climb, though atmospheric chaos distorts the flow of time.
         </div>
       </div>
 
@@ -415,8 +415,8 @@
         <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1" aria-label="Momentum gain"><input id="s_w" type="number" value="20" aria-label="Momentum spend"></div>
         <div class="desc">Momentum gain (neutral) vs spend (win).</div>
         
-        <!-- MAX DELAY PARAM -->
-        <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="2.0"></div>
+        <!-- MAX DELAY PARAM: UPDATED DEFAULT -->
+        <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="45.0"></div>
         <div class="desc">Cooldown time. Reduces as k and ℓ increase.</div>
 
         <div class="row"><button class="btn" id="apply">Apply & Reset</button><button class="btn" id="resetState" aria-keyshortcuts="R">Reset State</button></div>
@@ -797,7 +797,7 @@ class SisyphusModel {
     this.params = {
       M:20, L:20, w_min:0.10, w_max:0.90, beta:1.5, rho:0.6, gamma:1.5,
       c_min:0.03, c_max:0.10, alpha:0.3, g_n:1, s_w:20,
-      max_delay: 2.0 // Added Max Delay Parameter
+      max_delay: 45.0 // UPDATED DEFAULT
     };
     this.reset();
   }
@@ -938,7 +938,8 @@ class SisyphusUI {
      'r-win','r-neu','r-loss','run-steps','run-time','max-k',
      'log','cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
      'global-n','gs-min','gs-25','gs-50','gs-75','gs-max',
-     'exp-win-rate', 'exp-loss-rate', 'exp-cycle-len', 'exp-time-top', 'exp-wins-hour'
+     'exp-win-rate', 'exp-loss-rate', 'exp-cycle-len', 'exp-time-top', 'exp-wins-hour',
+     'btn-roll-main' // Only main button element
     ].forEach(id => this.els[id] = document.getElementById(id));
   }
   
@@ -1532,16 +1533,22 @@ class GameController {
     if (res !== 'top') {
       const delay = this.getDynamicDelay();
       if (delay > 0) {
-        this.lockControls(delay);
+        this.lockControls(delay, res);
       }
     }
   }
 
-  lockControls(duration) {
+  lockControls(duration, outcome) {
     this.controlsLocked = true;
     const btn = document.getElementById('roll1_big');
-    const originalText = "Roll";
+    const mainSpan = document.getElementById('btn-roll-main');
+    
     btn.disabled = true;
+    
+    let verb = "WAITING";
+    if (outcome === 'win') verb = "ASCENDING";
+    else if (outcome === 'loss') verb = "RECOVERING";
+    else if (outcome === 'neu') verb = "ENDURING";
     
     const endTime = Date.now() + duration;
     
@@ -1554,11 +1561,12 @@ class GameController {
         this.bgTimer.clear(timerId);
         this.controlsLocked = false;
         btn.disabled = false;
-        btn.textContent = originalText;
+        mainSpan.textContent = "ROLL";
+        // Keep the last result visible
       } else {
         // Ensure we don't display negative numbers briefly
         const displayTime = Math.max(0, remaining);
-        btn.textContent = `Wait ${(displayTime/1000).toFixed(1)}s`;
+        mainSpan.textContent = `${verb} · ${(displayTime/1000).toFixed(1)}s`;
       }
     }, 50);
   }
@@ -1664,6 +1672,7 @@ class GameController {
     this.recalcExpectations();
     this.ui.render(this.grids, true);
     this.ui.els.log.innerHTML = '';
+    
     this.save();
     this.announcer.announce("Game reset");
   }
