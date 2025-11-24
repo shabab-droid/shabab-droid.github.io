@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v2.15</title>
+<title>Sisyphus' Ruin v2.20</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -129,9 +129,12 @@
     overflow:hidden; margin:3px 0; border:1px solid rgba(255,166,0,.12);
   }
   .bar>div{height:100%}
-  .bar .win{background:linear-gradient(90deg,#ffd94d,var(--accent))}
-  .bar .neu{background:linear-gradient(90deg,var(--accent-3),var(--accent-2))}
-  .bar .loss{background:linear-gradient(90deg,var(--accent-4),#ff2400)}
+  
+  /* SOLID COLORS FOR BARS */
+  .bar .win{background:var(--accent)}
+  .bar .neu{background:var(--accent-3)}
+  .bar .loss{background:#ff2400}
+
   .kpos-track,.lpos-track{
     height:6px; background:rgba(255,255,255,.06); border:1px solid rgba(255,166,0,.12);
     border-radius:6px; overflow:hidden;
@@ -143,12 +146,16 @@
     border-radius:10px; padding:8px; font-family:monospace; font-size:12px;
     white-space:pre-wrap; overflow-wrap:break-word; word-break:break-word;
   }
+  svg#spark{width:100%;height:60px}
   .tiny{font-size:11px;opacity:.65;color:var(--muted)}
   .mono{font-family:monospace;}
   .small{font-size:12px;}
 
   .recent.win #recent-outcome{color:#ffd54a; text-shadow:0 0 6px rgba(255,213,74,.65),0 0 18px rgba(255,180,0,.4);}
-  .recent.neu #recent-outcome{color:#a98dff}
+  
+  /* UPDATED NEUTRAL TEXT TO CYAN WITH SHADOW */
+  .recent.neu #recent-outcome{color:var(--accent-3); text-shadow:0 0 6px rgba(0,183,255,.65),0 0 18px rgba(0,183,255,.4);}
+  
   .recent.loss #recent-outcome{color:#ff4d4d; text-shadow:0 0 6px rgba(255,77,77,.65),0 0 18px rgba(255,40,40,.4);}
   
   .cycle-entry {
@@ -306,15 +313,25 @@
           <div id="recent-outcome" style="font-weight:900;letter-spacing:1px;font-size:clamp(20px,3.2vw,32px)">No rolls yet</div>
           <div class="tiny mono">(k,ℓ): <span id="recent-kl">(1,0)→(1,0)</span></div>
         </div>
-        <div class="recent-bars" style="margin-top:8px;display:grid;gap:6px">
-          <div class="row recent-bar"><span style="width:46px">win</span><div class="bar" style="flex:1"><div id="rbar-win" class="win" style="width:0%"></div></div><span id="rpct-win" class="small mono">0.0%</span></div>
-          <div class="row recent-bar"><span style="width:46px">neutral</span><div class="bar" style="flex:1"><div id="rbar-neu" class="neu" style="width:0%"></div></div><span id="rpct-neu" class="small mono">0.0%</span></div>
-          <div class="row recent-bar"><span style="width:46px">loss</span><div class="bar" style="flex:1"><div id="rbar-loss" class="loss" style="width:0%"></div></div><span id="rpct-loss" class="small mono">0.0%</span></div>
-          <div class="kpos"><div class="kpos-track"><div id="kpos-fill" class="kpos-fill" style="width:0%"></div></div><div class="small">k-position: <span id="kpos-text">1 / 20</span></div></div>
-          <div class="lpos" style="margin-top:4px"><div class="lpos-track"><div id="lpos-fill" class="lpos-fill" style="width:0%"></div></div><div class="small">ℓ-position: <span id="lpos-text">0 / 20</span></div></div>
-          <div class="row tiny" style="margin-top:2px">p(win | !neutral): <span id="recent-p-cond" class="mono">—</span></div>
-          <div class="row tiny" style="margin-top:0">p(top hit | current state): <span id="recent-p-top" class="mono">—</span></div>
+        
+        <!-- CONSOLIDATED SINGLE BAR FOR RECENT RESULTS -->
+        <div class="recent-bars" style="margin-top:8px;">
+          <div class="bar" style="display:flex; height:14px; overflow:hidden; margin-bottom:4px" role="progressbar">
+            <div id="rbar-win" class="win" style="width:0%"></div>
+            <div id="rbar-neu" class="neu" style="width:0%"></div>
+            <div id="rbar-loss" class="loss" style="width:0%"></div>
+          </div>
+          <div class="row" style="justify-content:space-between; font-size:11px; opacity:0.8">
+            <div>win: <span class="mono" id="rpct-win">0.0%</span></div>
+            <div>neutral: <span class="mono" id="rpct-neu">0.0%</span></div>
+            <div>loss: <span class="mono" id="rpct-loss">0.0%</span></div>
+          </div>
         </div>
+
+        <div class="kpos" style="margin-top:8px"><div class="kpos-track"><div id="kpos-fill" class="kpos-fill" style="width:0%"></div></div><div class="small">k-position: <span id="kpos-text">1 / 20</span></div></div>
+        <div class="lpos" style="margin-top:4px"><div class="lpos-track"><div id="lpos-fill" class="lpos-fill" style="width:0%"></div></div><div class="small">ℓ-position: <span id="lpos-text">0 / 20</span></div></div>
+        <div class="row tiny" style="margin-top:2px">p(win | !neutral): <span id="recent-p-cond" class="mono">—</span></div>
+        <div class="row tiny" style="margin-top:0">p(top hit | current state): <span id="recent-p-top" class="mono">—</span></div>
       </div>
 
       <!-- WEATHER BOX WITH CANVAS INSIDE -->
@@ -340,9 +357,14 @@
 
       <div class="card"><h2 style="margin:0 0 8px">Run Stats</h2>
         <div class="small" style="margin-bottom:6px">steps: <span class="mono" id="run-steps">0</span></div>
-        <div class="bar" role="progressbar" aria-label="Win percentage"><div class="win" id="bar-win" style="width:0%"></div></div>
-        <div class="bar" role="progressbar" aria-label="Neutral percentage"><div class="neu" id="bar-neu" style="width:0%"></div></div>
-        <div class="bar" role="progressbar" aria-label="Loss percentage"><div class="loss" id="bar-loss" style="width:0%"></div></div>
+        
+        <!-- SINGLE STACKED BAR -->
+        <div class="bar" style="display:flex; height:14px; overflow:hidden" role="progressbar" aria-label="Run Distribution">
+          <div class="win" id="bar-win" style="width:0%"></div>
+          <div class="neu" id="bar-neu" style="width:0%"></div>
+          <div class="loss" id="bar-loss" style="width:0%"></div>
+        </div>
+
         <div class="row" style="justify-content:space-between">
           <div>win: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
           <div>neutral: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
@@ -354,9 +376,9 @@
         </div>
       </div>
 
-      <div class="card"><div id="log" role="log" aria-label="Game log"></div></div>
-
+      <!-- SWAPPED: CYCLE SUMMARIES IS NOW BEFORE LOG -->
       <div class="card"><h2 style="margin:0 0 8px">Cycle Summaries</h2><div id="cycle-box" class="tiny"></div></div>
+      <div class="card"><div id="log" role="log" aria-label="Game log"></div></div>
     </div>
 
     <div>
