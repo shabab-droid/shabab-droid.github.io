@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v2.4</title>
+<title>Sisyphus' Ruin v2.11</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -12,12 +12,14 @@
   body{
     margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; color:var(--text);
     min-height: 100vh; background-color:#050010;
+    /* Restored Background from v2.4 */
     background-image:
       radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%),
       radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%),
       linear-gradient(180deg,#0b0014 0%, #050010 100%);
     background-repeat:no-repeat; background-size:cover;
   }
+  
   .app{max-width:1100px;margin:0 auto;padding:12px}
   h1{
     text-align:center; font-size:clamp(22px,3vw,30px); margin:14px 0 12px; letter-spacing:.5px;
@@ -26,7 +28,7 @@
   }
   .grid{display:grid;grid-template-columns:1fr 360px;gap:12px}
   @media(max-width:900px){.grid{grid-template-columns:1fr}}
-  .card{background:transparent;padding:14px;border:none}
+  .card{background:rgba(12, 0, 32, 0.6); backdrop-filter:blur(4px); padding:14px; border-radius:8px; border:1px solid rgba(255,255,255,0.05);}
   .btn{
     appearance:none; background:#1c0130; border:none; color:var(--text); border-radius:6px;
     padding:10px 14px; cursor:pointer; font-weight:600; letter-spacing:.3px;
@@ -133,7 +135,6 @@
     border-radius:10px; padding:8px; font-family:monospace; font-size:12px;
     white-space:pre-wrap; overflow-wrap:break-word; word-break:break-word;
   }
-  svg#spark{width:100%;height:60px}
   .tiny{font-size:11px;opacity:.65;color:var(--muted)}
   .mono{font-family:monospace;}
   .small{font-size:12px;}
@@ -214,6 +215,36 @@
     font-family: monospace;
     border: 1px solid rgba(255,255,255,0.2);
   }
+
+  /* Weather Widget */
+  .weather-status { font-weight: 800; letter-spacing: 0.5px; }
+  .weather-good { color: var(--accent-3); text-shadow: 0 0 5px rgba(0,183,255,0.4); }
+  .weather-bad { color: #ff3333; text-shadow: 0 0 5px rgba(255,51,51,0.4); }
+  .weather-ok { color: var(--accent); }
+
+  /* Weather Card & Canvas Integration */
+  #weather-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 250px;
+    /* CHANGED: Space-between to push header to top and content to bottom */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  #weather-content {
+    position: relative;
+    z-index: 2; /* Sits above canvas */
+  }
+  #chaosCanvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
 </style>
 </head>
 <body>
@@ -279,7 +310,31 @@
         </div>
       </div>
 
-      <div class="card"><h2 style="margin:0 0 8px">Sparkline</h2><svg id="spark" viewBox="0 0 300 60" preserveAspectRatio="none" role="img" aria-label="Progress history chart"></svg></div>
+      <!-- WEATHER BOX WITH CANVAS INSIDE -->
+      <div class="card" id="weather-card">
+        <canvas id="chaosCanvas"></canvas>
+        
+        <!-- MOVED HEADER UP -->
+        <h2 style="margin:0 0 8px; position: relative; z-index: 2;">Atmosphere</h2>
+        
+        <!-- KEPT CONTENT DOWN -->
+        <div id="weather-content">
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <div>
+              <div class="tiny" style="margin-bottom:2px">CONDITION</div>
+              <div id="weather-status-main" style="font-size:18px; font-weight:800; letter-spacing:1px">CALIBRATING</div>
+            </div>
+            <div style="text-align:right">
+              <div class="tiny" style="margin-bottom:2px">DELAY MODIFIER</div>
+              <!-- REMOVED INLINE COLOR -->
+              <div id="weather-mod-val" class="mono" style="font-size:18px;">1.0x</div>
+            </div>
+          </div>
+          <div class="tiny" style="margin-top:8px; opacity:0.6">
+            Chaos in the background influences the resistance.
+          </div>
+        </div>
+      </div>
 
       <div class="card"><h2 style="margin:0 0 8px">Run Stats</h2>
         <div class="small" style="margin-bottom:6px">steps: <span class="mono" id="run-steps">0</span></div>
@@ -304,7 +359,7 @@
 
     <div>
       <div class="card"><h2 style="margin:0 0 8px">Play Controls</h2>
-        <!-- UPDATED ROW FOR DELAY -->
+        
         <div class="row" style="align-items: center; gap: 6px;">
           <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1">Auto Play</button>
           
@@ -319,7 +374,7 @@
             <option value="10">Fast (Turbo)</option>
           </select>
         </div>
-        <!-- END UPDATED ROW -->
+
         <div class="row" style="margin-top:8px">
           <input id="nRolls" type="number" value="20" aria-label="Number of rolls or cycles" style="width:60px">
           <button class="btn" id="rollN" style="flex:1">Roll N Steps</button>
@@ -360,10 +415,9 @@
         <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1" aria-label="Momentum gain"><input id="s_w" type="number" value="20" aria-label="Momentum spend"></div>
         <div class="desc">Momentum gain (neutral) vs spend (win).</div>
         
-        <!-- NEW MAX DELAY PARAM -->
+        <!-- MAX DELAY PARAM -->
         <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="2.0"></div>
         <div class="desc">Cooldown time. Reduces as k and ℓ increase.</div>
-        <!-- END NEW PARAM -->
 
         <div class="row"><button class="btn" id="apply">Apply & Reset</button><button class="btn" id="resetState" aria-keyshortcuts="R">Reset State</button></div>
       </div>
@@ -882,7 +936,7 @@ class SisyphusUI {
      'recent-outcome','recent-kl','recent-card',
      'bar-win','bar-neu','bar-loss','c-win','c-neu','c-loss',
      'r-win','r-neu','r-loss','run-steps','run-time','max-k',
-     'spark','log','cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
+     'log','cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
      'global-n','gs-min','gs-25','gs-50','gs-75','gs-max',
      'exp-win-rate', 'exp-loss-rate', 'exp-cycle-len', 'exp-time-top', 'exp-wins-hour'
     ].forEach(id => this.els[id] = document.getElementById(id));
@@ -1009,25 +1063,13 @@ class SisyphusUI {
     this.batchUpdate('run-time', 'textContent', this._formatDuration(elapsed));
     this.batchUpdate('max-k', 'textContent', st.maxK);
     
-    this._drawSpark(m.historyK, m.params.M);
+    // REMOVED SPARKLINE DRAW CALL
     this._renderCycles();
 
     if(full) {
       this._renderDistributions();
       this._renderGlobalStats();
     }
-  }
-
-  _drawSpark(data, M) {
-    if (!data.length) return;
-    const w = 300, h = 60;
-    const y = k => h - 6 - (h - 12) * ((k - 1) / (M - 1 || 1));
-    const stepX = data.length > 1 ? (w - 6) / (data.length - 1) : 0;
-    let pts = '';
-    for (let i = 0; i < data.length; i++) pts += `${3 + i * stepX},${y(data[i]).toFixed(1)} `;
-    const stroke = '#ff9e2c';
-    const overlay = `<rect x="0" y="0" width="${w}" height="${h}" fill="transparent" />`;
-    this.els.spark.innerHTML = `<polyline fill="none" stroke="${stroke}" stroke-width="2" points="${pts.trim()}" />` + overlay;
   }
 
   _renderCycles() {
@@ -1201,12 +1243,165 @@ class SisyphusUI {
 }
 
 /* -------------------------------------------------------------------------- */
-/* MODULE 4: GAME CONTROLLER                                                 */
+/* MODULE 4: CHAOS ENGINE                                                    */
+/* -------------------------------------------------------------------------- */
+class ChaosEngine {
+  constructor() {
+    this.canvas = document.getElementById('chaosCanvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.statusEl = document.getElementById('weather-status-main');
+    this.modEl = document.getElementById('weather-mod-val');
+    
+    // Lorenz Parameters
+    this.SIGMA = 10;
+    this.RHO = 28;
+    this.BETA = 8/3;
+    this.DT = 0.002; // Slowed down from 0.008
+
+    // State - Randomized start to ensure different pattern every reload
+    this.x = 0.1 + (Math.random() - 0.5) * 0.1;
+    this.y = 0 + (Math.random() - 0.5) * 0.1;
+    this.z = 0 + (Math.random() - 0.5) * 0.1;
+    
+    this.points = [];
+    this.MAX_POINTS = 600;
+    
+    // Multiplier for Delay
+    this.multiplier = 1.0; 
+
+    // Resize handling - using parent element width since it's now contained
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+    
+    // Start Loop
+    this.animate();
+  }
+  
+  resize() {
+    if (this.canvas.parentElement) {
+       this.canvas.width = this.canvas.parentElement.clientWidth;
+       this.canvas.height = this.canvas.parentElement.clientHeight;
+    } else {
+       this.canvas.width = window.innerWidth;
+       this.canvas.height = window.innerHeight;
+    }
+  }
+  
+  step() {
+    const dx = (this.SIGMA * (this.y - this.x)) * this.DT;
+    const dy = (this.x * (this.RHO - this.z) - this.y) * this.DT;
+    const dz = (this.x * this.y - this.BETA * this.z) * this.DT;
+    
+    this.x += dx;
+    this.y += dy;
+    this.z += dz;
+    
+    return { dx, dy, dz };
+  }
+  
+  updateWeather(velocity) {
+    // Normalizing velocity:
+    // With DT=0.002, the displacement is smaller per frame.
+    // Velocity is displacement per frame.
+    // A multiplier of 40x brings the intensity back to a useful 0-1ish range.
+    let intensity = (velocity * 40) / 30; 
+    
+    if(intensity > 1) intensity = 1;
+    
+    // Calculate Multiplier
+    // Range: 0.5x (Fast) to 2.5x (Slow)
+    this.multiplier = 0.5 + (intensity * 2.0);
+    
+    if (this.modEl) {
+       this.modEl.textContent = this.multiplier.toFixed(2) + "x";
+    }
+
+    // Update UI
+    let statusText = "";
+    let statusClass = "";
+
+    if(intensity < 0.25) {
+      statusText = "CALM";
+      statusClass = "weather-good";
+    } else if (intensity < 0.6) {
+      statusText = "WINDY";
+      statusClass = "weather-ok";
+    } else {
+      statusText = "STORM";
+      statusClass = "weather-bad";
+    }
+
+    if (this.statusEl) {
+      this.statusEl.textContent = statusText;
+      this.statusEl.className = "weather-status " + statusClass;
+    }
+
+    if (this.modEl) {
+      this.modEl.className = "mono " + statusClass;
+    }
+  }
+  
+  animate() {
+    // 1. Calculate
+    const deltas = this.step();
+    // Velocity here is just magnitude of displacement vector per frame
+    const velocity = Math.sqrt(deltas.dx**2 + deltas.dy**2 + deltas.dz**2);
+    
+    // 2. Logic Update
+    this.updateWeather(velocity); 
+    
+    // 3. Draw
+    // Ensure we handle case where canvas might be 0 size
+    if (this.canvas.width === 0) return requestAnimationFrame(() => this.animate());
+
+    const scale = 12;
+    const cx = this.canvas.width / 2;
+    const cy = this.canvas.height / 2; // Center based on current container
+    
+    // We project X/Z plane mostly to look cool
+    this.points.push({
+      x: cx + (this.x * scale),
+      y: cy + (this.y * scale) 
+    });
+    
+    if(this.points.length > this.MAX_POINTS) this.points.shift();
+    
+    // Clear canvas - transparent background
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    this.ctx.beginPath();
+    if(this.points.length > 0) {
+      this.ctx.moveTo(this.points[0].x, this.points[0].y);
+      for(let i=1; i<this.points.length; i++) {
+        this.ctx.lineTo(this.points[i].x, this.points[i].y);
+      }
+    }
+    
+    // Dynamic Color
+    const hue = 180 + (velocity * 40 * 20); // Scaled for color too
+    this.ctx.strokeStyle = `hsl(${hue}, 80%, 60%)`;
+    this.ctx.lineWidth = 2;
+    this.ctx.stroke();
+    
+    requestAnimationFrame(() => this.animate());
+  }
+  
+  getModifier() {
+    return this.multiplier;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* MODULE 5: GAME CONTROLLER                                                 */
 /* -------------------------------------------------------------------------- */
 class GameController {
   constructor() {
     this.model = new SisyphusModel();
     this.ui = new SisyphusUI(this.model);
+    
+    // Init Chaos
+    this.chaos = new ChaosEngine();
+    
     this.autoTimerId = null;
     this.bgTimer = new BackgroundTimer(); // Worker-based timer
     this.renderReq = null;
@@ -1217,7 +1412,6 @@ class GameController {
     this.perfMonitor = new PerformanceMonitor();
     
     // Start a heartbeat timer to update the "Time in Run" stats every second
-    // This ensures the clock ticks even when the player isn't rolling
     setInterval(() => {
       if (this.ui) {
         const elapsed = Math.max(0, Date.now() - this.model.startTime);
@@ -1315,7 +1509,14 @@ class GameController {
   }
 
   getDynamicDelay() {
-    return SisyphusMath.getDelay(this.model.state.k, this.model.state.l, this.model.params);
+    // 1. Get Base Delay from Game Params
+    const base = SisyphusMath.getDelay(this.model.state.k, this.model.state.l, this.model.params);
+    if(base === 0) return 0;
+
+    // 2. Get Modifier from Weather (0.5x to 2.5x)
+    const mod = this.chaos.getModifier();
+    
+    return base * mod;
   }
 
   stepManually() {
