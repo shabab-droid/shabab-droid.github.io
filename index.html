@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v2.30</title>
+<title>Sisyphus' Ruin v2.41</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -30,11 +30,7 @@
   @media(max-width:900px){.grid{grid-template-columns:1fr}}
   .card{background:rgba(12, 0, 32, 0.6); backdrop-filter:blur(4px); padding:14px; border-radius:8px; border:1px solid rgba(255,255,255,0.05);}
   
-  .card h2 {
-    font-size: 18px;
-    margin: 0 0 8px;
-    opacity: 0.9;
-  }
+  .card h2 { font-size: 18px; margin: 0 0 8px; opacity: 0.9; }
 
   .btn{
     appearance:none; background:#1c0130; border:none; color:var(--text); border-radius:6px;
@@ -45,100 +41,51 @@
   .btn:active{transform:scale(.97)}
   .btn:focus{outline:2px solid var(--accent);outline-offset:2px}
   
-  /* Disabled State for Delay - Default Grey */
   .btn:disabled {
-    opacity: 0.9; 
-    cursor: not-allowed;
-    background: #2a2a2a !important;
-    color: #aaa !important;
-    transform: none !important;
-    box-shadow: none !important;
+    opacity: 0.9; cursor: not-allowed; background: #2a2a2a !important;
+    color: #aaa !important; transform: none !important; box-shadow: none !important;
   }
   
-  /* Checkbox Wrapper Styling */
+  /* FIXED: Added width: auto to prevent inheriting global label width */
   .checkbox-wrapper {
-    display: flex; align-items: center; gap: 8px; 
-    padding: 0 8px; 
-    height: 38px; /* Match button height */
-    width: auto; 
-    cursor: pointer;
-    user-select: none;
-    opacity: 0.85;
-    transition: opacity 0.2s;
+    display: flex; align-items: center; gap: 8px; padding: 0 8px; width: auto; 
+    height: 38px; cursor: pointer; user-select: none; opacity: 0.85; transition: opacity 0.2s;
   }
   .checkbox-wrapper:hover { opacity: 1; }
   .checkbox-wrapper input[type="checkbox"] {
-    appearance: none;
-    width: 16px; height: 16px;
-    background: #140026;
-    border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 3px;
-    cursor: pointer;
-    display: grid; place-content: center;
-    margin: 0;
+    appearance: none; width: 16px; height: 16px; background: #140026;
+    border: 1px solid rgba(255,255,255,0.3); border-radius: 3px; cursor: pointer;
+    display: grid; place-content: center; margin: 0;
   }
   .checkbox-wrapper input[type="checkbox"]::before {
-    content: ""; width: 8px; height: 8px;
-    background: var(--accent);
-    transform: scale(0);
-    transition: 0.1s transform;
-    border-radius: 1px;
+    content: ""; width: 8px; height: 8px; background: var(--accent);
+    transform: scale(0); transition: 0.1s transform; border-radius: 1px;
   }
   .checkbox-wrapper input[type="checkbox"]:checked::before { transform: scale(1); }
   .checkbox-wrapper input[type="checkbox"]:checked { border-color: var(--accent); }
   .checkbox-wrapper label { cursor: pointer; color: var(--text); width: auto; font-size: 13px; font-weight: 500; }
 
-  /* DOCKED ROLL BUTTON STYLES */
   .docked-control {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background: rgba(5, 0, 16, 0.85);
-    backdrop-filter: blur(8px);
-    margin: -12px -12px 12px -12px;
-    padding: 12px;
+    position: sticky; top: 0; z-index: 1000;
+    background: rgba(5, 0, 16, 0.85); backdrop-filter: blur(8px);
+    margin: -12px -12px 12px -12px; padding: 12px;
     border-bottom: 1px solid rgba(255, 166, 0, 0.15);
-    display: flex;
-    justify-content: center;
+    display: flex; justify-content: center;
   }
 
   .btn.big{
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center;
-    width:100%; 
-    padding:12px;
-    margin-bottom:0; 
-    /* IDLE STATE IS A GRADIENT */
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    width:100%; padding:12px; margin-bottom:0; 
     background: linear-gradient(90deg, var(--accent), var(--accent-3), #ff2400); 
-    color:#120026; /* Dark text for readability on bright gradient */
-    font-weight:800;
-    max-width: 600px;
-    min-height: 64px; 
-    line-height: 1.2;
-    transition: background 0.3s ease;
-    border: none; /* REMOVED BORDER */
+    color:#120026; font-weight:800; max-width: 600px; min-height: 64px; 
+    line-height: 1.2; transition: background 0.3s ease; border: none;
     text-shadow: 0 0 10px rgba(255,255,255,0.2);
   }
   .btn.big:hover{opacity: 0.9;}
   
-  /* OUTCOME-BASED WAIT STYLES (Applied via JS during wait) */
-  .btn.big.outcome-win:disabled {
-    background: var(--accent) !important; /* Orange */
-    color: #120026 !important;
-    opacity: 1 !important;
-  }
-  .btn.big.outcome-neu:disabled {
-    background: var(--accent-3) !important; /* Cyan */
-    color: #120026 !important;
-    opacity: 1 !important;
-  }
-  .btn.big.outcome-loss:disabled {
-    background: #ff2400 !important; /* Red */
-    color: #ffffff !important;
-    opacity: 1 !important;
-  }
+  .btn.big.outcome-win:disabled { background: var(--accent) !important; color: #120026 !important; opacity: 1 !important; }
+  .btn.big.outcome-neu:disabled { background: var(--accent-3) !important; color: #120026 !important; opacity: 1 !important; }
+  .btn.big.outcome-loss:disabled { background: #ff2400 !important; color: #ffffff !important; opacity: 1 !important; }
   
   .btn-main-text { font-size: 20px; text-transform: uppercase; }
 
@@ -146,9 +93,7 @@
   
   input[type="number"],select{
     background:#140026; color:var(--text); border:none; border-radius:4px;
-    padding:6px 8px; 
-    width: 54px;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
+    padding:6px 8px; width: 54px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
   }
   select#speed { width: auto; }
   input#nRolls { width: 60px; }
@@ -160,8 +105,6 @@
     overflow:hidden; margin:3px 0; border:1px solid rgba(255,166,0,.12);
   }
   .bar>div{height:100%}
-  
-  /* SOLID COLORS FOR BARS */
   .bar .win{background:var(--accent)}
   .bar .neu{background:var(--accent-3)}
   .bar .loss{background:#ff2400}
@@ -182,10 +125,7 @@
   .small{font-size:12px;}
 
   .recent.win #recent-outcome{color:#ffd54a; text-shadow:0 0 6px rgba(255,213,74,.65),0 0 18px rgba(255,180,0,.4);}
-  
-  /* NEUTRAL TEXT = CYAN WITH SHADOW */
   .recent.neu #recent-outcome{color:var(--accent-3); text-shadow:0 0 6px rgba(0,183,255,.65),0 0 18px rgba(0,183,255,.4);}
-  
   .recent.loss #recent-outcome{color:#ff4d4d; text-shadow:0 0 6px rgba(255,77,77,.65),0 0 18px rgba(255,40,40,.4);}
   
   .cycle-entry {
@@ -210,162 +150,39 @@
   .stat-label { font-size: 10px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.5px; }
   .stat-val { font-family: monospace; font-size: 13px; font-weight: 600; color: var(--accent-3); }
 
-  /* Accessibility improvements */
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0,0,0,0);
-    white-space: nowrap;
-    border: 0;
-  }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  .perf-indicator { position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-family: monospace; opacity: 0.5; pointer-events: none; }
 
-  /* Performance indicator */
-  .perf-indicator {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    background: rgba(0,0,0,0.8);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-family: monospace;
-    opacity: 0.5;
-    pointer-events: none;
-  }
-
-  /* Help modal */
-  .help-modal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(20,0,38,0.95);
-    border: 2px solid var(--accent);
-    padding: 20px;
-    border-radius: 10px;
-    z-index: 2000;
-    max-width: 400px;
-  }
+  .help-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(20,0,38,0.95); border: 2px solid var(--accent); padding: 20px; border-radius: 10px; z-index: 2000; max-width: 400px; }
   .help-modal.show { display: block; }
   .help-modal h3 { margin-top: 0; color: var(--accent); }
-  .help-modal kbd {
-    background: rgba(255,255,255,0.1);
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-family: monospace;
-    border: 1px solid rgba(255,255,255,0.2);
-  }
+  .help-modal kbd { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-family: monospace; border: 1px solid rgba(255,255,255,0.2); }
 
-  /* Weather Widget */
   .weather-status { font-weight: 800; letter-spacing: 0.5px; }
-  
-  /* CHANGED: GOOD = ORANGE (GOLD) */
   .weather-good { color: var(--accent); text-shadow: 0 0 5px rgba(255,158,44,0.4); }
-  
-  /* CHANGED: OK (WINDY) = CYAN */
   .weather-ok { color: var(--accent-3); text-shadow: 0 0 5px rgba(0,183,255,0.4); }
-  
   .weather-bad { color: #ff3333; text-shadow: 0 0 5px rgba(255,51,51,0.4); }
 
-  /* Weather Card & Canvas Integration */
-  #weather-card {
-    position: relative;
-    overflow: hidden;
-    min-height: 250px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  #weather-content {
-    position: relative;
-    z-index: 2;
-  }
-  #chaosCanvas {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 1;
-    opacity: 0.4;
-    pointer-events: none;
-  }
+  #weather-card { position: relative; overflow: hidden; min-height: 250px; display: flex; flex-direction: column; justify-content: space-between; }
+  #weather-content { position: relative; z-index: 2; }
+  #chaosCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.4; pointer-events: none; }
 
-  /* --- SAVE SLOT STYLING --- */
-  .save-slots-container {
-    margin: 12px 0;
-    padding: 10px;
-    background: rgba(0,0,0,0.2);
-    border-radius: 6px;
-    border: 1px solid rgba(255,255,255,0.05);
-  }
-  
-  .slot-mode-switch {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 8px;
-  }
-  
-  .slot-mode-btn {
-    flex: 1;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 6px;
-    border: 1px solid transparent;
-    opacity: 0.5;
-    transition: all 0.2s ease;
-  }
-  
-  .slot-mode-btn.active {
-    opacity: 1;
-    font-weight: 800;
-  }
-  
-  /* Mode colors */
+  .save-slots-container { margin: 12px 0; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+  .slot-mode-switch { display: flex; gap: 4px; margin-bottom: 8px; }
+  .slot-mode-btn { flex: 1; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px; border: 1px solid transparent; opacity: 0.5; transition: all 0.2s ease; }
+  .slot-mode-btn.active { opacity: 1; font-weight: 800; }
   .mode-save .slot-mode-btn[data-mode="save"] { background: var(--accent); color: #120026; box-shadow: 0 0 8px var(--accent); }
   .mode-load .slot-mode-btn[data-mode="load"] { background: var(--accent-3); color: #120026; box-shadow: 0 0 8px var(--accent-3); }
 
-  .slot-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 6px;
-  }
-
-  .slot-btn {
-    background: #1c0130;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 4px;
-    padding: 6px 4px;
-    font-family: monospace;
-    font-size: 10px;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 50px;
-    text-align: center;
-  }
-
+  .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .slot-btn { background: #1c0130; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px 4px; font-family: monospace; font-size: 10px; color: var(--muted); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px; text-align: center; }
   .slot-btn:hover { background: #2d0048; border-color: rgba(255,255,255,0.3); }
-
-  /* Slot states */
   .slot-btn.has-data { border-color: rgba(255,255,255,0.3); color: var(--text); background: linear-gradient(180deg, #1c0130, #22023a); }
   .slot-btn.empty { opacity: 0.6; font-style: italic; }
-
-  /* Mode interactions */
   .mode-save .slot-btn:hover { border-color: var(--accent); color: var(--accent); }
   .mode-load .slot-btn:hover { border-color: var(--accent-3); color: var(--accent-3); }
-  
   .slot-label { font-weight: 800; font-size: 12px; margin-bottom: 2px; }
   .slot-info { font-size: 9px; line-height: 1.1; opacity: 0.8; }
-
 </style>
 </head>
 <body>
@@ -439,9 +256,7 @@
 
       <div class="card" id="weather-card">
         <canvas id="chaosCanvas"></canvas>
-        
         <h2 style="position: relative; z-index: 2;">Atmosphere</h2>
-        
         <div id="weather-content">
           <div style="display:flex; justify-content:space-between; align-items:center">
             <div>
@@ -458,13 +273,11 @@
 
       <div class="card"><h2>Run Stats</h2>
         <div style="margin-bottom:6px; font-size:11px; opacity:0.8">steps: <span class="mono" id="run-steps">0</span></div>
-        
         <div class="bar" style="display:flex; height:14px; overflow:hidden" role="progressbar" aria-label="Run Distribution">
           <div class="win" id="bar-win" style="width:0%"></div>
           <div class="neu" id="bar-neu" style="width:0%"></div>
           <div class="loss" id="bar-loss" style="width:0%"></div>
         </div>
-
         <div class="row" style="justify-content:space-between; font-size:11px; opacity:0.8">
           <div>win: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
           <div>neutral: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
@@ -482,22 +295,18 @@
 
     <div>
       <div class="card"><h2>Play Controls</h2>
-        
         <div class="row" style="align-items: center; gap: 6px;">
           <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1">Auto Play</button>
-          
           <label class="checkbox-wrapper" for="use-delay">
             <input type="checkbox" id="use-delay">
             <span>Delay</span>
           </label>
-
           <select id="speed" aria-label="Auto-play speed">
             <option value="1000">Slow</option>
             <option value="100" selected>Normal</option>
             <option value="10">Fast (Turbo)</option>
           </select>
         </div>
-
         <div class="row" style="margin-top:8px">
           <input id="nRolls" type="number" value="20" aria-label="Number of rolls or cycles" style="width:60px">
           <button class="btn" id="rollN" style="flex:1">Roll N Steps</button>
@@ -519,7 +328,6 @@
 
       <div class="card" id="params-container">
         <h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Parameters</h3>
-        
         <div class="save-slots-container mode-load" id="slot-container">
            <div class="slot-mode-switch">
              <button class="btn slot-mode-btn" data-mode="save">Save Mode</button>
@@ -540,19 +348,18 @@
         <div class="desc">How many rungs in the ladder.</div>
         <div class="row"><label for="L">L (ℓ max)</label><input id="L" type="number" value="20"></div>
         <div class="desc">Momentum scale; ℓ ∈ [0, L].</div>
-        <div class="row"><label>w_min → w_max</label><input id="w_min" type="number" step="0.01" value="0.10" aria-label="Minimum win probability"><input id="w_max" type="number" step="0.01" value="0.90" aria-label="Maximum win probability"></div>
+        <div class="row"><label>w_min → w_max</label><input id="w_min" type="number" step="0.01" value="0.10"><input id="w_max" type="number" step="0.01" value="0.90"></div>
         <div class="desc">Win rises from w_min at k=1 to w_max at k=M.</div>
         <div class="row"><label for="beta">β (k ramp)</label><input id="beta" type="number" step="0.1" value="1.5"></div>
         <div class="desc">β > 1 makes late k much easier.</div>
-        <div class="row"><label>ρ, γ (ℓ boost)</label><input id="rho" type="number" step="0.05" value="0.6" aria-label="Rho parameter"><input id="gamma" type="number" step="0.1" value="1.5" aria-label="Gamma parameter"></div>
+        <div class="row"><label>ρ, γ (ℓ boost)</label><input id="rho" type="number" step="0.05" value="0.6"><input id="gamma" type="number" step="0.1" value="1.5"></div>
         <div class="desc">Higher ℓ → more win probability.</div>
-        <div class="row"><label>c_min → c_max</label><input id="c_min" type="number" step="0.01" value="0.03" aria-label="Minimum catastrophe probability"><input id="c_max" type="number" step="0.01" value="0.10" aria-label="Maximum catastrophe probability"></div>
+        <div class="row"><label>c_min → c_max</label><input id="c_min" type="number" step="0.01" value="0.03"><input id="c_max" type="number" step="0.01" value="0.10"></div>
         <div class="desc">Loss floor/ceiling.</div>
         <div class="row"><label for="alpha">α (loss decay)</label><input id="alpha" type="number" step="0.1" value="0.3"></div>
         <div class="desc">Higher ℓ reduces loss via exp decay.</div>
-        <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1" aria-label="Momentum gain"><input id="s_w" type="number" value="20" aria-label="Momentum spend"></div>
+        <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1"><input id="s_w" type="number" value="20"></div>
         <div class="desc">Momentum gain (neutral) vs spend (win).</div>
-        
         <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="45.0"></div>
         <div class="desc">Cooldown time. Reduces as k and ℓ increase.</div>
 
@@ -598,7 +405,6 @@
 /* MODULE 0: UTILITIES & HELPERS                                             */
 /* -------------------------------------------------------------------------- */
 
-// Background Timer Worker to bypass browser throttling
 class BackgroundTimer {
   constructor() {
     const blob = new Blob([`
@@ -607,21 +413,12 @@ class BackgroundTimer {
         const { id, type, delay } = e.data;
         if (type === 'clear') {
           const t = timers.get(id);
-          if (t) {
-            clearTimeout(t);
-            clearInterval(t);
-            timers.delete(id);
-          }
+          if (t) { clearTimeout(t); clearInterval(t); timers.delete(id); }
         } else if (type === 'setTimeout') {
-          const t = setTimeout(() => {
-            self.postMessage({ id, type: 'timeout' });
-            timers.delete(id);
-          }, delay);
+          const t = setTimeout(() => { self.postMessage({ id, type: 'timeout' }); timers.delete(id); }, delay);
           timers.set(id, t);
         } else if (type === 'setInterval') {
-          const t = setInterval(() => {
-            self.postMessage({ id, type: 'interval' });
-          }, delay);
+          const t = setInterval(() => { self.postMessage({ id, type: 'interval' }); }, delay);
           timers.set(id, t);
         }
       };
@@ -629,28 +426,21 @@ class BackgroundTimer {
     this.worker = new Worker(URL.createObjectURL(blob));
     this.callbacks = new Map();
     this.nextId = 1;
-    
     this.worker.onmessage = (e) => {
-      const { id } = e.data;
-      const cb = this.callbacks.get(id);
+      const cb = this.callbacks.get(e.data.id);
       if (cb) cb();
     };
   }
-
-  setTimeout(callback, delay) {
-    const id = this.nextId++;
-    this.callbacks.set(id, callback);
-    this.worker.postMessage({ id, type: 'setTimeout', delay });
+  setTimeout(cb, d) {
+    const id = this.nextId++; this.callbacks.set(id, cb);
+    this.worker.postMessage({ id, type: 'setTimeout', delay: d });
     return id;
   }
-
-  setInterval(callback, delay) {
-    const id = this.nextId++;
-    this.callbacks.set(id, callback);
-    this.worker.postMessage({ id, type: 'setInterval', delay });
+  setInterval(cb, d) {
+    const id = this.nextId++; this.callbacks.set(id, cb);
+    this.worker.postMessage({ id, type: 'setInterval', delay: d });
     return id;
   }
-
   clear(id) {
     if (!id) return;
     this.worker.postMessage({ id, type: 'clear' });
@@ -658,95 +448,56 @@ class BackgroundTimer {
   }
 }
 
-// Probability Cache for memoization
 class ProbabilityCache {
   constructor(maxSize = 400) {
     this.cache = new Map();
     this.maxSize = maxSize;
-    this.hits = 0;
-    this.misses = 0;
+    this.hits = 0; this.misses = 0;
   }
-  
-  makeKey(k, l, params) {
-    return `${k},${l},${params.w_min},${params.w_max},${params.beta},${params.rho},${params.gamma},${params.c_min},${params.c_max},${params.alpha},${params.M},${params.L}`;
+  makeKey(k, l, p) {
+    return `${k},${l},${p.w_min},${p.w_max},${p.beta},${p.rho},${p.gamma},${p.c_min},${p.c_max},${p.alpha},${p.M},${p.L}`;
   }
-  
-  get(k, l, params) {
-    const key = this.makeKey(k, l, params);
+  get(k, l, p) {
+    const key = this.makeKey(k, l, p);
     const result = this.cache.get(key);
-    if (result) {
-      this.hits++;
-      return result;
-    }
-    this.misses++;
-    return null;
+    if (result) { this.hits++; return result; }
+    this.misses++; return null;
   }
-  
-  set(k, l, params, probs) {
-    if (this.cache.size >= this.maxSize) {
-      const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
-    }
-    const key = this.makeKey(k, l, params);
-    this.cache.set(key, probs);
+  set(k, l, p, probs) {
+    if (this.cache.size >= this.maxSize) this.cache.delete(this.cache.keys().next().value);
+    this.cache.set(this.makeKey(k, l, p), probs);
     return probs;
   }
-  
-  clear() {
-    this.cache.clear();
-    this.hits = 0;
-    this.misses = 0;
-  }
-  
-  getStats() {
-    return {
-      size: this.cache.size,
-      hits: this.hits,
-      misses: this.misses,
-      hitRate: this.hits / (this.hits + this.misses) || 0
-    };
-  }
+  clear() { this.cache.clear(); this.hits=0; this.misses=0; }
+  getStats() { return { hitRate: this.hits / (this.hits + this.misses) || 0 }; }
 }
 
-// Aria Announcer for screen readers
 class AriaAnnouncer {
-  constructor() {
-    this.element = document.getElementById('aria-announcer');
-  }
-  
-  announce(message) {
-    this.element.textContent = message;
-    setTimeout(() => {
-      this.element.textContent = '';
-    }, 1000);
+  constructor() { this.element = document.getElementById('aria-announcer'); }
+  announce(msg) {
+    this.element.textContent = msg;
+    setTimeout(() => { this.element.textContent = ''; }, 1000);
   }
 }
 
-// Performance Monitor
 class PerformanceMonitor {
   constructor() {
-    this.frameCount = 0;
-    this.lastTime = performance.now();
-    this.fps = 0;
+    this.frameCount = 0; this.lastTime = performance.now(); this.fps = 0;
     this.element = document.getElementById('perf-indicator');
   }
-  
   tick() {
     this.frameCount++;
     const now = performance.now();
     const delta = now - this.lastTime;
-    
     if (delta >= 1000) {
       this.fps = Math.round(this.frameCount * 1000 / delta);
-      this.frameCount = 0;
-      this.lastTime = now;
+      this.frameCount = 0; this.lastTime = now;
       this.update();
     }
   }
-  
   update() {
-    const cacheStats = SisyphusMath.probCache.getStats();
-    this.element.textContent = `FPS: ${this.fps} | Cache: ${(cacheStats.hitRate * 100).toFixed(0)}%`;
+    const cs = SisyphusMath.probCache.getStats();
+    this.element.textContent = `FPS: ${this.fps} | Cache: ${(cs.hitRate * 100).toFixed(0)}%`;
   }
 }
 
@@ -758,95 +509,59 @@ class SisyphusMath {
   static probCache = new ProbabilityCache();
   
   static computeProbs(k, l, p) {
-    // Check cache first
     const cached = this.probCache.get(k, l, p);
     if (cached) return cached;
     
-    // Ensure integer bounds
-    k = Math.round(k);
-    l = Math.round(l);
-    
-    const clamp01 = x => Math.min(1, Math.max(0, x));
+    k = Math.round(k); l = Math.round(l);
     const M = Math.max(1, p.M | 0);
     const L = Math.max(1, p.L | 0);
-    
     const frac = M > 1 ? (k - 1) / (M - 1) : 1;
+    
     const base = p.w_min + (p.w_max - p.w_min) * Math.pow(frac, p.beta);
     const ell = (1 - p.rho) + p.rho * Math.pow(l / L, p.gamma);
     
-    let p_win = clamp01(base * ell);
+    let p_win = Math.min(1, Math.max(0, base * ell));
     let p_loss = p.c_min + (p.c_max - p.c_min) * Math.exp(-p.alpha * l);
     
-    // Handle normalization with epsilon
     const sum = p_win + p_loss;
-    if (sum > 1 + this.EPSILON) {
-      p_win /= sum;
-      p_loss /= sum;
-    } else if (sum > 1) {
-      const scale = 1 / sum;
-      p_win *= scale;
-      p_loss *= scale;
-    }
+    if (sum > 1 + this.EPSILON) { p_win /= sum; p_loss /= sum; }
+    else if (sum > 1) { const scale = 1/sum; p_win *= scale; p_loss *= scale; }
     
-    // Ensure p_neu is non-negative
     let p_neu = Math.max(0, 1 - p_win - p_loss);
-    
-    // Final normalization
     const total = p_win + p_neu + p_loss;
-    if (Math.abs(total - 1) > this.EPSILON) {
-      p_win /= total;
-      p_neu /= total;
-      p_loss /= total;
-    }
+    if (Math.abs(total - 1) > this.EPSILON) { p_win/=total; p_neu/=total; p_loss/=total; }
     
-    const result = { 
-      p_win: clamp01(p_win), 
-      p_neu: clamp01(p_neu), 
-      p_loss: clamp01(p_loss) 
-    };
-    
-    // Cache the result
+    const result = { p_win, p_neu, p_loss };
     this.probCache.set(k, l, p, result);
-    
     return result;
   }
 
   static getDelay(k, l, p) {
-    // If param is 0, disabled
     if (p.max_delay <= 0) return 0;
-
     const kRatio = Math.max(0, (k - 1) / (p.M - 1 || 1));
     const lRatio = Math.max(0, l / (p.L || 1));
-    
-    // Weighted progress (k is dominant)
     const reduction = (0.8 * kRatio) + (0.2 * lRatio);
-    
-    // Cubic decay: (1 - progress)^3
-    // This makes the delay drop very quickly as you start making progress
     const ms = (p.max_delay * 1000) * Math.pow(1 - Math.min(1, reduction), 3);
-    
-    // If calculated delay is very small, return 0 to skip lock
     if (ms < 20) return 0;
-    
-    // Otherwise enforce a minimum that makes the UI readable
     return Math.max(100, ms); 
   }
   
-  static clearCache() {
-    this.probCache.clear();
-  }
+  static clearCache() { this.probCache.clear(); }
 
   static solveExpectations(p) {
     const M = Math.max(1, p.M | 0);
     const L = Math.max(0, p.L | 0);
     
-    const TopHit = Array.from({length: M + 1}, () => Array(L + 1).fill(0));
-    const CycleLen = Array.from({length: M + 1}, () => Array(L + 1).fill(0));
-    const WinCount = Array.from({length: M + 1}, () => Array(L + 1).fill(0));
-    const TimeLen = Array.from({length: M + 1}, () => Array(L + 1).fill(0)); // NEW
+    const createGrid = () => Array.from({length: M + 1}, () => new Float64Array(L + 1));
+    const TopHit = createGrid();
+    const CycleLen = createGrid();
+    const WinCount = createGrid();
+    const TimeLen = createGrid();
     
     const maxIter = 400, tol = 1e-6;
     const lossDelay = SisyphusMath.getDelay(1, 0, p) / 1000;
+    const s_w = p.s_w;
+    const g_n = p.g_n;
 
     for (let it = 0; it < maxIter; it++) {
       let maxDiff = 0;
@@ -854,44 +569,31 @@ class SisyphusMath {
         for (let l = 0; l <= L; l++) {
           const {p_win, p_neu, p_loss} = SisyphusMath.computeProbs(k, l, p);
           
-          const l_win = Math.max(0, l - p.s_w);
-          const l_neu = Math.min(L, l + p.g_n);
+          const l_win = (l - s_w) < 0 ? 0 : (l - s_w);
+          const l_neu = (l + g_n) > L ? L : (l + g_n);
 
-          let valTop = 0;
-          if (k === M) valTop = p_win * 1 + p_neu * TopHit[M][l_neu];
-          else valTop = p_win * TopHit[k+1][l_win] + p_neu * TopHit[k][l_neu];
+          let valTop = 0, valCyc = 0, valWin = 0, valTime = 0;
           
-          let valCyc = 0;
-          if (k === M) valCyc = 1 + p_neu * CycleLen[M][l_neu];
-          else valCyc = 1 + p_win * CycleLen[k+1][l_win] + p_neu * CycleLen[k][l_neu];
-
-          let valWin = 0;
-          if (k === M) valWin = p_win * 1 + p_neu * WinCount[M][l_neu];
-          else valWin = p_win * (1 + WinCount[k+1][l_win]) + p_neu * WinCount[k][l_neu];
-          
-          // --- Time Expectation Logic ---
-          // Cost of this step (accumulated delay)
-          // If result is Top Hit, delay is 0.
-          // If result is Win(k<M), next state is (k+1, l_win), delay is D(k+1, l_win)
-          // If result is Neu, next state is (k, l_neu), delay is D(k, l_neu)
-          // If result is Loss, next state is (1, 0), delay is D(1, 0)
-          
-          const delayWin = (k === M) ? 0 : (SisyphusMath.getDelay(k+1, l_win, p) / 1000);
-          const delayNeu = SisyphusMath.getDelay(k, l_neu, p) / 1000;
-          // lossDelay is constant D(1,0)
-          
-          const stepCost = (p_win * delayWin) + (p_neu * delayNeu) + (p_loss * lossDelay);
-          
-          let valTime = 0;
           if (k === M) {
-             // If Top, cycle ends (0 future time). If Neu, continue.
+             valTop = p_win + p_neu * TopHit[M][l_neu];
+             valCyc = 1 + p_neu * CycleLen[M][l_neu];
+             valWin = p_win + p_neu * WinCount[M][l_neu];
+             const delayNeu = SisyphusMath.getDelay(k, l_neu, p) / 1000;
+             const stepCost = (p_neu * delayNeu) + (p_loss * lossDelay); 
              valTime = stepCost + p_neu * TimeLen[M][l_neu];
           } else {
-             // Recurse
+             valTop = p_win * TopHit[k+1][l_win] + p_neu * TopHit[k][l_neu];
+             valCyc = 1 + p_win * CycleLen[k+1][l_win] + p_neu * CycleLen[k][l_neu];
+             valWin = p_win * (1 + WinCount[k+1][l_win]) + p_neu * WinCount[k][l_neu];
+             const delayWin = SisyphusMath.getDelay(k+1, l_win, p) / 1000;
+             const delayNeu = SisyphusMath.getDelay(k, l_neu, p) / 1000;
+             const stepCost = (p_win * delayWin) + (p_neu * delayNeu) + (p_loss * lossDelay);
              valTime = stepCost + p_win * TimeLen[k+1][l_win] + p_neu * TimeLen[k][l_neu];
           }
 
-          if(Math.abs(valTop - TopHit[k][l]) > maxDiff) maxDiff = Math.abs(valTop - TopHit[k][l]);
+          const diff = Math.abs(valTop - TopHit[k][l]);
+          if(diff > maxDiff) maxDiff = diff;
+          
           TopHit[k][l] = valTop;
           CycleLen[k][l] = valCyc;
           WinCount[k][l] = valWin;
@@ -910,19 +612,10 @@ class SisyphusMath {
       const pos = (sorted.length - 1) * p;
       const base = Math.floor(pos);
       const rest = pos - base;
-      if (sorted[base + 1] !== undefined) {
-        return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
-      } else {
-        return sorted[base];
-      }
+      if (sorted[base + 1] !== undefined) return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+      return sorted[base];
     };
-    return {
-      min: sorted[0],
-      q25: q(0.25),
-      med: q(0.50),
-      q75: q(0.75),
-      max: sorted[sorted.length - 1]
-    };
+    return { min: sorted[0], q25: q(0.25), med: q(0.50), q75: q(0.75), max: sorted[sorted.length - 1] };
   }
 }
 
@@ -933,8 +626,7 @@ class SisyphusModel {
   constructor() {
     this.params = {
       M:20, L:20, w_min:0.10, w_max:0.90, beta:1.5, rho:0.6, gamma:1.5,
-      c_min:0.03, c_max:0.10, alpha:0.3, g_n:1, s_w:20,
-      max_delay: 45.0 // UPDATED DEFAULT
+      c_min:0.03, c_max:0.10, alpha:0.3, g_n:1, s_w:20, max_delay: 45.0
     };
     this.reset();
   }
@@ -947,27 +639,21 @@ class SisyphusModel {
     this.currentCycle = this._newCycle();
     this.cycleSummaries = []; 
     this.allCycles = []; 
-    this.startTime = Date.now(); // NEW: Track when this run started
-
+    this.startTime = Date.now();
     const M = Math.max(1, this.params.M);
     const L = Math.max(0, this.params.L);
     this.distributions = { 
-      k: Array(M+1).fill(0), 
-      l: Array(L+1).fill(0), 
+      k: Array(M+1).fill(0), l: Array(L+1).fill(0), 
       kl: Array.from({length: M+1}, () => Array(L+1).fill(0)),
       cycles: []
     };
-    
     this.lastRoll = null; 
   }
 
-  _newCycle() {
-    return { id: this.cycleId, length:0, wins:0, neus:0, maxK:this.state.k, path:'' };
-  }
+  _newCycle() { return { id: this.cycleId, length:0, wins:0, neus:0, maxK:this.state.k, path:'' }; }
 
   step() {
     if (this.state.topHit) return null;
-
     const k0 = this.state.k, l0 = this.state.l;
     const probs = SisyphusMath.computeProbs(k0, l0, this.params);
     const r = Math.random();
@@ -976,35 +662,20 @@ class SisyphusModel {
     let k1 = 1, l1 = 0;
 
     if (r < probs.p_win) {
-      if (k0 === this.params.M) {
-        outcome = 'top';
-        k1 = k0; l1 = l0;
-        this.state.topHit = true;
-      } else {
-        outcome = 'win';
-        k1 = Math.min(this.params.M, k0 + 1);
-        l1 = Math.max(0, l0 - this.params.s_w);
-      }
+      if (k0 === this.params.M) { outcome = 'top'; k1 = k0; l1 = l0; this.state.topHit = true; } 
+      else { outcome = 'win'; k1 = Math.min(this.params.M, k0 + 1); l1 = Math.max(0, l0 - this.params.s_w); }
     } else if (r < probs.p_win + probs.p_neu) {
-      outcome = 'neu';
-      k1 = k0;
-      l1 = Math.min(this.params.L, l0 + this.params.g_n);
+      outcome = 'neu'; k1 = k0; l1 = Math.min(this.params.L, l0 + this.params.g_n);
     }
 
-    this.state.k = k1; 
-    this.state.l = l1;
-    this.state.step++;
-    this.state.cycleSteps++;
+    this.state.k = k1; this.state.l = l1; this.state.step++; this.state.cycleSteps++;
     
-    // Update stats
     if (outcome === 'win' || outcome === 'top') this.stats.wins++;
     else if (outcome === 'neu') this.stats.neus++;
     else if (outcome === 'loss') this.stats.loss++;
 
     if (outcome === 'loss' || outcome === 'top') {
-      if (this.state.cycleSteps > this.stats.longestCycle) {
-        this.stats.longestCycle = this.state.cycleSteps;
-      }
+      if (this.state.cycleSteps > this.stats.longestCycle) this.stats.longestCycle = this.state.cycleSteps;
       if (outcome === 'loss') this.state.cycleSteps = 0;
     }
 
@@ -1035,17 +706,13 @@ class SisyphusModel {
       this.currentCycle.maxK = Math.max(this.currentCycle.maxK, k1);
       this.currentCycle.path += sym;
     }
-
     if (outcome === 'loss' || outcome === 'top') {
       this.allCycles.push(this.currentCycle.length);
-      
       this.distributions.cycles.push(this.currentCycle.length);
       if (this.distributions.cycles.length > 40) this.distributions.cycles.shift();
-
       const summary = { ...this.currentCycle, outcome };
       this.cycleSummaries.unshift(summary);
       if (this.cycleSummaries.length > 7) this.cycleSummaries.pop();
-
       this.cycleId++;
       this.currentCycle = this._newCycle();
     }
@@ -1076,41 +743,26 @@ class SisyphusUI {
      'log','cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
      'global-n','gs-min','gs-25','gs-50','gs-75','gs-max',
      'exp-win-rate', 'exp-loss-rate', 'exp-cycle-len', 'exp-time-top', 'exp-wins-hour',
-     'btn-roll-main' // Only main button element
+     'btn-roll-main'
     ].forEach(id => this.els[id] = document.getElementById(id));
   }
   
-  // Batch update methods
   batchUpdate(elementId, property, value) {
-    if (!this.pendingUpdates.has(elementId)) {
-      this.pendingUpdates.set(elementId, {});
-    }
+    if (!this.pendingUpdates.has(elementId)) this.pendingUpdates.set(elementId, {});
     this.pendingUpdates.get(elementId)[property] = value;
-    
-    if (!this.rafId) {
-      this.rafId = requestAnimationFrame(() => {
-        this.flushUpdates();
-      });
-    }
+    if (!this.rafId) this.rafId = requestAnimationFrame(() => this.flushUpdates());
   }
   
   flushUpdates() {
     this.pendingUpdates.forEach((updates, elementId) => {
       const el = this.els[elementId];
       if (!el) return;
-      
-      Object.entries(updates).forEach(([prop, value]) => {
-        if (prop === 'textContent') {
-          el.textContent = value;
-        } else if (prop === 'className') {
-          el.className = value;
-        } else if (prop.startsWith('style.')) {
-          const styleProp = prop.substring(6);
-          el.style[styleProp] = value;
-        }
-      });
+      for (const [prop, value] of Object.entries(updates)) {
+        if (prop === 'textContent') el.textContent = value;
+        else if (prop === 'className') el.className = value;
+        else if (prop.startsWith('style.')) el.style[prop.substring(6)] = value;
+      }
     });
-    
     this.pendingUpdates.clear();
     this.rafId = null;
   }
@@ -1122,7 +774,6 @@ class SisyphusUI {
     this.els.log.scrollTop = this.els.log.scrollHeight;
   }
 
-  // Helper to format elapsed time compactly
   _formatDuration(ms) {
     const s = Math.floor(ms / 1000);
     if(s < 60) return `${s}s`;
@@ -1135,17 +786,12 @@ class SisyphusUI {
   }
 
   render(grids, full = true) {
-    const m = this.model;
-    const s = m.state;
-    const st = m.stats;
+    const m = this.model, s = m.state, st = m.stats;
     const lr = m.lastRoll || { outcome:null, k0:1, l0:0, k1:s.k, l1:s.l };
-
     const pct = x => (100 * Math.max(0, Math.min(1, x))).toFixed(1) + '%';
     const probs = SisyphusMath.computeProbs(lr.k1, lr.l1, m.params);
     
-    // Use batch updates for better performance
-    this.batchUpdate('recent-outcome', 'textContent', 
-      lr.outcome ? (lr.outcome === 'neu' ? 'NEUTRAL' : lr.outcome === 'top' ? 'TOP HIT' : lr.outcome.toUpperCase()) : '—');
+    this.batchUpdate('recent-outcome', 'textContent', lr.outcome ? (lr.outcome === 'neu' ? 'NEUTRAL' : lr.outcome === 'top' ? 'TOP HIT' : lr.outcome.toUpperCase()) : '—');
     this.batchUpdate('recent-kl', 'textContent', `(${lr.k0},${lr.l0})→(${lr.k1},${lr.l1})`);
     this.batchUpdate('recent-card', 'className', 'card recent ' + (lr.outcome === 'top' ? 'win' : lr.outcome || ''));
 
@@ -1159,21 +805,13 @@ class SisyphusUI {
     const p_cond = (probs.p_win + probs.p_loss > 0) ? probs.p_win / (probs.p_win + probs.p_loss) : 0;
     this.batchUpdate('recent-p-cond', 'textContent', (probs.p_win+probs.p_loss < 1e-9) ? '—' : pct(p_cond));
 
-    // p(top hit | current state) Display Logic
     let pTopText = '—';
     if (grids && grids.TopHit && grids.TopHit[lr.k1] && typeof grids.TopHit[lr.k1][lr.l1] === 'number') {
       const p = grids.TopHit[lr.k1][lr.l1];
       const odds = p > 0 ? 1/p : Infinity;
-      
-      if (p < 0.0001) { // < 0.01%
-        const oddsStr = odds > 1e6 ? odds.toExponential(2) : Math.round(odds).toLocaleString();
-        pTopText = `1 in ${oddsStr}`;
-      } else if (p <= 0.5) { // 0.01% to 50%
-        const oddsStr = Math.round(odds).toLocaleString();
-        pTopText = `1 in ${oddsStr} (${(p*100).toFixed(2)}%)`;
-      } else { // > 50%
-        pTopText = `${(p*100).toFixed(1)}%`;
-      }
+      if (p < 0.0001) pTopText = `1 in ${odds > 1e6 ? odds.toExponential(2) : Math.round(odds).toLocaleString()}`;
+      else if (p <= 0.5) pTopText = `1 in ${Math.round(odds).toLocaleString()} (${(p*100).toFixed(2)}%)`;
+      else pTopText = `${(p*100).toFixed(1)}%`;
     }
     this.batchUpdate('recent-p-top', 'textContent', pTopText);
 
@@ -1182,7 +820,6 @@ class SisyphusUI {
     this.batchUpdate('lpos-fill', 'style.width', pct(lr.l1 / m.params.L));
     this.batchUpdate('lpos-text', 'textContent', `${lr.l1} / ${m.params.L}`);
 
-    // Stats
     const tot = st.wins + st.neus + st.loss;
     this.batchUpdate('run-steps', 'textContent', s.step);
     this.batchUpdate('c-win', 'textContent', st.wins);
@@ -1196,51 +833,34 @@ class SisyphusUI {
     this.batchUpdate('bar-neu', 'style.width', tot ? (100*st.neus/tot)+'%' : '0%');
     this.batchUpdate('bar-loss', 'style.width', tot ? (100*st.loss/tot)+'%' : '0%');
     
-    // UPDATE TIME IN RUN
-    const elapsed = Math.max(0, Date.now() - m.startTime);
-    this.batchUpdate('run-time', 'textContent', this._formatDuration(elapsed));
+    this.batchUpdate('run-time', 'textContent', this._formatDuration(Math.max(0, Date.now() - m.startTime)));
     this.batchUpdate('max-k', 'textContent', st.maxK);
     
-    // REMOVED SPARKLINE DRAW CALL
     this._renderCycles();
-
-    if(full) {
-      this._renderDistributions();
-      this._renderGlobalStats();
-    }
+    if(full) { this._renderDistributions(); this._renderGlobalStats(); }
   }
 
   _renderCycles() {
     const box = this.els['cycle-box'];
     const tpl = document.getElementById('tpl-cycle-entry');
     const fragment = document.createDocumentFragment();
-    
     this.model.cycleSummaries.forEach(c => {
       const clone = tpl.content.cloneNode(true);
       const div = clone.querySelector('.cycle-entry');
       div.classList.add(c.outcome === 'top' ? 'top' : 'loss');
-      
-      const label = `C${c.id}: ${c.outcome === 'top' ? 'TOP' : 'LOSS'}`;
-      clone.querySelector('.cycle-main-text').textContent = label;
+      clone.querySelector('.cycle-main-text').textContent = `C${c.id}: ${c.outcome === 'top' ? 'TOP' : 'LOSS'}`;
       clone.querySelector('.cycle-meta').textContent = `L:${c.length} W:${c.wins}`;
-      
-      const chunk = 32;
       let wrapped = '';
-      for(let i=0; i<(c.path||'').length; i+=chunk) {
-        wrapped += c.path.slice(i, i+chunk) + '\n';
-      }
+      for(let i=0; i<(c.path||'').length; i+=32) wrapped += c.path.slice(i, i+32) + '\n';
       clone.querySelector('.cycle-entry-path').textContent = wrapped || '-';
       fragment.appendChild(clone);
     });
-    
-    box.innerHTML = '';
-    box.appendChild(fragment);
+    box.innerHTML = ''; box.appendChild(fragment);
   }
 
   _renderGlobalStats() {
     const ac = this.model.allCycles;
     this.els['global-n'].textContent = ac.length;
-    
     const stats = SisyphusMath.getQuantiles(ac);
     if (stats) {
       this.els['gs-min'].textContent = stats.min;
@@ -1255,73 +875,58 @@ class SisyphusUI {
 
   _renderDistributions() {
     const dist = this.model.distributions;
-    const renderBar = (hostId, data, M) => {
-      const host = this.els[hostId];
-      host.innerHTML = '';
+    const renderBar = (hostId, data) => {
+      const host = this.els[hostId]; host.innerHTML = '';
       if(!data.length || !data.some(x=>x)) { host.textContent='—'; return; }
       const max = Math.max(...data.filter(n=>n));
       const wrap = document.createElement('div');
       wrap.style.cssText = 'display:flex;align-items:flex-end;gap:2px';
       for(let i=(hostId==='hist-l'?0:1); i<data.length; i++){
-        const v = data[i] || 0;
         const bar = document.createElement('div');
         bar.style.cssText = `width:3px;border-radius:2px;background:linear-gradient(180deg,var(--accent-3),var(--accent-2));`;
-        bar.style.height = (6 + (max ? 24 * v / max : 0)) + 'px';
+        bar.style.height = (6 + (max ? 24 * (data[i]||0) / max : 0)) + 'px';
         wrap.appendChild(bar);
       }
       host.appendChild(wrap);
     };
-    renderBar('hist-k', dist.k, this.model.params.M);
-    renderBar('hist-l', dist.l, this.model.params.L);
+    renderBar('hist-k', dist.k); renderBar('hist-l', dist.l);
 
-    const clSamples = dist.cycles;
-    const hostCl = this.els['hist-cycle-len'];
-    hostCl.innerHTML = '';
-    if(clSamples.length) {
-      const maxCL = Math.max(...clSamples);
+    const hostCl = this.els['hist-cycle-len']; hostCl.innerHTML = '';
+    if(dist.cycles.length) {
+      const maxCL = Math.max(...dist.cycles);
       const wrap = document.createElement('div');
       wrap.style.cssText = 'display:flex;align-items:flex-end;gap:2px';
-      clSamples.forEach(len => {
+      dist.cycles.forEach(len => {
         const bar = document.createElement('div');
         bar.style.cssText = 'width:4px;border-radius:2px;background:linear-gradient(180deg,var(--accent-3),var(--accent-2));';
         bar.style.height = (8 + (maxCL ? 32 * len / maxCL : 0)) + 'px';
         wrap.appendChild(bar);
       });
       hostCl.appendChild(wrap);
-    } else {
-      hostCl.textContent = '—';
-    }
+    } else hostCl.textContent = '—';
 
-    const hostHM = this.els['hist-kl'];
-    hostHM.innerHTML = '';
+    const hostHM = this.els['hist-kl']; hostHM.innerHTML = '';
     const klData = dist.kl;
-    let maxC = 0;
-    klData.forEach(row => row.forEach(c => { if(c > maxC) maxC = c; }));
+    let maxC = 0; klData.forEach(row => row.forEach(c => { if(c > maxC) maxC = c; }));
     
     if(maxC > 0) {
       const M = this.model.params.M;
       const L = this.model.params.L;
       const grid = document.createElement('div');
-      grid.style.display = 'grid';
-      grid.style.gridTemplateColumns = `repeat(${M}, minmax(4px, 1fr))`;
-      grid.style.gap = '1px';
+      grid.style.display = 'grid'; grid.style.gridTemplateColumns = `repeat(${M}, minmax(4px, 1fr))`; grid.style.gap = '1px';
       const logMax = Math.log(1+maxC);
-      
       for(let l=L; l>=0; l--) {
         for(let k=1; k<=M; k++) {
           const c = (klData[k] && klData[k][l]) || 0;
           const cell = document.createElement('div');
           const alpha = c > 0 ? (0.15 + 0.85 * (Math.log(1+c)/logMax)) : 0.05;
           cell.style.background = `rgba(0,183,255,${alpha.toFixed(3)})`;
-          cell.style.aspectRatio = '1/1';
-          cell.title = `(${k},${l}): ${c}`;
+          cell.style.aspectRatio = '1/1'; cell.title = `(${k},${l}): ${c}`;
           grid.appendChild(cell);
         }
       }
       hostHM.appendChild(grid);
-    } else {
-      hostHM.textContent = '—';
-    }
+    } else hostHM.textContent = '—';
   }
 
   updateExpectations(grids) {
@@ -1330,7 +935,6 @@ class SisyphusUI {
     const c = CycleLen[1][0];
     const w = WinCount[1][0];
     const timePerCycle = TimeLen[1][0];
-    
     const fmt = x => (100*x).toFixed(3)+'%';
     const el = id => document.getElementById(id);
     
@@ -1341,39 +945,14 @@ class SisyphusUI {
       
       if (pCycleTop > 1e-15) { 
         const expected = c / pCycleTop;
-        if (expected > 1e9) {
-           el('exp-time-top').textContent = expected.toExponential(2);
-        } else {
-           el('exp-time-top').textContent = expected.toFixed(1);
-        }
-        
-        // Calculate Wins/Hour (Any Win Transition)
-        if (this.model.params.max_delay <= 0) {
-          el('exp-wins-hour').textContent = "--";
-        } else {
-          // Rate = Expected Wins / Expected Time
-          // Expected Wins = w (WinCount[1][0])
-          // Expected Time = timePerCycle (TimeLen[1][0])
-          
-          if (timePerCycle > 0.0001) {
-             const winsPerHour = (w / timePerCycle) * 3600;
-             el('exp-wins-hour').textContent = winsPerHour.toFixed(2);
-           } else {
-             el('exp-wins-hour').textContent = "--";
-           }
-        }
+        el('exp-time-top').textContent = expected > 1e9 ? expected.toExponential(2) : expected.toFixed(1);
+        if (this.model.params.max_delay <= 0) el('exp-wins-hour').textContent = "--";
+        else el('exp-wins-hour').textContent = timePerCycle > 0.0001 ? ((w / timePerCycle) * 3600).toFixed(2) : "--";
       } else {
-        if (pCycleTop === 0) {
-           el('exp-time-top').textContent = '∞ (prob ≈ 0)';
-           el('exp-wins-hour').textContent = '0.00';
-        } else {
+        if (pCycleTop === 0) { el('exp-time-top').textContent = '∞ (prob ≈ 0)'; el('exp-wins-hour').textContent = '0.00'; }
+        else {
            el('exp-time-top').textContent = (c/pCycleTop).toExponential(2);
-           if (timePerCycle > 0.0001) {
-             const winsPerHour = (w / timePerCycle) * 3600;
-             el('exp-wins-hour').textContent = winsPerHour.toFixed(2);
-           } else {
-             el('exp-wins-hour').textContent = "--";
-           }
+           el('exp-wins-hour').textContent = timePerCycle > 0.0001 ? ((w / timePerCycle) * 3600).toFixed(2) : "--";
         }
       }
     }
@@ -1381,7 +960,7 @@ class SisyphusUI {
 }
 
 /* -------------------------------------------------------------------------- */
-/* MODULE 4: CHAOS ENGINE                                                    */
+/* MODULE 4: CHAOS ENGINE (OPTIMIZED RING BUFFER)                            */
 /* -------------------------------------------------------------------------- */
 class ChaosEngine {
   constructor() {
@@ -1390,28 +969,20 @@ class ChaosEngine {
     this.statusEl = document.getElementById('weather-status-main');
     this.modEl = document.getElementById('weather-mod-val');
     
-    // Lorenz Parameters
-    this.SIGMA = 10;
-    this.RHO = 28;
-    this.BETA = 8/3;
-    this.DT = 0.002; // Slowed down from 0.008
+    this.SIGMA = 10; this.RHO = 28; this.BETA = 8/3; this.DT = 0.0025; 
+    this.x = 0.1; this.y = 0; this.z = 0;
 
-    // State - Randomized start to ensure different pattern every reload
-    this.x = 0.1 + (Math.random() - 0.5) * 0.1;
-    this.y = 0 + (Math.random() - 0.5) * 0.1;
-    this.z = 0 + (Math.random() - 0.5) * 0.1;
+    this.MAX_POINTS = 5000;
+    this.points = new Array(this.MAX_POINTS).fill(null);
+    this.head = 0; // Where the next point goes
+    this.count = 0; // How many valid points we have
     
-    this.points = [];
-    this.MAX_POINTS = 4800;
-    
-    // Multiplier for Delay
+    this.angle = 0; this.rotSpeed = 0.005; 
+    this.scale = 9; this.fov = 300; this.yOffset = 20;     
     this.multiplier = 1.0; 
 
-    // Resize handling - using parent element width since it's now contained
     this.resize();
     window.addEventListener('resize', () => this.resize());
-    
-    // Start Loop
     this.animate();
   }
   
@@ -1419,9 +990,6 @@ class ChaosEngine {
     if (this.canvas.parentElement) {
        this.canvas.width = this.canvas.parentElement.clientWidth;
        this.canvas.height = this.canvas.parentElement.clientHeight;
-    } else {
-       this.canvas.width = window.innerWidth;
-       this.canvas.height = window.innerHeight;
     }
   }
   
@@ -1429,104 +997,97 @@ class ChaosEngine {
     const dx = (this.SIGMA * (this.y - this.x)) * this.DT;
     const dy = (this.x * (this.RHO - this.z) - this.y) * this.DT;
     const dz = (this.x * this.y - this.BETA * this.z) * this.DT;
-    
-    this.x += dx;
-    this.y += dy;
-    this.z += dz;
-    
-    return { dx, dy, dz };
+    this.x += dx; this.y += dy; this.z += dz;
+    return Math.sqrt(dx*dx + dy*dy + dz*dz);
   }
   
   updateWeather(velocity) {
-    // Normalizing velocity:
-    // With DT=0.002, the displacement is smaller per frame.
-    // Velocity is displacement per frame.
-    // A multiplier of 40x brings the intensity back to a useful 0-1ish range.
     let intensity = (velocity * 40) / 30; 
-    
     if(intensity > 1) intensity = 1;
-    
-    // Calculate Multiplier
-    // Range: 0.5x (Fast) to 2.5x (Slow)
     this.multiplier = 0.5 + (intensity * 2.0);
-    
-    if (this.modEl) {
-       this.modEl.textContent = this.multiplier.toFixed(2) + "x";
-    }
+    if (this.modEl) this.modEl.textContent = this.multiplier.toFixed(2) + "x";
 
-    // Update UI
-    let statusText = "";
-    let statusClass = "";
-
-    if(intensity < 0.25) {
-      statusText = "CALM";
-      statusClass = "weather-good";
-    } else if (intensity < 0.6) {
-      statusText = "WINDY";
-      statusClass = "weather-ok";
-    } else {
-      statusText = "STORM";
-      statusClass = "weather-bad";
-    }
+    let statusText = "", statusClass = "", color = "";
+    if(intensity < 0.25) { statusText = "CALM"; statusClass = "weather-good"; color = "#ff9e2c"; } 
+    else if (intensity < 0.6) { statusText = "WINDY"; statusClass = "weather-ok"; color = "#00b7ff"; } 
+    else { statusText = "STORM"; statusClass = "weather-bad"; color = "#ff3333"; }
 
     if (this.statusEl) {
       this.statusEl.textContent = statusText;
       this.statusEl.className = "weather-status " + statusClass;
     }
-
-    if (this.modEl) {
-      this.modEl.className = "mono " + statusClass;
-    }
+    if (this.modEl) this.modEl.className = "mono " + statusClass;
+    return color;
   }
   
+  project(x, y, z, cx, cy) {
+    const cosA = Math.cos(this.angle);
+    const sinA = Math.sin(this.angle);
+    const rx = x * cosA - y * sinA; 
+    const ry = x * sinA + y * cosA; 
+    const depth = this.fov / (this.fov + ry + 60); 
+    return { x: cx + rx * this.scale * depth, y: (cy + this.yOffset) + (-(z - 25)) * this.scale * depth };
+  }
+  
+  reset() {
+    this.points.fill(null);
+    this.count = 0;
+    this.head = 0;
+    this.x = 0.1; this.y = 0; this.z = 0; 
+  }
+
   animate() {
-    // 1. Calculate
-    const deltas = this.step();
-    // Velocity here is just magnitude of displacement vector per frame
-    const velocity = Math.sqrt(deltas.dx**2 + deltas.dy**2 + deltas.dz**2);
-    
-    // 2. Logic Update
-    this.updateWeather(velocity); 
-    
-    // 3. Draw
-    // Ensure we handle case where canvas might be 0 size
     if (this.canvas.width === 0) return requestAnimationFrame(() => this.animate());
 
-    const scale = 12;
-    const cx = this.canvas.width / 2;
-    const cy = this.canvas.height / 2; // Center based on current container
+    const velocity = this.step();
+    const color = this.updateWeather(velocity);
     
-    // We project X/Z plane mostly to look cool
-    this.points.push({
-      x: cx + (this.x * scale),
-      y: cy + (this.y * scale) 
-    });
+    this.points[this.head] = { x: this.x, y: this.y, z: this.z, color: color };
+    this.head = (this.head + 1) % this.MAX_POINTS;
+    if (this.count < this.MAX_POINTS) this.count++;
     
-    if(this.points.length > this.MAX_POINTS) this.points.shift();
-    
-    // Clear canvas - transparent background
+    this.angle += this.rotSpeed;
+
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    const cx = this.canvas.width / 2;
+    const cy = this.canvas.height / 2;
     
-    this.ctx.beginPath();
-    if(this.points.length > 0) {
-      this.ctx.moveTo(this.points[0].x, this.points[0].y);
-      for(let i=1; i<this.points.length; i++) {
-        this.ctx.lineTo(this.points[i].x, this.points[i].y);
+    if (this.count > 1) {
+      this.ctx.lineWidth = 1.5;
+      
+      let idx = (this.count < this.MAX_POINTS) ? 0 : this.head;
+      
+      let p = this.points[idx];
+      let prevProj = this.project(p.x, p.y, p.z, cx, cy);
+      let currentColor = this.points[(idx + 1) % this.MAX_POINTS].color;
+      
+      this.ctx.beginPath();
+      this.ctx.strokeStyle = currentColor;
+      this.ctx.moveTo(prevProj.x, prevProj.y);
+      
+      for (let i = 1; i < this.count; i++) {
+        idx = (idx + 1) % this.MAX_POINTS;
+        p = this.points[idx];
+        
+        const proj = this.project(p.x, p.y, p.z, cx, cy);
+        
+        if (p.color !== currentColor) {
+          this.ctx.stroke(); 
+          this.ctx.beginPath();
+          this.ctx.strokeStyle = p.color;
+          this.ctx.moveTo(prevProj.x, prevProj.y); 
+          currentColor = p.color;
+        }
+        
+        this.ctx.lineTo(proj.x, proj.y);
+        prevProj = proj;
       }
+      this.ctx.stroke();
     }
-    
-    // Dynamic Color
-    const hue = 180 + (velocity * 40 * 20); // Scaled for color too
-    this.ctx.strokeStyle = `hsl(${hue}, 80%, 60%)`;
-    this.ctx.lineWidth = 2;
-    this.ctx.stroke();
-    
     requestAnimationFrame(() => this.animate());
   }
   
-  getModifier() {
-    return this.multiplier;
-  }
+  getModifier() { return this.multiplier; }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1536,22 +1097,18 @@ class GameController {
   constructor() {
     this.model = new SisyphusModel();
     this.ui = new SisyphusUI(this.model);
-    
-    // Init Chaos
     this.chaos = new ChaosEngine();
     
     this.autoTimerId = null;
-    this.bgTimer = new BackgroundTimer(); // Worker-based timer
+    this.bgTimer = new BackgroundTimer(); 
     this.renderReq = null;
     this.isAuto = false;
     this.controlsLocked = false;
     this.grids = null;
     this.announcer = new AriaAnnouncer();
     this.perfMonitor = new PerformanceMonitor();
-    
-    this.slotMode = 'load'; // 'save' or 'load'
+    this.slotMode = 'load'; 
 
-    // Start a heartbeat timer to update the "Time in Run" stats every second
     setInterval(() => {
       if (this.ui) {
         const elapsed = Math.max(0, Date.now() - this.model.startTime);
@@ -1573,120 +1130,66 @@ class GameController {
     $('roll1_big').onclick = () => this.stepManually();
     $('rollN').onclick = () => {
       const n = +$('nRolls').value || 20;
-      for(let i=0; i<n; i++) {
-         const res = this.model.step();
-         if (!res) break; 
-         if (res === 'top') break; 
-      }
-      this.ui.render(this.grids);
-      this.save();
+      for(let i=0; i<n; i++) { if(this.model.step() === 'top') break; }
+      this.ui.render(this.grids); this.save();
     };
-    
     $('rollNCycles').onclick = () => {
-      const n = +$('nRolls').value || 1;
-      const targetCycle = this.model.cycleId + n;
-      const maxSteps = 2000000; 
-      let steps = 0;
-
-      while(this.model.cycleId < targetCycle && steps < maxSteps) {
-        const res = this.model.step();
-        if (!res) break; 
-        if (res === 'top') break; 
-        steps++;
-      }
-      if (steps >= maxSteps) console.warn("Roll N Cycles: Safety limit reached");
-      this.ui.render(this.grids);
-      this.save();
+      const target = this.model.cycleId + (+$('nRolls').value || 1);
+      let safety = 0;
+      while(this.model.cycleId < target && safety++ < 2000000) { if(this.model.step() === 'top') break; }
+      this.ui.render(this.grids); this.save();
     };
-
     $('auto').onclick = () => this.toggleAuto();
     $('apply').onclick = () => this.applyParams();
     $('resetState').onclick = () => this.reset();
     $('setStateBtn').onclick = () => {
-      const k = +$('set-k').value || 1;
-      const l = +$('set-l').value || 0;
-      this.model.setState(k, l);
+      this.model.setState(+$('set-k').value||1, +$('set-l').value||0);
       this.ui.render(this.grids);
     }
-
-    // Save Slots Events
-    document.querySelectorAll('.slot-mode-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        this.setSlotMode(e.target.dataset.mode);
-      });
-    });
-
-    document.querySelectorAll('.slot-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const slotId = e.currentTarget.dataset.slot;
-        this.handleSlotAction(slotId);
-      });
-    });
+    
+    document.querySelectorAll('.slot-mode-btn').forEach(b => b.addEventListener('click', (e) => this.setSlotMode(e.target.dataset.mode)));
+    document.querySelectorAll('.slot-btn').forEach(b => b.addEventListener('click', (e) => this.handleSlotAction(e.currentTarget.dataset.slot)));
   }
 
   setSlotMode(mode) {
     this.slotMode = mode;
     const container = document.getElementById('slot-container');
     const desc = document.getElementById('slot-mode-desc');
-    
-    // Toggle active buttons
     document.querySelectorAll('.slot-mode-btn').forEach(b => {
-      if(b.dataset.mode === mode) b.classList.add('active');
-      else b.classList.remove('active');
+      if(b.dataset.mode === mode) b.classList.add('active'); else b.classList.remove('active');
     });
-
-    // Update container class for coloring
     container.classList.remove('mode-save', 'mode-load');
     container.classList.add('mode-' + mode);
-
-    // Update text
-    if (mode === 'save') {
-      desc.textContent = "Click a slot to SAVE current run.";
-    } else {
-      desc.textContent = "Click a slot to LOAD a saved game.";
-    }
+    desc.textContent = mode === 'save' ? "Click a slot to SAVE current run." : "Click a slot to LOAD a saved game.";
   }
 
   handleSlotAction(slotId) {
     const key = `sisyphus_slot_${slotId}`;
-    
     if (this.slotMode === 'save') {
-      const exists = localStorage.getItem(key);
-      if (exists) {
-        if(!confirm(`Overwrite Slot ${slotId}?`)) return;
-      }
+      if (localStorage.getItem(key) && !confirm(`Overwrite Slot ${slotId}?`)) return;
       this.saveToSlot(slotId);
     } else {
-      // LOAD MODE
-      const exists = localStorage.getItem(key);
-      if (!exists) return; // Do nothing if empty
-
-      if (this.model.state.step > 0 || this.model.cycleId > 1) {
-        if(!confirm(`Load Slot ${slotId}? Current unsaved progress will be lost.`)) return;
-      }
+      if (!localStorage.getItem(key)) return;
+      if ((this.model.state.step > 0 || this.model.cycleId > 1) && !confirm(`Load Slot ${slotId}? Current unsaved progress will be lost.`)) return;
       this.loadFromSlot(slotId);
     }
   }
 
-  saveToSlot(slotId) {
-    const data = this.serialize();
-    localStorage.setItem(`sisyphus_slot_${slotId}`, JSON.stringify(data));
+  saveToSlot(id) {
+    localStorage.setItem(`sisyphus_slot_${id}`, JSON.stringify(this.serialize()));
     this.updateSlotUI();
-    this.announcer.announce(`Saved to Slot ${slotId}`);
+    this.announcer.announce(`Saved to Slot ${id}`);
   }
 
-  loadFromSlot(slotId) {
-    const raw = localStorage.getItem(`sisyphus_slot_${slotId}`);
+  loadFromSlot(id) {
+    const raw = localStorage.getItem(`sisyphus_slot_${id}`);
     if (raw) {
       this.deserialize(JSON.parse(raw));
-      this.announcer.announce(`Loaded Slot ${slotId}`);
-      // Re-apply params visually
-      Object.keys(this.model.params).forEach(k => {
-         const el = document.getElementById(k);
-         if(el) el.value = this.model.params[k];
-      });
+      this.announcer.announce(`Loaded Slot ${id}`);
+      Object.keys(this.model.params).forEach(k => { const el = document.getElementById(k); if(el) el.value = this.model.params[k]; });
       this.recalcExpectations();
       this.ui.render(this.grids, true);
+      this.chaos.reset(); // Clear chaos trail on load
     }
   }
 
@@ -1695,77 +1198,35 @@ class GameController {
       const btn = document.querySelector(`.slot-btn[data-slot="${i}"]`);
       const raw = localStorage.getItem(`sisyphus_slot_${i}`);
       const infoDiv = btn.querySelector('.slot-info');
-      
       if (raw) {
-        btn.classList.add('has-data');
-        btn.classList.remove('empty');
-        
+        btn.classList.add('has-data'); btn.classList.remove('empty');
         try {
-          const data = JSON.parse(raw);
-          const k = data.state.k;
-          const l = data.state.l;
-          const steps = data.state.step;
-          infoDiv.textContent = `k:${k} ℓ:${l}\nSteps:${steps}`;
-        } catch(e) {
-          infoDiv.textContent = "Error";
-        }
+          const d = JSON.parse(raw);
+          infoDiv.textContent = `k:${d.state.k} ℓ:${d.state.l}\nSteps:${d.state.step}`;
+        } catch(e) { infoDiv.textContent = "Error"; }
       } else {
-        btn.classList.remove('has-data');
-        btn.classList.add('empty');
-        infoDiv.textContent = "Empty";
+        btn.classList.remove('has-data'); btn.classList.add('empty'); infoDiv.textContent = "Empty";
       }
     }
   }
-
   
   bindKeyboard() {
     document.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
-        return;
-      }
-      const helpModal = document.getElementById('help-modal');
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      const modal = document.getElementById('help-modal');
       switch(e.key) {
-        case ' ':  
-        case 'Enter':
-          e.preventDefault();
-          if (!helpModal.classList.contains('show')) {
-            this.stepManually();
-          }
-          break;
-        case 'r':  
-        case 'R':
-          if (e.ctrlKey || e.metaKey) return; 
-          e.preventDefault();
-          this.reset();
-          break;
-        case 'a':  
-        case 'A':
-          e.preventDefault();
-          this.toggleAuto();
-          break;
-        case '?':  
-          e.preventDefault();
-          helpModal.classList.toggle('show');
-          break;
-        case 'Escape':
-          if (helpModal.classList.contains('show')) {
-            e.preventDefault();
-            helpModal.classList.remove('show');
-          }
-          break;
+        case ' ': case 'Enter': e.preventDefault(); if (!modal.classList.contains('show')) this.stepManually(); break;
+        case 'r': case 'R': if (!e.ctrlKey) { e.preventDefault(); this.reset(); } break;
+        case 'a': case 'A': e.preventDefault(); this.toggleAuto(); break;
+        case '?': e.preventDefault(); modal.classList.toggle('show'); break;
+        case 'Escape': if (modal.classList.contains('show')) { e.preventDefault(); modal.classList.remove('show'); } break;
       }
     });
   }
 
   getDynamicDelay() {
-    // 1. Get Base Delay from Game Params
     const base = SisyphusMath.getDelay(this.model.state.k, this.model.state.l, this.model.params);
-    if(base === 0) return 0;
-
-    // 2. Get Modifier from Weather (0.5x to 2.5x)
-    const mod = this.chaos.getModifier();
-    
-    return base * mod;
+    return base === 0 ? 0 : base * this.chaos.getModifier();
   }
 
   stepManually() {
@@ -1777,12 +1238,9 @@ class GameController {
     this.ui.render(this.grids);
     this.save();
 
-    // Always attempt delay for manual play, based on parameter
     if (res !== 'top') {
       const delay = this.getDynamicDelay();
-      if (delay > 0) {
-        this.lockControls(delay, res);
-      }
+      if (delay > 0) this.lockControls(delay, res);
     }
   }
 
@@ -1790,65 +1248,35 @@ class GameController {
     this.controlsLocked = true;
     const btn = document.getElementById('roll1_big');
     const mainSpan = document.getElementById('btn-roll-main');
-    
     btn.disabled = true;
+    btn.className = `btn big outcome-${outcome}`; 
     
-    // Remove any previous outcome classes just in case
-    btn.classList.remove('outcome-win', 'outcome-neu', 'outcome-loss');
-    
-    if (outcome === 'win' || outcome === 'top') btn.classList.add('outcome-win');
-    else if (outcome === 'neu') btn.classList.add('outcome-neu');
-    else if (outcome === 'loss') btn.classList.add('outcome-loss');
-    
-    let verb = "WAITING";
-    if (outcome === 'win') verb = "ASCENDING";
-    else if (outcome === 'loss') verb = "RECOVERING";
-    else if (outcome === 'neu') verb = "ENDURING";
-    
+    const verb = { win:'ASCENDING', loss:'RECOVERING', neu:'ENDURING' }[outcome] || 'WAITING';
     const endTime = Date.now() + duration;
     
-    // Use BackgroundTimer to ensure the unlock event fires even if tab is backgrounded.
-    // We use a 50ms tick to update the UI text if visible.
     const timerId = this.bgTimer.setInterval(() => {
       const remaining = endTime - Date.now();
-      
       if (remaining <= 0) {
         this.bgTimer.clear(timerId);
         this.controlsLocked = false;
         btn.disabled = false;
-        btn.classList.remove('outcome-win', 'outcome-neu', 'outcome-loss');
+        btn.className = 'btn big';
         mainSpan.textContent = "ROLL";
-        // Keep the last result visible
       } else {
-        // Ensure we don't display negative numbers briefly
-        const displayTime = Math.max(0, remaining);
-        mainSpan.textContent = `${verb} · ${(displayTime/1000).toFixed(1)}s`;
+        mainSpan.textContent = `${verb} · ${(Math.max(0, remaining)/1000).toFixed(1)}s`;
       }
     }, 50);
   }
 
   toggleAuto() {
     const btn = document.getElementById('auto');
-    
     if (this.isAuto) {
-      // STOPPING
-      if (this.autoTimerId) {
-        this.bgTimer.clear(this.autoTimerId);
-        this.autoTimerId = null;
-      }
-      if (this.renderReq) {
-        cancelAnimationFrame(this.renderReq);
-        this.renderReq = null;
-      }
-      this.isAuto = false;
-      btn.textContent = 'Auto Play';
+      if (this.autoTimerId) { this.bgTimer.clear(this.autoTimerId); this.autoTimerId = null; }
+      if (this.renderReq) { cancelAnimationFrame(this.renderReq); this.renderReq = null; }
+      this.isAuto = false; btn.textContent = 'Auto Play';
       this.ui.render(this.grids, true);
     } else {
-      // STARTING
-      this.isAuto = true;
-      btn.textContent = 'Stop';
-      
-      // Separate render loop
+      this.isAuto = true; btn.textContent = 'Stop';
       let frameCount = 0;
       const renderLoop = () => {
         if(!this.isAuto) return;
@@ -1859,65 +1287,36 @@ class GameController {
       };
       renderLoop();
 
-      // Game Logic Loop
       const logicLoop = () => {
         if (!this.isAuto) return;
-        if (this.model.state.topHit) {
-          this.toggleAuto();
-          return;
-        }
+        if (this.model.state.topHit) { this.toggleAuto(); return; }
 
         const res = this.model.step();
         this.handleStepResult(res);
-
-        if (res === 'top') {
-          this.toggleAuto();
-          this.ui.render(this.grids, true);
-          return;
-        }
+        if (res === 'top') { this.toggleAuto(); this.ui.render(this.grids, true); return; }
 
         const useDelay = document.getElementById('use-delay').checked;
-        let delay = 0;
+        let delay = useDelay ? (this.getDynamicDelay() || 50) : (+document.getElementById('speed').value || 100);
+        if (!useDelay && delay < 20) for(let i=0; i<9; i++) if(!this.model.state.topHit) this.model.step();
 
-        if (useDelay) {
-          delay = this.getDynamicDelay();
-          if (delay === 0) delay = 50;
-        } else {
-          delay = +document.getElementById('speed').value || 100;
-          if (delay < 20) {
-            for(let i=0; i<9; i++) { 
-              if(!this.model.state.topHit) this.model.step(); 
-            }
-          }
-        }
-
-        // Use background timer for next step to prevent throttling
         this.autoTimerId = this.bgTimer.setTimeout(logicLoop, delay);
       };
-
       logicLoop();
     }
   }
 
   handleStepResult(res) {
-    if (res === 'top') {
-      this.announcer.announce("Congratulations! Top hit reached!");
-      alert("Top Hit Reached!");
-    } else if (res === 'win') {
-      this.announcer.announce(`Win! Now at level ${this.model.state.k}`);
-    } else if (res === 'loss') {
-      this.announcer.announce("Loss. Reset to level 1");
-    } else if (res === 'neu') {
-      this.announcer.announce("Neutral. Momentum increased");
-    }
+    if (res === 'top') { this.announcer.announce("Congratulations! Top hit reached!"); alert("Top Hit Reached!"); }
+    else if (res === 'win') this.announcer.announce(`Win! Now at level ${this.model.state.k}`);
+    else if (res === 'loss') this.announcer.announce("Loss. Reset to level 1");
+    else if (res === 'neu') this.announcer.announce("Neutral. Momentum increased");
     if(res && res !== 'top') this.ui.log(`step ${this.model.state.step}: ${this.model.lastRoll.outcome.toUpperCase()}`);
   }
 
   applyParams() {
     const p = this.model.params;
     ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w','max_delay'].forEach(k => {
-      const el = document.getElementById(k);
-      if(el) p[k] = +el.value;
+      const el = document.getElementById(k); if(el) p[k] = +el.value;
     });
     SisyphusMath.clearCache();
     this.reset(); 
@@ -1925,10 +1324,10 @@ class GameController {
 
   reset() {
     this.model.reset();
+    this.chaos.reset(); 
     this.recalcExpectations();
     this.ui.render(this.grids, true);
     this.ui.els.log.innerHTML = '';
-    
     this.save();
     this.announcer.announce("Game reset");
   }
@@ -1938,28 +1337,19 @@ class GameController {
     this.ui.updateExpectations(this.grids);
   }
 
-  // Refactored Serialize/Deserialize
   serialize() {
     return {
-      params: this.model.params,
-      state: this.model.state,
-      stats: this.model.stats,
-      historyK: this.model.historyK,
-      cycleSummaries: this.model.cycleSummaries,
-      distributions: this.model.distributions,
-      allCycles: this.model.allCycles,
-      lastRoll: this.model.lastRoll,
-      cycleId: this.model.cycleId,
-      currentCycle: this.model.currentCycle,
-      startTime: this.model.startTime
+      params: this.model.params, state: this.model.state, stats: this.model.stats,
+      historyK: this.model.historyK, cycleSummaries: this.model.cycleSummaries,
+      distributions: this.model.distributions, allCycles: this.model.allCycles,
+      lastRoll: this.model.lastRoll, cycleId: this.model.cycleId,
+      currentCycle: this.model.currentCycle, startTime: this.model.startTime
     };
   }
 
   deserialize(data) {
-    Object.assign(this.model.params, data.params);
-    Object.assign(this.model.state, data.state);
+    Object.assign(this.model.params, data.params); Object.assign(this.model.state, data.state);
     Object.assign(this.model.stats, data.stats);
-    
     if(data.historyK) this.model.historyK = data.historyK;
     if(data.cycleSummaries) this.model.cycleSummaries = data.cycleSummaries;
     if(data.distributions) this.model.distributions = data.distributions;
@@ -1972,32 +1362,21 @@ class GameController {
   }
 
   save() {
-    const data = this.serialize();
-    localStorage.setItem('sisyphus_v9_delay', JSON.stringify(data));
+    localStorage.setItem('sisyphus_v9_delay', JSON.stringify(this.serialize()));
   }
 
   load() {
     try {
-      const raw = localStorage.getItem('sisyphus_v9_delay') || 
-                  localStorage.getItem('sisyphus_v8_optimized'); 
+      const raw = localStorage.getItem('sisyphus_v9_delay') || localStorage.getItem('sisyphus_v8_optimized'); 
       if(raw) {
-        const data = JSON.parse(raw);
-        this.deserialize(data);
-
-        Object.keys(this.model.params).forEach(k => {
-           const el = document.getElementById(k);
-           if(el) el.value = this.model.params[k];
-        });
+        this.deserialize(JSON.parse(raw));
+        Object.keys(this.model.params).forEach(k => { const el = document.getElementById(k); if(el) el.value = this.model.params[k]; });
       }
-    } catch(e) {
-      console.warn("Load failed", e);
-    }
+    } catch(e) { console.warn("Load failed", e); }
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  window.game = new GameController();
-});
+document.addEventListener('DOMContentLoaded', () => { window.game = new GameController(); });
 
 </script>
 </body>
