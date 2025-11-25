@@ -970,7 +970,12 @@ class ChaosEngine {
     this.modEl = document.getElementById('weather-mod-val');
     
     this.SIGMA = 10; this.RHO = 28; this.BETA = 8/3; this.DT = 0.0025; 
-    this.x = 0.1; this.y = 0; this.z = 0;
+    
+    // START ON THE WING: Initialize near the attractor's "eye"
+    // Randomized slightly so every reload is unique, but immediate.
+    this.x = 10 + (Math.random() - 0.5) * 2; 
+    this.y = 10 + (Math.random() - 0.5) * 2; 
+    this.z = 25 + (Math.random() - 0.5) * 2;
 
     this.MAX_POINTS = 5000;
     this.points = new Array(this.MAX_POINTS).fill(null);
@@ -1029,12 +1034,17 @@ class ChaosEngine {
     return { x: cx + rx * this.scale * depth, y: (cy + this.yOffset) + (-(z - 25)) * this.scale * depth };
   }
   
-  reset() {
+    reset() {
     this.points.fill(null);
     this.count = 0;
     this.head = 0;
-    this.x = 0.1; this.y = 0; this.z = 0; 
+    
+    // RESET TO WING
+    this.x = 10 + (Math.random() - 0.5) * 2; 
+    this.y = 10 + (Math.random() - 0.5) * 2; 
+    this.z = 25 + (Math.random() - 0.5) * 2;
   }
+
 
   animate() {
     if (this.canvas.width === 0) return requestAnimationFrame(() => this.animate());
