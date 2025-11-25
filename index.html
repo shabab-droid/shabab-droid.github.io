@@ -3,11 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v2.25</title>
+<title>Sisyphus' Ruin v2.30</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
     --accent:#ff9e2c; --accent-2:#ff00b8; --accent-3:#00b7ff; --accent-4:#ff4efc;
+    --danger:#ff3333; --success:#00ff9d;
   }
   body{
     margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; color:var(--text);
@@ -293,14 +294,84 @@
     pointer-events: none;
   }
 
+  /* --- SAVE SLOT STYLING --- */
+  .save-slots-container {
+    margin: 12px 0;
+    padding: 10px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .slot-mode-switch {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  
+  .slot-mode-btn {
+    flex: 1;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 6px;
+    border: 1px solid transparent;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+  }
+  
+  .slot-mode-btn.active {
+    opacity: 1;
+    font-weight: 800;
+  }
+  
+  /* Mode colors */
+  .mode-save .slot-mode-btn[data-mode="save"] { background: var(--accent); color: #120026; box-shadow: 0 0 8px var(--accent); }
+  .mode-load .slot-mode-btn[data-mode="load"] { background: var(--accent-3); color: #120026; box-shadow: 0 0 8px var(--accent-3); }
+
+  .slot-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+
+  .slot-btn {
+    background: #1c0130;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 6px 4px;
+    font-family: monospace;
+    font-size: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    text-align: center;
+  }
+
+  .slot-btn:hover { background: #2d0048; border-color: rgba(255,255,255,0.3); }
+
+  /* Slot states */
+  .slot-btn.has-data { border-color: rgba(255,255,255,0.3); color: var(--text); background: linear-gradient(180deg, #1c0130, #22023a); }
+  .slot-btn.empty { opacity: 0.6; font-style: italic; }
+
+  /* Mode interactions */
+  .mode-save .slot-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .mode-load .slot-btn:hover { border-color: var(--accent-3); color: var(--accent-3); }
+  
+  .slot-label { font-weight: 800; font-size: 12px; margin-bottom: 2px; }
+  .slot-info { font-size: 9px; line-height: 1.1; opacity: 0.8; }
+
 </style>
 </head>
 <body>
 
-<!-- Screen reader announcements -->
 <div role="status" aria-live="polite" aria-atomic="true" class="sr-only" id="aria-announcer"></div>
 
-<!-- Help Modal -->
 <div class="help-modal" id="help-modal" role="dialog" aria-labelledby="help-title">
   <h3 id="help-title">Keyboard Shortcuts</h3>
   <dl>
@@ -318,7 +389,6 @@
   <button class="btn" onclick="document.getElementById('help-modal').classList.remove('show')">Close</button>
 </div>
 
-<!-- Performance indicator -->
 <div class="perf-indicator" id="perf-indicator"></div>
 
 <template id="tpl-cycle-entry">
@@ -348,7 +418,6 @@
           <div class="tiny mono">(k,ℓ): <span id="recent-kl">(1,0)→(1,0)</span></div>
         </div>
         
-        <!-- CONSOLIDATED SINGLE BAR FOR RECENT RESULTS -->
         <div class="recent-bars" style="margin-top:8px;">
           <div class="bar" style="display:flex; height:14px; overflow:hidden; margin-bottom:4px" role="progressbar">
             <div id="rbar-win" class="win" style="width:0%"></div>
@@ -368,7 +437,6 @@
         <div class="row tiny" style="margin-top:0">p(top hit | current state): <span id="recent-p-top" class="mono">—</span></div>
       </div>
 
-      <!-- WEATHER BOX WITH CANVAS INSIDE -->
       <div class="card" id="weather-card">
         <canvas id="chaosCanvas"></canvas>
         
@@ -385,21 +453,18 @@
               <div id="weather-mod-val" class="mono" style="font-size:18px;">1.0x</div>
             </div>
           </div>
-          <!-- REMOVED DESCRIPTION TEXT -->
         </div>
       </div>
 
       <div class="card"><h2>Run Stats</h2>
         <div style="margin-bottom:6px; font-size:11px; opacity:0.8">steps: <span class="mono" id="run-steps">0</span></div>
         
-        <!-- SINGLE STACKED BAR -->
         <div class="bar" style="display:flex; height:14px; overflow:hidden" role="progressbar" aria-label="Run Distribution">
           <div class="win" id="bar-win" style="width:0%"></div>
           <div class="neu" id="bar-neu" style="width:0%"></div>
           <div class="loss" id="bar-loss" style="width:0%"></div>
         </div>
 
-        <!-- UPDATED ROW STYLE TO MATCH RECENT OUTCOME -->
         <div class="row" style="justify-content:space-between; font-size:11px; opacity:0.8">
           <div>win: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
           <div>neutral: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
@@ -411,7 +476,6 @@
         </div>
       </div>
 
-      <!-- SWAPPED: CYCLE SUMMARIES IS NOW BEFORE LOG -->
       <div class="card"><h2>Cycle Summaries</h2><div id="cycle-box" class="tiny"></div></div>
       <div class="card"><div id="log" role="log" aria-label="Game log"></div></div>
     </div>
@@ -455,6 +519,23 @@
 
       <div class="card" id="params-container">
         <h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Parameters</h3>
+        
+        <div class="save-slots-container mode-load" id="slot-container">
+           <div class="slot-mode-switch">
+             <button class="btn slot-mode-btn" data-mode="save">Save Mode</button>
+             <button class="btn slot-mode-btn active" data-mode="load">Load Mode</button>
+           </div>
+           <div class="slot-grid">
+             <button class="slot-btn empty" data-slot="1"><div class="slot-label">1</div><div class="slot-info">Empty</div></button>
+             <button class="slot-btn empty" data-slot="2"><div class="slot-label">2</div><div class="slot-info">Empty</div></button>
+             <button class="slot-btn empty" data-slot="3"><div class="slot-label">3</div><div class="slot-info">Empty</div></button>
+             <button class="slot-btn empty" data-slot="4"><div class="slot-label">4</div><div class="slot-info">Empty</div></button>
+             <button class="slot-btn empty" data-slot="5"><div class="slot-label">5</div><div class="slot-info">Empty</div></button>
+           </div>
+           <div class="desc" style="margin-top:6px; text-align:center;">
+             <span id="slot-mode-desc">Click to LOAD a saved game.</span>
+           </div>
+        </div>
         <div class="row"><label for="M">M (k levels)</label><input id="M" type="number" value="20"></div>
         <div class="desc">How many rungs in the ladder.</div>
         <div class="row"><label for="L">L (ℓ max)</label><input id="L" type="number" value="20"></div>
@@ -472,7 +553,6 @@
         <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1" aria-label="Momentum gain"><input id="s_w" type="number" value="20" aria-label="Momentum spend"></div>
         <div class="desc">Momentum gain (neutral) vs spend (win).</div>
         
-        <!-- MAX DELAY PARAM: UPDATED DEFAULT -->
         <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="45.0"></div>
         <div class="desc">Cooldown time. Reduces as k and ℓ increase.</div>
 
@@ -1278,9 +1358,9 @@ class SisyphusUI {
           if (timePerCycle > 0.0001) {
              const winsPerHour = (w / timePerCycle) * 3600;
              el('exp-wins-hour').textContent = winsPerHour.toFixed(2);
-          } else {
+           } else {
              el('exp-wins-hour').textContent = "--";
-          }
+           }
         }
       } else {
         if (pCycleTop === 0) {
@@ -1469,6 +1549,8 @@ class GameController {
     this.announcer = new AriaAnnouncer();
     this.perfMonitor = new PerformanceMonitor();
     
+    this.slotMode = 'load'; // 'save' or 'load'
+
     // Start a heartbeat timer to update the "Time in Run" stats every second
     setInterval(() => {
       if (this.ui) {
@@ -1483,6 +1565,7 @@ class GameController {
     this.load(); 
     this.recalcExpectations();
     this.ui.render(this.grids, true); 
+    this.updateSlotUI();
   }
 
   bindEvents() {
@@ -1525,7 +1608,115 @@ class GameController {
       this.model.setState(k, l);
       this.ui.render(this.grids);
     }
+
+    // Save Slots Events
+    document.querySelectorAll('.slot-mode-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        this.setSlotMode(e.target.dataset.mode);
+      });
+    });
+
+    document.querySelectorAll('.slot-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const slotId = e.currentTarget.dataset.slot;
+        this.handleSlotAction(slotId);
+      });
+    });
   }
+
+  setSlotMode(mode) {
+    this.slotMode = mode;
+    const container = document.getElementById('slot-container');
+    const desc = document.getElementById('slot-mode-desc');
+    
+    // Toggle active buttons
+    document.querySelectorAll('.slot-mode-btn').forEach(b => {
+      if(b.dataset.mode === mode) b.classList.add('active');
+      else b.classList.remove('active');
+    });
+
+    // Update container class for coloring
+    container.classList.remove('mode-save', 'mode-load');
+    container.classList.add('mode-' + mode);
+
+    // Update text
+    if (mode === 'save') {
+      desc.textContent = "Click a slot to SAVE current run.";
+    } else {
+      desc.textContent = "Click a slot to LOAD a saved game.";
+    }
+  }
+
+  handleSlotAction(slotId) {
+    const key = `sisyphus_slot_${slotId}`;
+    
+    if (this.slotMode === 'save') {
+      const exists = localStorage.getItem(key);
+      if (exists) {
+        if(!confirm(`Overwrite Slot ${slotId}?`)) return;
+      }
+      this.saveToSlot(slotId);
+    } else {
+      // LOAD MODE
+      const exists = localStorage.getItem(key);
+      if (!exists) return; // Do nothing if empty
+
+      if (this.model.state.step > 0 || this.model.cycleId > 1) {
+        if(!confirm(`Load Slot ${slotId}? Current unsaved progress will be lost.`)) return;
+      }
+      this.loadFromSlot(slotId);
+    }
+  }
+
+  saveToSlot(slotId) {
+    const data = this.serialize();
+    localStorage.setItem(`sisyphus_slot_${slotId}`, JSON.stringify(data));
+    this.updateSlotUI();
+    this.announcer.announce(`Saved to Slot ${slotId}`);
+  }
+
+  loadFromSlot(slotId) {
+    const raw = localStorage.getItem(`sisyphus_slot_${slotId}`);
+    if (raw) {
+      this.deserialize(JSON.parse(raw));
+      this.announcer.announce(`Loaded Slot ${slotId}`);
+      // Re-apply params visually
+      Object.keys(this.model.params).forEach(k => {
+         const el = document.getElementById(k);
+         if(el) el.value = this.model.params[k];
+      });
+      this.recalcExpectations();
+      this.ui.render(this.grids, true);
+    }
+  }
+
+  updateSlotUI() {
+    for(let i=1; i<=5; i++) {
+      const btn = document.querySelector(`.slot-btn[data-slot="${i}"]`);
+      const raw = localStorage.getItem(`sisyphus_slot_${i}`);
+      const infoDiv = btn.querySelector('.slot-info');
+      
+      if (raw) {
+        btn.classList.add('has-data');
+        btn.classList.remove('empty');
+        
+        try {
+          const data = JSON.parse(raw);
+          const k = data.state.k;
+          const l = data.state.l;
+          const steps = data.state.step;
+          infoDiv.textContent = `k:${k} ℓ:${l}\nSteps:${steps}`;
+        } catch(e) {
+          infoDiv.textContent = "Error";
+        }
+      } else {
+        btn.classList.remove('has-data');
+        btn.classList.add('empty');
+        infoDiv.textContent = "Empty";
+      }
+    }
+  }
+
   
   bindKeyboard() {
     document.addEventListener('keydown', (e) => {
@@ -1747,8 +1938,9 @@ class GameController {
     this.ui.updateExpectations(this.grids);
   }
 
-  save() {
-    const data = {
+  // Refactored Serialize/Deserialize
+  serialize() {
+    return {
       params: this.model.params,
       state: this.model.state,
       stats: this.model.stats,
@@ -1759,8 +1951,28 @@ class GameController {
       lastRoll: this.model.lastRoll,
       cycleId: this.model.cycleId,
       currentCycle: this.model.currentCycle,
-      startTime: this.model.startTime // Save start time
+      startTime: this.model.startTime
     };
+  }
+
+  deserialize(data) {
+    Object.assign(this.model.params, data.params);
+    Object.assign(this.model.state, data.state);
+    Object.assign(this.model.stats, data.stats);
+    
+    if(data.historyK) this.model.historyK = data.historyK;
+    if(data.cycleSummaries) this.model.cycleSummaries = data.cycleSummaries;
+    if(data.distributions) this.model.distributions = data.distributions;
+    if(data.allCycles) this.model.allCycles = data.allCycles;
+    if(data.lastRoll) this.model.lastRoll = data.lastRoll;
+    if(data.cycleId) this.model.cycleId = data.cycleId;
+    if(data.currentCycle) this.model.currentCycle = data.currentCycle;
+    if(data.startTime) this.model.startTime = data.startTime;
+    else this.model.startTime = Date.now();
+  }
+
+  save() {
+    const data = this.serialize();
     localStorage.setItem('sisyphus_v9_delay', JSON.stringify(data));
   }
 
@@ -1770,19 +1982,7 @@ class GameController {
                   localStorage.getItem('sisyphus_v8_optimized'); 
       if(raw) {
         const data = JSON.parse(raw);
-        Object.assign(this.model.params, data.params);
-        Object.assign(this.model.state, data.state);
-        Object.assign(this.model.stats, data.stats);
-        
-        if(data.historyK) this.model.historyK = data.historyK;
-        if(data.cycleSummaries) this.model.cycleSummaries = data.cycleSummaries;
-        if(data.distributions) this.model.distributions = data.distributions;
-        if(data.allCycles) this.model.allCycles = data.allCycles;
-        if(data.lastRoll) this.model.lastRoll = data.lastRoll;
-        if(data.cycleId) this.model.cycleId = data.cycleId;
-        if(data.currentCycle) this.model.currentCycle = data.currentCycle;
-        if(data.startTime) this.model.startTime = data.startTime;
-        else this.model.startTime = Date.now(); // Backwards compat
+        this.deserialize(data);
 
         Object.keys(this.model.params).forEach(k => {
            const el = document.getElementById(k);
