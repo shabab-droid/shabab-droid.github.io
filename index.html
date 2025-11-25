@@ -328,22 +328,7 @@
 
       <div class="card" id="params-container">
         <h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Parameters</h3>
-        <div class="save-slots-container mode-load" id="slot-container">
-           <div class="slot-mode-switch">
-             <button class="btn slot-mode-btn" data-mode="save">Save Mode</button>
-             <button class="btn slot-mode-btn active" data-mode="load">Load Mode</button>
-           </div>
-           <div class="slot-grid">
-             <button class="slot-btn empty" data-slot="1"><div class="slot-label">1</div><div class="slot-info">Empty</div></button>
-             <button class="slot-btn empty" data-slot="2"><div class="slot-label">2</div><div class="slot-info">Empty</div></button>
-             <button class="slot-btn empty" data-slot="3"><div class="slot-label">3</div><div class="slot-info">Empty</div></button>
-             <button class="slot-btn empty" data-slot="4"><div class="slot-label">4</div><div class="slot-info">Empty</div></button>
-             <button class="slot-btn empty" data-slot="5"><div class="slot-label">5</div><div class="slot-info">Empty</div></button>
-           </div>
-           <div class="desc" style="margin-top:6px; text-align:center;">
-             <span id="slot-mode-desc">Click to LOAD a saved game.</span>
-           </div>
-        </div>
+
         <div class="row"><label for="M">M (k levels)</label><input id="M" type="number" value="20"></div>
         <div class="desc">How many rungs in the ladder.</div>
         <div class="row"><label for="L">L (ℓ max)</label><input id="L" type="number" value="20"></div>
@@ -362,8 +347,23 @@
         <div class="desc">Momentum gain (neutral) vs spend (win).</div>
         <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="45.0"></div>
         <div class="desc">Cooldown time. Reduces as k and ℓ increase.</div>
-
         <div class="row"><button class="btn" id="apply">Apply & Reset</button><button class="btn" id="resetState" aria-keyshortcuts="R">Reset State</button></div>
+                <div class="save-slots-container mode-load" id="slot-container">
+           <div class="slot-mode-switch">
+             <button class="btn slot-mode-btn" data-mode="save">Save Mode</button>
+             <button class="btn slot-mode-btn active" data-mode="load">Load Mode</button>
+           </div>
+           <div class="slot-grid">
+             <button class="slot-btn empty" data-slot="1"><div class="slot-label">1</div><div class="slot-info">Empty</div></button>
+             <button class="slot-btn empty" data-slot="2"><div class="slot-label">2</div><div class="slot-info">Empty</div></button>
+             <button class="slot-btn empty" data-slot="3"><div class="slot-label">3</div><div class="slot-info">Empty</div></button>
+             <button class="slot-btn empty" data-slot="4"><div class="slot-label">4</div><div class="slot-info">Empty</div></button>
+             <button class="slot-btn empty" data-slot="5"><div class="slot-label">5</div><div class="slot-info">Empty</div></button>
+           </div>
+           <div class="desc" style="margin-top:6px; text-align:center;">
+             <span id="slot-mode-desc">Click to LOAD a saved game.</span>
+           </div>
+        </div>
       </div>
 
       <div class="card"><h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Expectations</h3>
