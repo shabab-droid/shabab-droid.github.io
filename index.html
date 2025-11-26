@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v2.8</title>
+<title>Sisyphus' Ruin v3.1</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -132,6 +132,8 @@
   }
   .cycle-entry.loss { border-color: rgba(255,90,90,.8); }
   .cycle-entry.top { border-color: rgba(255,210,90,.9); background: rgba(30,20,0,0.4); }
+  .cycle-entry.active { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.05); }
+
   .cycle-entry-top-row { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; opacity: 0.9; line-height: 1.2; }
   .cycle-id { color: var(--accent-3); margin-right: 6px; }
   .cycle-meta { font-weight: 400; opacity: 0.65; font-size: 10px; }
@@ -148,10 +150,16 @@
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
   .perf-indicator { position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-family: monospace; opacity: 0.5; pointer-events: none; }
 
-  .help-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(20,0,38,0.95); border: 2px solid var(--accent); padding: 20px; border-radius: 10px; z-index: 2000; max-width: 400px; }
-  .help-modal.show { display: block; }
-  .help-modal h3 { margin-top: 0; color: var(--accent); }
-  .help-modal kbd { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-family: monospace; border: 1px solid rgba(255,255,255,0.2); }
+  /* Modals */
+  .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); z-index: 2000; align-items: center; justify-content: center; }
+  .modal.show { display: flex; }
+  .modal-content { background: rgba(20,0,38,0.95); border: 2px solid var(--accent); padding: 24px; border-radius: 10px; max-width: 450px; width: 90%; box-shadow: 0 0 40px rgba(0,0,0,0.8); position: relative; }
+  .modal h3 { margin-top: 0; color: var(--accent); font-size: 20px; letter-spacing: 0.5px; }
+  .modal kbd { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-family: monospace; border: 1px solid rgba(255,255,255,0.2); }
+  
+  .welcome-list { margin: 12px 0; padding-left: 0; list-style: none; }
+  .welcome-list li { margin-bottom: 12px; line-height: 1.5; font-size: 14px; opacity: 0.9; }
+  .welcome-list strong { color: var(--accent-3); }
 
   .weather-status { font-weight: 800; letter-spacing: 0.5px; }
   .weather-good { color: var(--accent); text-shadow: 0 0 5px rgba(255,158,44,0.4); }
@@ -192,21 +200,36 @@
 
 <div role="status" aria-live="polite" aria-atomic="true" class="sr-only" id="aria-announcer"></div>
 
-<div class="help-modal" id="help-modal" role="dialog" aria-labelledby="help-title">
-  <h3 id="help-title">Keyboard Shortcuts</h3>
-  <dl>
-    <dt><kbd>Space</kbd> or <kbd>Enter</kbd></dt>
-    <dd>Roll once</dd>
-    <dt><kbd>A</kbd></dt>
-    <dd>Toggle auto-play</dd>
-    <dt><kbd>R</kbd></dt>
-    <dd>Reset game</dd>
-    <dt><kbd>?</kbd></dt>
-    <dd>Show/hide this help</dd>
-    <dt><kbd>Esc</kbd></dt>
-    <dd>Close this help</dd>
-  </dl>
-  <button class="btn" onclick="document.getElementById('help-modal').classList.remove('show')">Close</button>
+<div class="modal" id="help-modal" role="dialog" aria-labelledby="help-title">
+  <div class="modal-content">
+    <h3 id="help-title">Keyboard Shortcuts</h3>
+    <dl>
+      <dt><kbd>Space</kbd> or <kbd>Enter</kbd></dt>
+      <dd>Roll once</dd>
+      <dt><kbd>A</kbd></dt>
+      <dd>Toggle auto-play</dd>
+      <dt><kbd>R</kbd></dt>
+      <dd>Reset game</dd>
+      <dt><kbd>?</kbd></dt>
+      <dd>Show/hide this help</dd>
+      <dt><kbd>Esc</kbd></dt>
+      <dd>Close this help</dd>
+    </dl>
+    <button class="btn" onclick="document.getElementById('help-modal').classList.remove('show')">Close</button>
+  </div>
+</div>
+
+<div class="modal" id="welcome-modal" role="dialog" aria-labelledby="welcome-title">
+  <div class="modal-content">
+    <h3 id="welcome-title">Welcome to Sisyphus' Ruin</h3>
+    <div class="tiny" style="margin-bottom:16px; opacity:0.7; font-style:italic">The struggle itself towards the heights is enough to fill a man's heart.</div>
+    <ul class="welcome-list">
+      <li><strong>1. Roll</strong> to push the stone.</li>
+      <li><strong>2. Watch</strong> the outcome: <strong>Ascent</strong> gains height and <strong>Ruin</strong> returns you to the bottom. <strong>Steady</strong> builds your poise, raising the chance of ascent and reducing the chance of ruin.</li>
+      <li><strong>3. Endure:</strong> The atmosphere will distort, delaying or speeding your next move.</li>
+    </ul>
+    <button class="btn" style="width:100%" onclick="document.getElementById('welcome-modal').classList.remove('show'); localStorage.setItem('sisyphus_welcome_seen', 'true');">Begin</button>
+  </div>
 </div>
 
 <div class="perf-indicator" id="perf-indicator"></div>
@@ -235,7 +258,6 @@
       <div class="card recent" id="recent-card" role="region" aria-label="Recent roll result">
         <div style="display:flex;flex-direction:column;gap:2px">
           <div id="recent-outcome" style="font-weight:900;letter-spacing:1px;font-size:clamp(20px,3.2vw,32px)">No rolls yet</div>
-          <div class="tiny mono">(k,ℓ): <span id="recent-kl">(1,0)→(1,0)</span></div>
         </div>
         
         <div class="recent-bars" style="margin-top:8px;">
@@ -321,15 +343,16 @@
         <div class="tiny" style="line-height:1.5; opacity:0.9">
           The stone is bound for the summit (Height <span id="lbl-M-goal" style="font-weight:bold; color:var(--accent)">20</span>).
           <br><br>
-          <strong>Poise (ℓ)</strong> dictates the favor of the odds. High Poise shields against Ruin and invites Ascent.
-          <br><br>
-          <strong>The Outcomes:</strong><br>
+          Each roll has one of three outcomes:
+          <br>
           <ul style="padding-left: 16px; margin: 6px 0;">
               <li><strong>Steady:</strong> The stone holds fast. Poise accumulates.</li>
               <li><strong>Ascent:</strong> The stone rises. Poise is shattered by the effort.</li>
               <li><strong>Ruin:</strong> Gravity wins. Height resets.</li>
           </ul>
           <br>
+          <strong>Poise</strong> dictates the favor of the odds. High Poise shields against Ruin and invites Ascent.
+          <br><br>
           <strong>The Atmosphere:</strong><br>
           Time itself is subject to the chaos of the storm. <br>
           <strong>Turbulence</strong> dilates the delay between events, forcing long waits. <br>
@@ -859,7 +882,6 @@ class SisyphusUI {
     const probs = SisyphusMath.computeProbs(lr.k1, lr.l1, m.params);
     
     this.batchUpdate('recent-outcome', 'textContent', lr.outcome ? (lr.outcome === 'neu' ? 'STEADY' : lr.outcome === 'loss' ? 'RUIN' : lr.outcome === 'top' ? 'SUMMIT' : 'ASCENT') : '—');
-    this.batchUpdate('recent-kl', 'textContent', `(${lr.k0},${lr.l0})→(${lr.k1},${lr.l1})`);
     this.batchUpdate('recent-card', 'className', 'card recent ' + (lr.outcome === 'top' ? 'win' : lr.outcome || ''));
 
     this.batchUpdate('rbar-win', 'style.width', pct(probs.p_win));
@@ -911,6 +933,22 @@ class SisyphusUI {
     const box = this.els['cycle-box'];
     const tpl = document.getElementById('tpl-cycle-entry');
     const fragment = document.createDocumentFragment();
+
+    // Render Current Active Cycle First
+    const current = this.model.currentCycle;
+    if (current) {
+        const clone = tpl.content.cloneNode(true);
+        const div = clone.querySelector('.cycle-entry');
+        div.classList.add('active'); // Add active style
+        clone.querySelector('.cycle-main-text').textContent = `C${current.id}: ACTIVE`;
+        clone.querySelector('.cycle-meta').textContent = `L:${current.length} A:${current.wins}`;
+        let wrapped = '';
+        for(let i=0; i<(current.path||'').length; i+=32) wrapped += current.path.slice(i, i+32) + '\n';
+        clone.querySelector('.cycle-entry-path').textContent = wrapped || '-';
+        fragment.appendChild(clone);
+    }
+
+    // Render Past Cycles
     this.model.cycleSummaries.forEach(c => {
       const clone = tpl.content.cloneNode(true);
       const div = clone.querySelector('.cycle-entry');
@@ -1201,6 +1239,11 @@ class GameController {
     this.recalcExpectations();
     this.ui.render(this.grids, true); 
     this.updateSlotUI();
+    
+    // First Ascent Modal check
+    if (!localStorage.getItem('sisyphus_welcome_seen')) {
+      document.getElementById('welcome-modal').classList.add('show');
+    }
   }
 
   bindEvents() {
