@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v3.4</title>
+<title>Sisyphus' Ruin v3.5 (Fixed Colors)</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -114,50 +114,56 @@
     border-radius:6px; overflow:hidden;
   }
   
-  /* --- UPDATED PROGRESS BARS WITH ANIMATION --- */
+  /* --- UPDATED PROGRESS BARS WITH COMPOSITED ANIMATION --- */
   .kpos-fill, .lpos-fill {
     height: 100%;
     width: 0%; /* Default */
     transition: width 0s linear; 
     will-change: width, background-position;
   }
-  /* Base colors */
+  /* Base colors (Static) */
   .kpos-fill { background: linear-gradient(90deg, var(--accent), var(--accent-4)); }
   .lpos-fill { background: linear-gradient(90deg, var(--accent-3), var(--accent-2)); }
 
   @keyframes barberpole {
-    0% { background-position: 0 0; }
-    100% { background-position: 40px 0; }
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 40px 0, 0 0; }
   }
 
+  /* Shared Active Motion Properties */
   .kpos-fill.active-motion, .lpos-fill.active-motion {
-    /* Diagonal Stripes Texture */
-    background-image: linear-gradient(
-      45deg, 
-      rgba(255, 255, 255, 0.2) 25%, 
-      transparent 25%, 
-      transparent 50%, 
-      rgba(255, 255, 255, 0.2) 50%, 
-      rgba(255, 255, 255, 0.2) 75%, 
-      transparent 75%, 
-      transparent
-    );
-    background-size: 20px 20px;
-    /* Default: Flow Forward (Building/Climbing) */
+    /* Flow Animation */
     animation: barberpole 0.5s linear infinite;
-    /* Glow Effect */
+    /* Glow */
     filter: brightness(1.2) contrast(1.1);
     box-shadow: 0 0 8px rgba(255,255,255,0.2);
     border-right: 2px solid rgba(255,255,255,0.8);
+    /* Size: Stripes (20px), Base (100% cover) */
+    background-size: 20px 20px, 100% 100%;
+  }
+
+  /* Specific: K-Pos (Height) Active - Layers Stripes ON TOP of Orange Gradient */
+  .kpos-fill.active-motion {
+    background-image: 
+      linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
+      linear-gradient(90deg, var(--accent), var(--accent-4));
+  }
+
+  /* Specific: L-Pos (Poise) Active - Layers Stripes ON TOP of Blue Gradient */
+  .lpos-fill.active-motion {
+    background-image: 
+      linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
+      linear-gradient(90deg, var(--accent-3), var(--accent-2));
   }
 
   /* REVERSE MOTION (DRAINING) */
   .kpos-fill.reverse-motion, .lpos-fill.reverse-motion {
-    /* Reverse the stripe flow direction */
     animation-direction: reverse; 
-    /* Color shift: Turn Red/Orange to signify loss/cost */
-    background-color: #ff4d4d !important; 
     border-right: 2px solid #ff9999;
+    /* Red Gradient for loss/spend */
+    background-image: 
+      linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
+      linear-gradient(90deg, #ff4d4d, #ff3333) !important;
   }
   
   .tiny{font-size:11px;opacity:.65;color:var(--muted)}
