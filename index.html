@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v3.1</title>
+<title>Sisyphus' Ruin</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -113,8 +113,16 @@
     height:6px; background:rgba(255,255,255,.06); border:1px solid rgba(255,166,0,.12);
     border-radius:6px; overflow:hidden;
   }
-  .kpos-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-4))}
-  .lpos-fill{height:100%;background:linear-gradient(90deg,var(--accent-3),var(--accent-2))}
+  .kpos-fill{
+    height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-4));
+    transition: width 0s linear; /* Default instant */
+    will-change: width;
+  }
+  .lpos-fill{
+    height:100%; background:linear-gradient(90deg,var(--accent-3),var(--accent-2));
+    transition: width 0s linear; /* Default instant */
+    will-change: width;
+  }
   
   .tiny{font-size:11px;opacity:.65;color:var(--muted)}
   .mono{font-family:monospace;}
@@ -196,15 +204,6 @@
   details > summary::before { content: '▶'; display: inline-block; margin-right: 6px; font-size: 10px; color: var(--accent); transition: transform 0.2s; }
   details[open] > summary::before { transform: rotate(90deg); }
 </style>
-<!-- Favicon (SVG, modern browsers) -->
-<link rel="icon" type="image/svg+xml" href="/sisyphus-icon.svg">
-
-<!-- Fallback PNG (optional but recommended) -->
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-
-<!-- iOS / mobile home-screen icon -->
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-
 </head>
 <body>
 
@@ -829,7 +828,7 @@ class SisyphusModel {
 }
 
 /* -------------------------------------------------------------------------- */
-/* MODULE 3: UI MANAGER                                                      */
+/* MODULE 3: UI MANAGER (UPDATED FOR ANIMATION)                               */
 /* -------------------------------------------------------------------------- */
 class SisyphusUI {
   constructor(model) {
@@ -838,6 +837,7 @@ class SisyphusUI {
     this.pendingUpdates = new Map();
     this.rafId = null;
     
+    // (Kept your original ID list exactly the same)
     ['rbar-win','rbar-neu','rbar-loss','rpct-win','rpct-neu','rpct-loss',
      'kpos-fill','kpos-text','lpos-fill','lpos-text','recent-p-cond','recent-p-top',
      'recent-outcome','recent-kl','recent-card',
@@ -870,9 +870,7 @@ class SisyphusUI {
     this.rafId = null;
   }
 
-  log(msg) {
-    // Log box removed from UI. Method kept empty to prevent breakage.
-  }
+  log(msg) {} // Empty as per original
 
   _formatDuration(ms) {
     const s = Math.floor(ms / 1000);
@@ -885,7 +883,8 @@ class SisyphusUI {
     return `${d}d ${h%24}h`;
   }
 
-  render(grids, full = true) {
+  // UPDATED: Added skipBars parameter
+  render(grids, full = true, skipBars = false) {
     const m = this.model, s = m.state, st = m.stats;
     const lr = m.lastRoll || { outcome:null, k0:1, l0:0, k1:s.k, l1:s.l };
     const pct = x => (100 * Math.max(0, Math.min(1, x))).toFixed(1) + '%';
@@ -914,10 +913,16 @@ class SisyphusUI {
     }
     this.batchUpdate('recent-p-top', 'textContent', pTopText);
 
-    this.batchUpdate('kpos-fill', 'style.width', pct(lr.k1 / m.params.M));
-    this.batchUpdate('kpos-text', 'textContent', `${lr.k1} / ${m.params.M}`);
-    this.batchUpdate('lpos-fill', 'style.width', pct(lr.l1 / m.params.L));
-    this.batchUpdate('lpos-text', 'textContent', `${lr.l1} / ${m.params.L}`);
+    // UPDATED: Only update bars and text if we aren't animating them separately
+    if (!skipBars) {
+      this.batchUpdate('kpos-fill', 'style.width', pct(lr.k1 / m.params.M));
+      this.batchUpdate('kpos-text', 'textContent', `${lr.k1} / ${m.params.M}`);
+      this.batchUpdate('lpos-fill', 'style.width', pct(lr.l1 / m.params.L));
+      this.batchUpdate('lpos-text', 'textContent', `${lr.l1} / ${m.params.L}`);
+      // Ensure transitions are off for instant renders
+      this.batchUpdate('kpos-fill', 'style.transition', 'none');
+      this.batchUpdate('lpos-fill', 'style.transition', 'none');
+    }
 
     const tot = st.wins + st.neus + st.loss;
     this.batchUpdate('run-steps', 'textContent', s.step);
@@ -939,17 +944,48 @@ class SisyphusUI {
     if(full) { this._renderDistributions(); this._renderGlobalStats(); }
   }
 
+  // NEW METHOD: Handles the smooth animation during delay
+  animateChange(k0, l0, k1, l1, duration, params) {
+    const kFill = this.els['kpos-fill'];
+    const lFill = this.els['lpos-fill'];
+    
+    // 1. Calculate Percentages
+    const pK0 = (100 * Math.max(0, Math.min(1, k0 / params.M))).toFixed(2) + '%';
+    const pL0 = (100 * Math.max(0, Math.min(1, l0 / params.L))).toFixed(2) + '%';
+    const pK1 = (100 * Math.max(0, Math.min(1, k1 / params.M))).toFixed(2) + '%';
+    const pL1 = (100 * Math.max(0, Math.min(1, l1 / params.L))).toFixed(2) + '%';
+
+    // 2. Set Start Position (Instantly)
+    // We bypass batchUpdate here to ensure synchronous DOM manipulation for the reflow hack
+    kFill.style.transition = 'none';
+    lFill.style.transition = 'none';
+    kFill.style.width = pK0;
+    lFill.style.width = pL0;
+
+    // 3. Force Browser Reflow (The magic trick to reset the animation frame)
+    void kFill.offsetWidth; 
+
+    // 4. Set End Position with Transition
+    // We use a cubic-bezier for a "physics" feel (start fast, slow down at end)
+    const easing = 'cubic-bezier(0.25, 1, 0.5, 1)'; 
+    const transitionStr = `width ${duration}ms ${easing}`;
+    
+    kFill.style.transition = transitionStr;
+    lFill.style.transition = transitionStr;
+    kFill.style.width = pK1;
+    lFill.style.width = pL1;
+  }
+  
+  // (Rest of the class methods: _renderCycles, _renderGlobalStats, _renderDistributions, updateExpectations remain exactly the same as original)
   _renderCycles() {
     const box = this.els['cycle-box'];
     const tpl = document.getElementById('tpl-cycle-entry');
     const fragment = document.createDocumentFragment();
-
-    // Render Current Active Cycle First
     const current = this.model.currentCycle;
     if (current) {
         const clone = tpl.content.cloneNode(true);
         const div = clone.querySelector('.cycle-entry');
-        div.classList.add('active'); // Add active style
+        div.classList.add('active'); 
         clone.querySelector('.cycle-main-text').textContent = `C${current.id}: ACTIVE`;
         clone.querySelector('.cycle-meta').textContent = `L:${current.length} A:${current.wins}`;
         let wrapped = '';
@@ -957,8 +993,6 @@ class SisyphusUI {
         clone.querySelector('.cycle-entry-path').textContent = wrapped || '-';
         fragment.appendChild(clone);
     }
-
-    // Render Past Cycles
     this.model.cycleSummaries.forEach(c => {
       const clone = tpl.content.cloneNode(true);
       const div = clone.querySelector('.cycle-entry');
@@ -1368,14 +1402,31 @@ class GameController {
     if (this.controlsLocked) return;
     if(this.isAuto) this.toggleAuto();
     
+    // Capture state BEFORE the step
+    const prevK = this.model.state.k;
+    const prevL = this.model.state.l;
+
+    // Run the Logic
     const res = this.model.step();
     this.handleStepResult(res); 
-    this.ui.render(this.grids);
     this.save();
 
-    if (res !== 'top') {
-      const delay = this.getDynamicDelay();
-      if (delay > 0) this.lockControls(delay, res);
+    const delay = this.getDynamicDelay();
+
+    // Check if we should animate: Only if there is a delay and we haven't won yet
+    if (res !== 'top' && delay > 50) {
+      // 1. Render charts/stats immediately so user sees the outcome text (Ascent/Ruin)
+      // BUT pass true to 'skipBars' so the bars don't jump instantly
+      this.ui.render(this.grids, true, true); 
+
+      // 2. Trigger the bar animation from Prev -> Current over Delay
+      this.ui.animateChange(prevK, prevL, this.model.state.k, this.model.state.l, delay, this.model.params);
+
+      // 3. Lock controls
+      this.lockControls(delay, res);
+    } else {
+      // Instant render (no delay or turbo mode)
+      this.ui.render(this.grids);
     }
   }
 
@@ -1397,6 +1448,9 @@ class GameController {
         btn.disabled = false;
         btn.className = 'btn big';
         mainSpan.textContent = "ROLL";
+        
+        // Finalize UI: Snap bars and text to the true model state at the end of animation
+        this.ui.render(this.grids); 
       } else {
         mainSpan.textContent = `${verb} · ${(Math.max(0, remaining)/1000).toFixed(1)}s`;
       }
