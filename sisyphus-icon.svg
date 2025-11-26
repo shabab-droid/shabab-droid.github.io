@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="64" height="64" viewBox="0 0 64 64">
+  <!-- Background tile -->
+  <rect x="4" y="4" width="56" height="56" rx="16"
+        fill="#050814" />
+
+  <!-- Diagonal slope (neutral color) -->
+  <line x1="14" y1="50" x2="50" y2="14"
+        stroke="#9ca3af"
+        stroke-width="4"
+        stroke-linecap="round" />
+
+  <!-- Stones (main + echoes), lowered but still above the line -->
+
+  <!-- Lowest echo – red -->
+  <circle cx="26" cy="36" r="5"
+          fill="#050814"
+          stroke="#ef4444"
+          stroke-width="3"
+          opacity="0.85" />
+
+  <!-- Middle echo – cyan -->
+  <circle cx="32" cy="30" r="5.5"
+          fill="#050814"
+          stroke="#5DF2FF"
+          stroke-width="3"
+          opacity="0.9" />
+
+  <!-- Top stone – gold -->
+  <circle cx="38" cy="24" r="6"
+          fill="#050814"
+          stroke="#fbbf24"
+          stroke-width="3" />
+</svg>
