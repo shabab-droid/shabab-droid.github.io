@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin</title>
+<title>Sisyphus' Ruin v3.3</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -113,70 +113,53 @@
     height:6px; background:rgba(255,255,255,.06); border:1px solid rgba(255,166,0,.12);
     border-radius:6px; overflow:hidden;
   }
-
-  /* Replace existing .kpos-fill and .lpos-fill styles with this */
-.kpos-fill, .lpos-fill {
-  height: 100%;
-  width: 0%; /* Default */
-  transition: width 0s linear; 
-  will-change: width, background-position;
-}
-
-/* Base colors */
-.kpos-fill { background: linear-gradient(90deg, var(--accent), var(--accent-4)); }
-.lpos-fill { background: linear-gradient(90deg, var(--accent-3), var(--accent-2)); }
-
-/* --- ANIMATION STYLES --- */
-@keyframes barberpole {
-  0% { background-position: 0 0; }
-  100% { background-position: 40px 0; }
-}
-
-.kpos-fill.active-motion, .lpos-fill.active-motion {
-  /* Diagonal Stripes Texture */
-  background-image: linear-gradient(
-    45deg, 
-    rgba(255, 255, 255, 0.2) 25%, 
-    transparent 25%, 
-    transparent 50%, 
-    rgba(255, 255, 255, 0.2) 50%, 
-    rgba(255, 255, 255, 0.2) 75%, 
-    transparent 75%, 
-    transparent
-  );
-  background-size: 20px 20px;
   
-  /* Default: Flow Forward (Building/Climbing) */
-  animation: barberpole 0.5s linear infinite;
-  
-  /* Glow Effect */
-  filter: brightness(1.2) contrast(1.1);
-  box-shadow: 0 0 8px rgba(255,255,255,0.2);
-  border-right: 2px solid rgba(255,255,255,0.8);
-}
+  /* --- UPDATED PROGRESS BARS WITH ANIMATION --- */
+  .kpos-fill, .lpos-fill {
+    height: 100%;
+    width: 0%; /* Default */
+    transition: width 0s linear; 
+    will-change: width, background-position;
+  }
+  /* Base colors */
+  .kpos-fill { background: linear-gradient(90deg, var(--accent), var(--accent-4)); }
+  .lpos-fill { background: linear-gradient(90deg, var(--accent-3), var(--accent-2)); }
 
-/* --- REVERSE MOTION (DRAINING) --- */
-.kpos-fill.reverse-motion, .lpos-fill.reverse-motion {
-  /* Reverse the stripe flow direction */
-  animation-direction: reverse; 
-  
-  /* Color shift: Turn Red/Orange to signify loss/cost */
-  background-color: #ff4d4d !important; 
-  
-  /* Different border color */
-  border-right: 2px solid #ff9999;
-}
+  @keyframes barberpole {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 0; }
+  }
 
-/* Specific colors for the base when active to make stripes pop */
-.kpos-fill.active-motion {
-  background-color: var(--accent); /* Fallback */
-  border-right: 2px solid #fff; /* A leading edge "spark" */
-}
-.lpos-fill.active-motion {
-  background-color: var(--accent-3);
-  border-right: 2px solid #fff;
-}
+  .kpos-fill.active-motion, .lpos-fill.active-motion {
+    /* Diagonal Stripes Texture */
+    background-image: linear-gradient(
+      45deg, 
+      rgba(255, 255, 255, 0.2) 25%, 
+      transparent 25%, 
+      transparent 50%, 
+      rgba(255, 255, 255, 0.2) 50%, 
+      rgba(255, 255, 255, 0.2) 75%, 
+      transparent 75%, 
+      transparent
+    );
+    background-size: 20px 20px;
+    /* Default: Flow Forward (Building/Climbing) */
+    animation: barberpole 0.5s linear infinite;
+    /* Glow Effect */
+    filter: brightness(1.2) contrast(1.1);
+    box-shadow: 0 0 8px rgba(255,255,255,0.2);
+    border-right: 2px solid rgba(255,255,255,0.8);
+  }
 
+  /* REVERSE MOTION (DRAINING) */
+  .kpos-fill.reverse-motion, .lpos-fill.reverse-motion {
+    /* Reverse the stripe flow direction */
+    animation-direction: reverse; 
+    /* Color shift: Turn Red/Orange to signify loss/cost */
+    background-color: #ff4d4d !important; 
+    border-right: 2px solid #ff9999;
+  }
+  
   .tiny{font-size:11px;opacity:.65;color:var(--muted)}
   .mono{font-family:monospace;}
   .small{font-size:12px;}
@@ -251,12 +234,18 @@
 
   /* Accordion Styling */
   details summary { cursor: pointer; padding: 4px 0; user-select: none; outline: none; }
-  details summary:hover h3 { color: var(--accent); }
+  details summary:hover h3, details summary:hover { color: var(--accent); }
   details > summary { list-style: none; }
   details > summary::-webkit-details-marker { display: none; }
   details > summary::before { content: '▶'; display: inline-block; margin-right: 6px; font-size: 10px; color: var(--accent); transition: transform 0.2s; }
   details[open] > summary::before { transform: rotate(90deg); }
 </style>
+<link rel="icon" type="image/svg+xml" href="/sisyphus-icon.svg">
+
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
 </head>
 <body>
 
@@ -368,6 +357,22 @@
         </div>
       </div>
 
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:baseline">
+          <h2>Climb Summaries</h2>
+        </div>
+        <details open style="margin-bottom:8px">
+            <summary class="tiny" style="opacity:0.7">Legend</summary>
+            <div class="tiny" style="border-left:2px solid rgba(255,255,255,0.1); padding-left:8px; margin-top:4px; line-height:1.4">
+              A <b>Climb</b> is one attempt to ascend, ending in <b>Ruin</b> or <b>Summit</b>.<br>
+              <span class="mono" style="opacity:0.8">(+)Ascent  (.)Steady  (X)Ruin</span>
+            </div>
+        </details>
+        <div id="cycle-box" class="tiny"></div>
+      </div>
+    </div>
+
       <div class="card"><h2>Run Stats</h2>
         <div style="margin-bottom:6px; font-size:11px; opacity:0.8">steps: <span class="mono" id="run-steps">0</span></div>
         <div class="bar" style="display:flex; height:14px; overflow:hidden" role="progressbar" aria-label="Run Distribution">
@@ -386,43 +391,10 @@
         </div>
       </div>
 
-      <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:baseline">
-          <h2>Cycle Summaries</h2>
-        </div>
-        <div class="tiny" style="border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:6px; margin-bottom:6px; line-height:1.4">
-          A <b>Cycle</b> is one attempt to climb, ending in <b>Ruin</b> or <b>Summit</b>.<br>
-          <span class="mono" style="opacity:0.8">(+)Ascent  (.)Steady  (X)Ruin</span>
-        </div>
-        <div id="cycle-box" class="tiny"></div>
-      </div>
-    </div>
+
 
     <div>
       
-      <div class="card">
-        <h2 style="margin:0 0 8px">The Burden</h2>
-        <div class="tiny" style="line-height:1.5; opacity:0.9">
-          The stone is bound for the summit (Height <span id="lbl-M-goal" style="font-weight:bold; color:var(--accent)">20</span>).
-          <br><br>
-          Each roll has one of three outcomes:
-          <br>
-          <ul style="padding-left: 16px; margin: 6px 0;">
-              <li><strong>Steady:</strong> The stone holds fast. Poise accumulates.</li>
-              <li><strong>Ascent:</strong> The stone rises. Poise is shattered by the effort.</li>
-              <li><strong>Ruin:</strong> Gravity wins. Height resets.</li>
-          </ul>
-          <br>
-          <strong>Poise</strong> dictates the favor of the odds. High Poise shields against Ruin and invites Ascent.
-          <br><br>
-          <strong>The Atmosphere:</strong><br>
-          Time itself is subject to the chaos of the storm. <br>
-          <strong>Turbulence</strong> dilates the delay between events, forcing long waits. <br>
-          <strong>Calm</strong> allows for swift progression.<br>
-          <br>
-          <span style="opacity:0.7; font-style:italic">Note: The Atmosphere distorts the flow of time, but it does not alter the probability of the fall.</span>
-        </div>
-      </div>
 
       <div class="card" id="params-container">
         <details>
@@ -523,7 +495,7 @@
               <div>Ruin rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
               <div>p(Ascent | !Steady): <span id="recent-p-cond" class="mono">—</span></div>
               <div>p(Summit | current): <span id="recent-p-top" class="mono">—</span></div>
-              <div style="margin-top:4px">average cycle length: <span class="mono" id="exp-cycle-len">—</span> rolls</div>
+              <div style="margin-top:4px">average climb length: <span class="mono" id="exp-cycle-len">—</span> rolls</div>
               <div>E[first Summit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
               <div>Optimal Ascents/Hour: <span class="mono" id="exp-wins-hour">—</span></div>
             </div>
@@ -539,7 +511,7 @@
         <div class="tiny" style="margin-top:6px">Height / Poise Heatmap:</div>
         <div id="hist-kl" class="tiny" style="margin-top:2px;min-height:32px"></div>
         
-        <div class="tiny" style="margin-top:12px; font-weight:600; color:var(--muted)">Cycle Lengths (Global N=<span id="global-n">0</span>)</div>
+        <div class="tiny" style="margin-top:12px; font-weight:600; color:var(--muted)">Climb Lengths (Global N=<span id="global-n">0</span>)</div>
         <div class="stats-grid" id="global-stats">
           <div class="stat-box"><div class="stat-label">Min</div><div class="stat-val" id="gs-min">—</div></div>
           <div class="stat-box"><div class="stat-label">25%</div><div class="stat-val" id="gs-25">—</div></div>
@@ -548,7 +520,7 @@
           <div class="stat-box"><div class="stat-label">Max</div><div class="stat-val" id="gs-max">—</div></div>
         </div>
 
-        <div class="tiny" style="margin-top:8px">Cycle lengths (last 40):</div>
+        <div class="tiny" style="margin-top:8px">Climb lengths (last 40):</div>
         <div id="hist-cycle-len" class="tiny" style="margin-top:2px"></div>
       </div>
     </div>
@@ -890,7 +862,6 @@ class SisyphusUI {
     this.pendingUpdates = new Map();
     this.rafId = null;
     
-    // (Kept your original ID list exactly the same)
     ['rbar-win','rbar-neu','rbar-loss','rpct-win','rpct-neu','rpct-loss',
      'kpos-fill','kpos-text','lpos-fill','lpos-text','recent-p-cond','recent-p-top',
      'recent-outcome','recent-kl','recent-card',
@@ -923,7 +894,7 @@ class SisyphusUI {
     this.rafId = null;
   }
 
-  log(msg) {} // Empty as per original
+  log(msg) {} 
 
   _formatDuration(ms) {
     const s = Math.floor(ms / 1000);
@@ -997,7 +968,8 @@ class SisyphusUI {
     if(full) { this._renderDistributions(); this._renderGlobalStats(); }
   }
 
-animateChange(k0, l0, k1, l1, duration, params) {
+  // --- NEW ANIMATION LOGIC (Barber Pole + Direction) ---
+  animateChange(k0, l0, k1, l1, duration, params) {
     const kFill = this.els['kpos-fill'];
     const lFill = this.els['lpos-fill'];
     
@@ -1007,28 +979,25 @@ animateChange(k0, l0, k1, l1, duration, params) {
     const pK1 = (100 * Math.max(0, Math.min(1, k1 / params.M))).toFixed(2) + '%';
     const pL1 = (100 * Math.max(0, Math.min(1, l1 / params.L))).toFixed(2) + '%';
 
-    // 2. Clean Slate (Remove all motion classes)
+    // 2. Clean Slate
     kFill.classList.remove('active-motion', 'reverse-motion');
     lFill.classList.remove('active-motion', 'reverse-motion');
     
-    // 3. Set Start Position (Instantly)
+    // 3. Set Start Position
     kFill.style.transition = 'none';
     lFill.style.transition = 'none';
     kFill.style.width = pK0;
     lFill.style.width = pL0;
 
-    // 4. Force Browser Reflow (Critical for animation restart)
+    // 4. Force Browser Reflow
     void kFill.offsetWidth; 
 
-    // 5. Apply Motion Classes based on Direction
+    // 5. Apply Motion Classes
     if (duration > 100) {
-        // Height Logic
         if (k0 !== k1) {
             kFill.classList.add('active-motion');
             if (k1 < k0) kFill.classList.add('reverse-motion'); // Ruin = Reverse
         }
-        
-        // Poise Logic
         if (l0 !== l1) {
             lFill.classList.add('active-motion');
             if (l1 < l0) lFill.classList.add('reverse-motion'); // Spending Poise = Reverse
@@ -1036,7 +1005,6 @@ animateChange(k0, l0, k1, l1, duration, params) {
     }
 
     // 6. Set End Position with Linear Transition
-    // "linear" works best with the barber pole effect so the speed feels constant
     const transitionStr = `width ${duration}ms linear`;
     
     kFill.style.transition = transitionStr;
@@ -1044,14 +1012,13 @@ animateChange(k0, l0, k1, l1, duration, params) {
     kFill.style.width = pK1;
     lFill.style.width = pL1;
     
-    // 7. Cleanup after animation ends
+    // 7. Cleanup
     setTimeout(() => {
         kFill.classList.remove('active-motion', 'reverse-motion');
         lFill.classList.remove('active-motion', 'reverse-motion');
     }, duration);
   }
   
-  // (Rest of the class methods: _renderCycles, _renderGlobalStats, _renderDistributions, updateExpectations remain exactly the same as original)
   _renderCycles() {
     const box = this.els['cycle-box'];
     const tpl = document.getElementById('tpl-cycle-entry');
