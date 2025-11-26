@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v2.41</title>
+<title>Sisyphus' Ruin v2.8</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -46,7 +46,6 @@
     color: #aaa !important; transform: none !important; box-shadow: none !important;
   }
   
-  /* FIXED: Added width: auto to prevent inheriting global label width */
   .checkbox-wrapper {
     display: flex; align-items: center; gap: 8px; padding: 0 8px; width: auto; 
     height: 38px; cursor: pointer; user-select: none; opacity: 0.85; transition: opacity 0.2s;
@@ -115,11 +114,7 @@
   }
   .kpos-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-4))}
   .lpos-fill{height:100%;background:linear-gradient(90deg,var(--accent-3),var(--accent-2))}
-  #log{
-    height:160px; overflow:auto; background:rgba(18,0,38,.35); border:1px solid rgba(255,166,0,.12);
-    border-radius:10px; padding:8px; font-family:monospace; font-size:12px;
-    white-space:pre-wrap; overflow-wrap:break-word; word-break:break-word;
-  }
+  
   .tiny{font-size:11px;opacity:.65;color:var(--muted)}
   .mono{font-family:monospace;}
   .small{font-size:12px;}
@@ -183,6 +178,14 @@
   .mode-load .slot-btn:hover { border-color: var(--accent-3); color: var(--accent-3); }
   .slot-label { font-weight: 800; font-size: 12px; margin-bottom: 2px; }
   .slot-info { font-size: 9px; line-height: 1.1; opacity: 0.8; }
+
+  /* Accordion Styling */
+  details summary { cursor: pointer; padding: 4px 0; user-select: none; outline: none; }
+  details summary:hover h3 { color: var(--accent); }
+  details > summary { list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::before { content: '▶'; display: inline-block; margin-right: 6px; font-size: 10px; color: var(--accent); transition: transform 0.2s; }
+  details[open] > summary::before { transform: rotate(90deg); }
 </style>
 </head>
 <body>
@@ -242,16 +245,26 @@
             <div id="rbar-loss" class="loss" style="width:0%"></div>
           </div>
           <div class="row" style="justify-content:space-between; font-size:11px; opacity:0.8">
-            <div>win: <span class="mono" id="rpct-win">0.0%</span></div>
-            <div>neutral: <span class="mono" id="rpct-neu">0.0%</span></div>
-            <div>loss: <span class="mono" id="rpct-loss">0.0%</span></div>
+            <div>Ascent: <span class="mono" id="rpct-win">0.0%</span></div>
+            <div>Steady: <span class="mono" id="rpct-neu">0.0%</span></div>
+            <div>Ruin: <span class="mono" id="rpct-loss">0.0%</span></div>
           </div>
         </div>
 
-        <div class="kpos" style="margin-top:8px"><div class="kpos-track"><div id="kpos-fill" class="kpos-fill" style="width:0%"></div></div><div class="small">k-position: <span id="kpos-text">1 / 20</span></div></div>
-        <div class="lpos" style="margin-top:4px"><div class="lpos-track"><div id="lpos-fill" class="lpos-fill" style="width:0%"></div></div><div class="small">ℓ-position: <span id="lpos-text">0 / 20</span></div></div>
-        <div class="row tiny" style="margin-top:2px">p(win | !neutral): <span id="recent-p-cond" class="mono">—</span></div>
-        <div class="row tiny" style="margin-top:0">p(top hit | current state): <span id="recent-p-top" class="mono">—</span></div>
+        <div class="kpos" style="margin-top:8px">
+          <div class="kpos-track"><div id="kpos-fill" class="kpos-fill" style="width:0%"></div></div>
+          <div class="small" style="display:flex; justify-content:space-between">
+            <span>Height</span>
+            <span id="kpos-text" class="mono">1 / 20</span>
+          </div>
+        </div>
+        <div class="lpos" style="margin-top:4px">
+          <div class="lpos-track"><div id="lpos-fill" class="lpos-fill" style="width:0%"></div></div>
+          <div class="small" style="display:flex; justify-content:space-between">
+            <span>Poise</span>
+            <span id="lpos-text" class="mono">0 / 20</span>
+          </div>
+        </div>
       </div>
 
       <div class="card" id="weather-card">
@@ -264,7 +277,7 @@
               <div id="weather-status-main" style="font-size:18px; font-weight:800; letter-spacing:1px">CALIBRATING</div>
             </div>
             <div style="text-align:right">
-              <div class="tiny" style="margin-bottom:2px">DELAY MODIFIER</div>
+              <div class="tiny" style="margin-bottom:2px">TIME DILATION</div>
               <div id="weather-mod-val" class="mono" style="font-size:18px;">1.0x</div>
             </div>
           </div>
@@ -279,109 +292,166 @@
           <div class="loss" id="bar-loss" style="width:0%"></div>
         </div>
         <div class="row" style="justify-content:space-between; font-size:11px; opacity:0.8">
-          <div>win: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
-          <div>neutral: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
-          <div>loss: <span class="mono" id="c-loss">0</span> (<span class="mono" id="r-loss">0.0%</span>)</div>
+          <div>Ascent: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
+          <div>Steady: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
+          <div>Ruin: <span class="mono" id="c-loss">0</span> (<span class="mono" id="r-loss">0.0%</span>)</div>
         </div>
         <div class="row tiny" style="margin-top:6px;justify-content:space-between">
           <div>run time: <span class="mono" id="run-time">0s</span></div>
-          <div>max k: <span class="mono" id="max-k">1</span></div>
+          <div>Max Height: <span class="mono" id="max-k">1</span></div>
         </div>
       </div>
 
-      <div class="card"><h2>Cycle Summaries</h2><div id="cycle-box" class="tiny"></div></div>
-      <div class="card"><div id="log" role="log" aria-label="Game log"></div></div>
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:baseline">
+          <h2>Cycle Summaries</h2>
+        </div>
+        <div class="tiny" style="border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:6px; margin-bottom:6px; line-height:1.4">
+          A <b>Cycle</b> is one attempt to climb, ending in <b>Ruin</b> or <b>Summit</b>.<br>
+          <span class="mono" style="opacity:0.8">(+)Ascent  (.)Steady  (X)Ruin</span>
+        </div>
+        <div id="cycle-box" class="tiny"></div>
+      </div>
     </div>
 
     <div>
-      <div class="card"><h2>Play Controls</h2>
-        <div class="row" style="align-items: center; gap: 6px;">
-          <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1">Auto Play</button>
-          <label class="checkbox-wrapper" for="use-delay">
-            <input type="checkbox" id="use-delay">
-            <span>Delay</span>
-          </label>
-          <select id="speed" aria-label="Auto-play speed">
-            <option value="1000">Slow</option>
-            <option value="100" selected>Normal</option>
-            <option value="10">Fast (Turbo)</option>
-          </select>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <input id="nRolls" type="number" value="20" aria-label="Number of rolls or cycles" style="width:60px">
-          <button class="btn" id="rollN" style="flex:1">Roll N Steps</button>
-          <button class="btn" id="rollNCycles" style="flex:1">Roll N Cycles</button>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <span class="tiny" style="min-width:110px">Set state (k, ℓ):</span>
-          <input id="set-k" type="number" min="1" value="1" aria-label="Set k value">
-          <input id="set-l" type="number" min="0" value="0" aria-label="Set l value">
-          <button class="btn" id="setStateBtn">Set</button>
-        </div>
-      </div>
-
-      <div class="card"><h2 style="margin:0 0 8px">System</h2>
-        <div class="tiny" style="line-height:1.5; opacity:0.8">
-          The system tracks your ascent (k) and momentum (ℓ). Wins advance position, neutrals build momentum, and losses trigger a full reset. Resistance fades as you climb, though atmospheric chaos distorts the flow of time.
+      
+      <div class="card">
+        <h2 style="margin:0 0 8px">The Burden</h2>
+        <div class="tiny" style="line-height:1.5; opacity:0.9">
+          The stone is bound for the summit (Height <span id="lbl-M-goal" style="font-weight:bold; color:var(--accent)">20</span>).
+          <br><br>
+          <strong>Poise (ℓ)</strong> dictates the favor of the odds. High Poise shields against Ruin and invites Ascent.
+          <br><br>
+          <strong>The Outcomes:</strong><br>
+          <ul style="padding-left: 16px; margin: 6px 0;">
+              <li><strong>Steady:</strong> The stone holds fast. Poise accumulates.</li>
+              <li><strong>Ascent:</strong> The stone rises. Poise is shattered by the effort.</li>
+              <li><strong>Ruin:</strong> Gravity wins. Height resets.</li>
+          </ul>
+          <br>
+          <strong>The Atmosphere:</strong><br>
+          Time itself is subject to the chaos of the storm. <br>
+          <strong>Turbulence</strong> dilates the delay between events, forcing long waits. <br>
+          <strong>Calm</strong> allows for swift progression.<br>
+          <br>
+          <span style="opacity:0.7; font-style:italic">Note: The Atmosphere distorts the flow of time, but it does not alter the probability of the fall.</span>
         </div>
       </div>
 
       <div class="card" id="params-container">
-        <h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Parameters</h3>
-
-        <div class="row"><label for="M">M (k levels)</label><input id="M" type="number" value="20"></div>
-        <div class="desc">How many rungs in the ladder.</div>
-        <div class="row"><label for="L">L (ℓ max)</label><input id="L" type="number" value="20"></div>
-        <div class="desc">Momentum scale; ℓ ∈ [0, L].</div>
-        <div class="row"><label>w_min → w_max</label><input id="w_min" type="number" step="0.01" value="0.10"><input id="w_max" type="number" step="0.01" value="0.90"></div>
-        <div class="desc">Win rises from w_min at k=1 to w_max at k=M.</div>
-        <div class="row"><label for="beta">β (k ramp)</label><input id="beta" type="number" step="0.1" value="1.5"></div>
-        <div class="desc">β > 1 makes late k much easier.</div>
-        <div class="row"><label>ρ, γ (ℓ boost)</label><input id="rho" type="number" step="0.05" value="0.6"><input id="gamma" type="number" step="0.1" value="1.5"></div>
-        <div class="desc">Higher ℓ → more win probability.</div>
-        <div class="row"><label>c_min → c_max</label><input id="c_min" type="number" step="0.01" value="0.03"><input id="c_max" type="number" step="0.01" value="0.10"></div>
-        <div class="desc">Loss floor/ceiling.</div>
-        <div class="row"><label for="alpha">α (loss decay)</label><input id="alpha" type="number" step="0.1" value="0.3"></div>
-        <div class="desc">Higher ℓ reduces loss via exp decay.</div>
-        <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1"><input id="s_w" type="number" value="20"></div>
-        <div class="desc">Momentum gain (neutral) vs spend (win).</div>
-        <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="45.0"></div>
-        <div class="desc">Cooldown time. Reduces as k and ℓ increase.</div>
-        <div class="row"><button class="btn" id="apply">Apply & Reset</button><button class="btn" id="resetState" aria-keyshortcuts="R">Reset State</button></div>
-                <div class="save-slots-container mode-load" id="slot-container">
-           <div class="slot-mode-switch">
-             <button class="btn slot-mode-btn" data-mode="save">Save Mode</button>
-             <button class="btn slot-mode-btn active" data-mode="load">Load Mode</button>
-           </div>
-           <div class="slot-grid">
-             <button class="slot-btn empty" data-slot="1"><div class="slot-label">1</div><div class="slot-info">Empty</div></button>
-             <button class="slot-btn empty" data-slot="2"><div class="slot-label">2</div><div class="slot-info">Empty</div></button>
-             <button class="slot-btn empty" data-slot="3"><div class="slot-label">3</div><div class="slot-info">Empty</div></button>
-             <button class="slot-btn empty" data-slot="4"><div class="slot-label">4</div><div class="slot-info">Empty</div></button>
-             <button class="slot-btn empty" data-slot="5"><div class="slot-label">5</div><div class="slot-info">Empty</div></button>
-           </div>
-           <div class="desc" style="margin-top:6px; text-align:center;">
-             <span id="slot-mode-desc">Click to LOAD a saved game.</span>
-           </div>
-        </div>
+        <details>
+          <summary>
+            <h3 style="display:inline-block; margin:0; font-size:14px; opacity:0.9">Advanced Parameters</h3>
+            <div class="tiny" style="opacity:0.6; font-weight:400; margin-left: 4px; display:inline-block">(Click to expand)</div>
+          </summary>
+          
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+              <div class="row"><label for="M">M (Max Height)</label><input id="M" type="number" value="20"></div>
+              <div class="desc">Max steps to win (k).</div>
+              <div class="row"><label for="L">L (Max Poise)</label><input id="L" type="number" value="20"></div>
+              <div class="desc">Poise scale (ℓ).</div>
+              <div class="row"><label>w_min → w_max</label><input id="w_min" type="number" step="0.01" value="0.10"><input id="w_max" type="number" step="0.01" value="0.90"></div>
+              <div class="desc">Win probability scaling.</div>
+              <div class="row"><label for="beta">β (Height ramp)</label><input id="beta" type="number" step="0.1" value="1.5"></div>
+              <div class="desc">β > 1 makes late ascent easier.</div>
+              <div class="row"><label>ρ, γ (Poise boost)</label><input id="rho" type="number" step="0.05" value="0.6"><input id="gamma" type="number" step="0.1" value="1.5"></div>
+              <div class="desc">Effect of Poise on win rate.</div>
+              <div class="row"><label>c_min → c_max</label><input id="c_min" type="number" step="0.01" value="0.03"><input id="c_max" type="number" step="0.01" value="0.10"></div>
+              <div class="desc">Loss probability range.</div>
+              <div class="row"><label for="alpha">α (Loss decay)</label><input id="alpha" type="number" step="0.1" value="0.3"></div>
+              <div class="desc">How fast Poise reduces loss chance.</div>
+              <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1"><input id="s_w" type="number" value="20"></div>
+              <div class="desc">Poise gain (Steady) vs spend (Ascent).</div>
+              <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="45.0"></div>
+              <div class="desc">Base cooldown time.</div>
+              
+              <div class="row" style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px">
+                  <button class="btn" id="apply">Apply & Reset</button>
+                  <button class="btn" id="resetState" aria-keyshortcuts="R">Reset State</button>
+              </div>
+          </div>
+        </details>
       </div>
 
-      <div class="card"><h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Expectations</h3>
-        <div class="row tiny" style="flex-direction:column;align-items:flex-start;gap:2px">
-          <div>win rate (per roll): <span class="mono" id="exp-win-rate">—</span></div>
-          <div>loss rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
-          <div>average cycle length: <span class="mono" id="exp-cycle-len">—</span> rolls</div>
-          <div>E[first top hit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
-          <div>Optimal Wins/Hour: <span class="mono" id="exp-wins-hour">—</span></div>
-        </div>
+      <div class="card">
+        <details>
+          <summary>
+             <h2 style="display:inline-block; margin:0; font-size:14px; opacity:0.9">Play Controls and Saves</h2>
+             <div class="tiny" style="opacity:0.6; font-weight:400; margin-left: 4px; display:inline-block">(Click to expand)</div>
+          </summary>
+          
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div class="row" style="align-items: center; gap: 6px;">
+              <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1">Auto Play</button>
+              <label class="checkbox-wrapper" for="use-delay">
+                <input type="checkbox" id="use-delay">
+                <span>Delay</span>
+              </label>
+              <select id="speed" aria-label="Auto-play speed">
+                <option value="1000">Slow</option>
+                <option value="100" selected>Normal</option>
+                <option value="10">Fast (Turbo)</option>
+              </select>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <input id="nRolls" type="number" value="20" aria-label="Number of rolls or cycles" style="width:60px">
+              <button class="btn" id="rollN" style="flex:1">Roll N Steps</button>
+              <button class="btn" id="rollNCycles" style="flex:1">Roll N Cycles</button>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <span class="tiny" style="min-width:110px">Set Height/Poise:</span>
+              <input id="set-k" type="number" min="1" value="1" aria-label="Set k value">
+              <input id="set-l" type="number" min="0" value="0" aria-label="Set l value">
+              <button class="btn" id="setStateBtn">Set</button>
+            </div>
+
+            <div class="save-slots-container mode-load" id="slot-container" style="margin-top:12px">
+               <div class="slot-mode-switch">
+                 <button class="btn slot-mode-btn" data-mode="save">Save Mode</button>
+                 <button class="btn slot-mode-btn active" data-mode="load">Load Mode</button>
+               </div>
+               <div class="slot-grid">
+                 <button class="slot-btn empty" data-slot="1"><div class="slot-label">1</div><div class="slot-info">Empty</div></button>
+                 <button class="slot-btn empty" data-slot="2"><div class="slot-label">2</div><div class="slot-info">Empty</div></button>
+                 <button class="slot-btn empty" data-slot="3"><div class="slot-label">3</div><div class="slot-info">Empty</div></button>
+                 <button class="slot-btn empty" data-slot="4"><div class="slot-label">4</div><div class="slot-info">Empty</div></button>
+                 <button class="slot-btn empty" data-slot="5"><div class="slot-label">5</div><div class="slot-info">Empty</div></button>
+               </div>
+               <div class="desc" style="margin-top:6px; text-align:center;">
+                 <span id="slot-mode-desc">Click to LOAD a saved game.</span>
+               </div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <details>
+          <summary>
+            <h3 style="display:inline-block; margin:0; font-size:14px; opacity:0.8">Expectations</h3>
+             <div class="tiny" style="opacity:0.6; font-weight:400; margin-left: 4px; display:inline-block">(Click to expand)</div>
+          </summary>
+          <div style="margin-top:6px">
+            <div class="row tiny" style="flex-direction:column;align-items:flex-start;gap:2px">
+              <div>Ascent rate (per roll): <span class="mono" id="exp-win-rate">—</span></div>
+              <div>Ruin rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
+              <div>p(Ascent | !Steady): <span id="recent-p-cond" class="mono">—</span></div>
+              <div>p(Summit | current): <span id="recent-p-top" class="mono">—</span></div>
+              <div style="margin-top:4px">average cycle length: <span class="mono" id="exp-cycle-len">—</span> rolls</div>
+              <div>E[first Summit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
+              <div>Optimal Ascents/Hour: <span class="mono" id="exp-wins-hour">—</span></div>
+            </div>
+          </div>
+        </details>
       </div>
 
       <div class="card"><h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Distributions</h3>
-        <div class="tiny" style="margin-top:6px">Time spent at k:</div>
+        <div class="tiny" style="margin-top:6px">Time spent at Height:</div>
         <div id="hist-k" class="tiny" style="margin-top:2px;min-height:24px"></div>
-        <div class="tiny" style="margin-top:6px">Time spent at ℓ:</div>
+        <div class="tiny" style="margin-top:6px">Time spent at Poise:</div>
         <div id="hist-l" class="tiny" style="margin-top:2px;min-height:24px"></div>
-        <div class="tiny" style="margin-top:6px">Time spent at (k, ℓ) Heatmap:</div>
+        <div class="tiny" style="margin-top:6px">Height / Poise Heatmap:</div>
         <div id="hist-kl" class="tiny" style="margin-top:2px;min-height:32px"></div>
         
         <div class="tiny" style="margin-top:12px; font-weight:600; color:var(--muted)">Cycle Lengths (Global N=<span id="global-n">0</span>)</div>
@@ -740,7 +810,7 @@ class SisyphusUI {
      'recent-outcome','recent-kl','recent-card',
      'bar-win','bar-neu','bar-loss','c-win','c-neu','c-loss',
      'r-win','r-neu','r-loss','run-steps','run-time','max-k',
-     'log','cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
+     'cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
      'global-n','gs-min','gs-25','gs-50','gs-75','gs-max',
      'exp-win-rate', 'exp-loss-rate', 'exp-cycle-len', 'exp-time-top', 'exp-wins-hour',
      'btn-roll-main'
@@ -768,10 +838,7 @@ class SisyphusUI {
   }
 
   log(msg) {
-    const div = document.createElement('div');
-    div.textContent = msg;
-    this.els.log.appendChild(div);
-    this.els.log.scrollTop = this.els.log.scrollHeight;
+    // Log box removed from UI. Method kept empty to prevent breakage.
   }
 
   _formatDuration(ms) {
@@ -791,7 +858,7 @@ class SisyphusUI {
     const pct = x => (100 * Math.max(0, Math.min(1, x))).toFixed(1) + '%';
     const probs = SisyphusMath.computeProbs(lr.k1, lr.l1, m.params);
     
-    this.batchUpdate('recent-outcome', 'textContent', lr.outcome ? (lr.outcome === 'neu' ? 'NEUTRAL' : lr.outcome === 'top' ? 'TOP HIT' : lr.outcome.toUpperCase()) : '—');
+    this.batchUpdate('recent-outcome', 'textContent', lr.outcome ? (lr.outcome === 'neu' ? 'STEADY' : lr.outcome === 'loss' ? 'RUIN' : lr.outcome === 'top' ? 'SUMMIT' : 'ASCENT') : '—');
     this.batchUpdate('recent-kl', 'textContent', `(${lr.k0},${lr.l0})→(${lr.k1},${lr.l1})`);
     this.batchUpdate('recent-card', 'className', 'card recent ' + (lr.outcome === 'top' ? 'win' : lr.outcome || ''));
 
@@ -848,8 +915,9 @@ class SisyphusUI {
       const clone = tpl.content.cloneNode(true);
       const div = clone.querySelector('.cycle-entry');
       div.classList.add(c.outcome === 'top' ? 'top' : 'loss');
-      clone.querySelector('.cycle-main-text').textContent = `C${c.id}: ${c.outcome === 'top' ? 'TOP' : 'LOSS'}`;
-      clone.querySelector('.cycle-meta').textContent = `L:${c.length} W:${c.wins}`;
+      const outText = c.outcome === 'top' ? 'SUMMIT' : 'RUIN';
+      clone.querySelector('.cycle-main-text').textContent = `C${c.id}: ${outText}`;
+      clone.querySelector('.cycle-meta').textContent = `L:${c.length} A:${c.wins}`;
       let wrapped = '';
       for(let i=0; i<(c.path||'').length; i+=32) wrapped += c.path.slice(i, i+32) + '\n';
       clone.querySelector('.cycle-entry-path').textContent = wrapped || '-';
@@ -1200,6 +1268,10 @@ class GameController {
       this.recalcExpectations();
       this.ui.render(this.grids, true);
       this.chaos.reset(); // Clear chaos trail on load
+      
+      // Ensure Goal text matches loaded params
+      const lblM = document.getElementById('lbl-M-goal');
+      if(lblM) lblM.textContent = this.model.params.M;
     }
   }
 
@@ -1261,7 +1333,7 @@ class GameController {
     btn.disabled = true;
     btn.className = `btn big outcome-${outcome}`; 
     
-    const verb = { win:'ASCENDING', loss:'RECOVERING', neu:'ENDURING' }[outcome] || 'WAITING';
+    const verb = { win:'ASCENDING', loss:'THE STONE FALLS', neu:'BUILDING POISE' }[outcome] || 'WAITING';
     const endTime = Date.now() + duration;
     
     const timerId = this.bgTimer.setInterval(() => {
@@ -1316,10 +1388,10 @@ class GameController {
   }
 
   handleStepResult(res) {
-    if (res === 'top') { this.announcer.announce("Congratulations! Top hit reached!"); alert("Top Hit Reached!"); }
-    else if (res === 'win') this.announcer.announce(`Win! Now at level ${this.model.state.k}`);
-    else if (res === 'loss') this.announcer.announce("Loss. Reset to level 1");
-    else if (res === 'neu') this.announcer.announce("Neutral. Momentum increased");
+    if (res === 'top') { this.announcer.announce("Congratulations! Summit reached!"); alert("Summit Reached!"); }
+    else if (res === 'win') this.announcer.announce(`Ascent! Now at Height ${this.model.state.k}`);
+    else if (res === 'loss') this.announcer.announce("Ruin. Reset to Height 1");
+    else if (res === 'neu') this.announcer.announce("Steady. Poise increased");
     if(res && res !== 'top') this.ui.log(`step ${this.model.state.step}: ${this.model.lastRoll.outcome.toUpperCase()}`);
   }
 
@@ -1328,6 +1400,11 @@ class GameController {
     ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w','max_delay'].forEach(k => {
       const el = document.getElementById(k); if(el) p[k] = +el.value;
     });
+
+    // Update goal description
+    const lblM = document.getElementById('lbl-M-goal');
+    if(lblM) lblM.textContent = p.M;
+
     SisyphusMath.clearCache();
     this.reset(); 
   }
@@ -1337,7 +1414,7 @@ class GameController {
     this.chaos.reset(); 
     this.recalcExpectations();
     this.ui.render(this.grids, true);
-    this.ui.els.log.innerHTML = '';
+    // Log clear removed
     this.save();
     this.announcer.announce("Game reset");
   }
@@ -1381,6 +1458,9 @@ class GameController {
       if(raw) {
         this.deserialize(JSON.parse(raw));
         Object.keys(this.model.params).forEach(k => { const el = document.getElementById(k); if(el) el.value = this.model.params[k]; });
+        // Set goal text on load
+        const lblM = document.getElementById('lbl-M-goal');
+        if(lblM) lblM.textContent = this.model.params.M;
       }
     } catch(e) { console.warn("Load failed", e); }
   }
