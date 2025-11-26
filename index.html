@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v3.3</title>
+<title>Sisyphus' Ruin v3.4</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -357,21 +357,19 @@
         </div>
       </div>
 
-
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:baseline">
-          <h2>Climb Summaries</h2>
+          <h2>Climb History</h2>
         </div>
         <details open style="margin-bottom:8px">
             <summary class="tiny" style="opacity:0.7">Legend</summary>
             <div class="tiny" style="border-left:2px solid rgba(255,255,255,0.1); padding-left:8px; margin-top:4px; line-height:1.4">
-              A <b>Climb</b> is one attempt to ascend, ending in <b>Ruin</b> or <b>Summit</b>.<br>
+              An <b>Attempt</b> ends in <b>Ruin</b> or <b>Summit</b>.<br>
               <span class="mono" style="opacity:0.8">(+)Ascent  (.)Steady  (X)Ruin</span>
             </div>
         </details>
         <div id="cycle-box" class="tiny"></div>
       </div>
-    </div>
 
       <div class="card"><h2>Run Stats</h2>
         <div style="margin-bottom:6px; font-size:11px; opacity:0.8">steps: <span class="mono" id="run-steps">0</span></div>
@@ -390,11 +388,33 @@
           <div>Max Height: <span class="mono" id="max-k">1</span></div>
         </div>
       </div>
-
-
+    </div>
 
     <div>
       
+      <div class="card">
+        <h2 style="margin:0 0 8px">The Burden</h2>
+        <div class="tiny" style="line-height:1.5; opacity:0.9">
+          The stone is bound for the summit (Height <span id="lbl-M-goal" style="font-weight:bold; color:var(--accent)">20</span>).
+          <br><br>
+          Each roll has one of three outcomes:
+          <br>
+          <ul style="padding-left: 16px; margin: 6px 0;">
+              <li><strong>Steady:</strong> The stone holds fast. Poise accumulates.</li>
+              <li><strong>Ascent:</strong> The stone rises. Poise is shattered by the effort.</li>
+              <li><strong>Ruin:</strong> Gravity wins. Height resets.</li>
+          </ul>
+          <br>
+          <strong>Poise</strong> dictates the favor of the odds. High Poise shields against Ruin and invites Ascent.
+          <br><br>
+          <strong>The Atmosphere:</strong><br>
+          Time itself is subject to the chaos of the storm. <br>
+          <strong>Turbulence</strong> dilates the delay between events, forcing long waits. <br>
+          <strong>Calm</strong> allows for swift progression.<br>
+          <br>
+          <span style="opacity:0.7; font-style:italic">Note: The Atmosphere distorts the flow of time, but it does not alter the probability of the fall.</span>
+        </div>
+      </div>
 
       <div class="card" id="params-container">
         <details>
@@ -454,7 +474,7 @@
             <div class="row" style="margin-top:8px">
               <input id="nRolls" type="number" value="20" aria-label="Number of rolls or cycles" style="width:60px">
               <button class="btn" id="rollN" style="flex:1">Roll N Steps</button>
-              <button class="btn" id="rollNCycles" style="flex:1">Roll N Cycles</button>
+              <button class="btn" id="rollNCycles" style="flex:1">Roll N Attempts</button>
             </div>
             <div class="row" style="margin-top:8px">
               <span class="tiny" style="min-width:110px">Set Height/Poise:</span>
@@ -495,7 +515,7 @@
               <div>Ruin rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
               <div>p(Ascent | !Steady): <span id="recent-p-cond" class="mono">—</span></div>
               <div>p(Summit | current): <span id="recent-p-top" class="mono">—</span></div>
-              <div style="margin-top:4px">average climb length: <span class="mono" id="exp-cycle-len">—</span> rolls</div>
+              <div style="margin-top:4px">avg steps/attempt: <span class="mono" id="exp-cycle-len">—</span></div>
               <div>E[first Summit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
               <div>Optimal Ascents/Hour: <span class="mono" id="exp-wins-hour">—</span></div>
             </div>
@@ -511,7 +531,7 @@
         <div class="tiny" style="margin-top:6px">Height / Poise Heatmap:</div>
         <div id="hist-kl" class="tiny" style="margin-top:2px;min-height:32px"></div>
         
-        <div class="tiny" style="margin-top:12px; font-weight:600; color:var(--muted)">Climb Lengths (Global N=<span id="global-n">0</span>)</div>
+        <div class="tiny" style="margin-top:12px; font-weight:600; color:var(--muted)">Attempt Durations (Global N=<span id="global-n">0</span>)</div>
         <div class="stats-grid" id="global-stats">
           <div class="stat-box"><div class="stat-label">Min</div><div class="stat-val" id="gs-min">—</div></div>
           <div class="stat-box"><div class="stat-label">25%</div><div class="stat-val" id="gs-25">—</div></div>
@@ -520,7 +540,7 @@
           <div class="stat-box"><div class="stat-label">Max</div><div class="stat-val" id="gs-max">—</div></div>
         </div>
 
-        <div class="tiny" style="margin-top:8px">Climb lengths (last 40):</div>
+        <div class="tiny" style="margin-top:8px">Last 40 Attempts:</div>
         <div id="hist-cycle-len" class="tiny" style="margin-top:2px"></div>
       </div>
     </div>
@@ -1028,7 +1048,7 @@ class SisyphusUI {
         const clone = tpl.content.cloneNode(true);
         const div = clone.querySelector('.cycle-entry');
         div.classList.add('active'); 
-        clone.querySelector('.cycle-main-text').textContent = `C${current.id}: ACTIVE`;
+        clone.querySelector('.cycle-main-text').textContent = `#${current.id}: ACTIVE`;
         clone.querySelector('.cycle-meta').textContent = `L:${current.length} A:${current.wins}`;
         let wrapped = '';
         for(let i=0; i<(current.path||'').length; i+=32) wrapped += current.path.slice(i, i+32) + '\n';
@@ -1040,7 +1060,7 @@ class SisyphusUI {
       const div = clone.querySelector('.cycle-entry');
       div.classList.add(c.outcome === 'top' ? 'top' : 'loss');
       const outText = c.outcome === 'top' ? 'SUMMIT' : 'RUIN';
-      clone.querySelector('.cycle-main-text').textContent = `C${c.id}: ${outText}`;
+      clone.querySelector('.cycle-main-text').textContent = `#${c.id}: ${outText}`;
       clone.querySelector('.cycle-meta').textContent = `L:${c.length} A:${c.wins}`;
       let wrapped = '';
       for(let i=0; i<(c.path||'').length; i+=32) wrapped += c.path.slice(i, i+32) + '\n';
