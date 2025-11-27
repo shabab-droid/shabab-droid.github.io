@@ -1225,14 +1225,14 @@ class ChaosEngine {
   }
   
   updateWeather(velocity) {
-    let intensity = (velocity * 40) / 30; 
+    let intensity = velocity * 1.33; 
     if(intensity > 1) intensity = 1;
     this.multiplier = 0.5 + (intensity * 2.0);
     if (this.modEl) this.modEl.textContent = this.multiplier.toFixed(2) + "x";
 
     let statusText = "", statusClass = "", color = "";
-    if(intensity < 0.25) { statusText = "CALM"; statusClass = "weather-good"; color = "#ff9e2c"; } 
-    else if (intensity < 0.6) { statusText = "WINDY"; statusClass = "weather-ok"; color = "#00b7ff"; } 
+    if(intensity < 0.17) { statusText = "CALM"; statusClass = "weather-good"; color = "#ff9e2c"; } 
+    else if (intensity < 0.37) { statusText = "WINDY"; statusClass = "weather-ok"; color = "#00b7ff"; } 
     else { statusText = "STORM"; statusClass = "weather-bad"; color = "#ff3333"; }
 
     if (this.statusEl) {
