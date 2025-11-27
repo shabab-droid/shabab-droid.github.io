@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v3.5 (Fixed Colors)</title>
+<title>Sisyphus' Ruin v3.6 (Import/Export)</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -114,7 +114,6 @@
     border-radius:6px; overflow:hidden;
   }
   
-  /* --- UPDATED PROGRESS BARS WITH COMPOSITED ANIMATION --- */
   .kpos-fill, .lpos-fill {
     height: 100%;
     width: 0%; /* Default */
@@ -130,37 +129,29 @@
     100% { background-position: 40px 0, 0 0; }
   }
 
-  /* Shared Active Motion Properties */
   .kpos-fill.active-motion, .lpos-fill.active-motion {
-    /* Flow Animation */
     animation: barberpole 0.5s linear infinite;
-    /* Glow */
     filter: brightness(1.2) contrast(1.1);
     box-shadow: 0 0 8px rgba(255,255,255,0.2);
     border-right: 2px solid rgba(255,255,255,0.8);
-    /* Size: Stripes (20px), Base (100% cover) */
     background-size: 20px 20px, 100% 100%;
   }
 
-  /* Specific: K-Pos (Height) Active - Layers Stripes ON TOP of Orange Gradient */
   .kpos-fill.active-motion {
     background-image: 
       linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
       linear-gradient(90deg, var(--accent), var(--accent-4));
   }
 
-  /* Specific: L-Pos (Poise) Active - Layers Stripes ON TOP of Blue Gradient */
   .lpos-fill.active-motion {
     background-image: 
       linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
       linear-gradient(90deg, var(--accent-3), var(--accent-2));
   }
 
-  /* REVERSE MOTION (DRAINING) */
   .kpos-fill.reverse-motion, .lpos-fill.reverse-motion {
     animation-direction: reverse; 
     border-right: 2px solid #ff9999;
-    /* Red Gradient for loss/spend */
     background-image: 
       linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
       linear-gradient(90deg, #ff4d4d, #ff3333) !important;
@@ -246,11 +237,7 @@
   details > summary::before { content: '▶'; display: inline-block; margin-right: 6px; font-size: 10px; color: var(--accent); transition: transform 0.2s; }
   details[open] > summary::before { transform: rotate(90deg); }
 </style>
-<link rel="icon" type="image/svg+xml" href="/sisyphus-icon.svg">
-
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23ff9e2c' /%3E%3C/svg%3E">
 
 </head>
 <body>
@@ -505,6 +492,13 @@
                  <span id="slot-mode-desc">Click to LOAD a saved game.</span>
                </div>
             </div>
+
+            <div class="row" style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1)">
+                <button class="btn" id="btn-export" style="flex:1">Export File</button>
+                <button class="btn" id="btn-import" style="flex:1">Import File</button>
+                <input type="file" id="file-import" style="display:none" accept=".json">
+            </div>
+
           </div>
         </details>
       </div>
@@ -1195,7 +1189,7 @@ class ChaosEngine {
     this.y = 10 + (Math.random() - 0.5) * 2; 
     this.z = 25 + (Math.random() - 0.5) * 2;
 
-    this.MAX_POINTS = 5000;
+    this.MAX_POINTS = 10000;
     this.points = new Array(this.MAX_POINTS).fill(null);
     this.head = 0; // Where the next point goes
     this.count = 0; // How many valid points we have
@@ -1398,6 +1392,14 @@ class GameController {
     
     document.querySelectorAll('.slot-mode-btn').forEach(b => b.addEventListener('click', (e) => this.setSlotMode(e.target.dataset.mode)));
     document.querySelectorAll('.slot-btn').forEach(b => b.addEventListener('click', (e) => this.handleSlotAction(e.currentTarget.dataset.slot)));
+    
+    // Import / Export
+    $('btn-export').onclick = () => this.exportToFile();
+    $('btn-import').onclick = () => $('file-import').click();
+    $('file-import').onchange = (e) => {
+      if(e.target.files.length > 0) this.importFromFile(e.target.files[0]);
+      e.target.value = ''; // Reset input
+    };
   }
 
   setSlotMode(mode) {
@@ -1444,6 +1446,64 @@ class GameController {
       const lblM = document.getElementById('lbl-M-goal');
       if(lblM) lblM.textContent = this.model.params.M;
     }
+  }
+  
+  exportToFile() {
+    const data = {
+        main: this.serialize(),
+        slots: {}
+    };
+    for(let i=1; i<=5; i++) {
+        const s = localStorage.getItem(`sisyphus_slot_${i}`);
+        if(s) data.slots[i] = s;
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sisyphus-ruin-save-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.announcer.announce("Save file exported");
+  }
+
+  importFromFile(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const json = JSON.parse(e.target.result);
+            // Handle new format (with slots) or raw export
+            const state = json.main || json;
+            
+            // Confirm overwrite if needed
+            if ((this.model.state.step > 0) && !confirm("Overwrite current run with imported file?")) return;
+
+            this.deserialize(state);
+            
+            // Restore slots if present
+            if(json.slots) {
+                for(const [k, v] of Object.entries(json.slots)) {
+                    localStorage.setItem(`sisyphus_slot_${k}`, v);
+                }
+            }
+
+            // Update UI
+            Object.keys(this.model.params).forEach(k => { const el = document.getElementById(k); if(el) el.value = this.model.params[k]; });
+            this.recalcExpectations();
+            this.ui.render(this.grids, true);
+            this.updateSlotUI();
+            this.chaos.reset();
+            const lblM = document.getElementById('lbl-M-goal');
+            if(lblM) lblM.textContent = this.model.params.M;
+            
+            alert("Save Imported Successfully");
+
+        } catch(err) {
+            console.error(err);
+            alert("Error parsing save file. It may be corrupt or from an incompatible version.");
+        }
+    };
+    reader.readAsText(file);
   }
 
   updateSlotUI() {
