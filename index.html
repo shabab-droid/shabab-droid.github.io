@@ -521,7 +521,7 @@
                 <details id="submenu-weather">
                     <summary>Weather System</summary>
                     <div class="details-content">
-                        <div class="row"><label for="chaos_dt">Dt (Chaos Step)</label><input id="chaos_dt" type="number" step="0.001" value="0.005"></div>
+                        <div class="row"><label for="chaos_dt">Dt (Chaos Step)</label><input id="chaos_dt" type="number" step="0.001" value="0.0025"></div>
                         <div class="desc">Simulation speed (Time Step).</div>
                         <div class="row"><label for="chaos_intensity">Intensity</label><input id="chaos_intensity" type="number" step="0.1" value="1.0"></div>
                         <div class="desc">Magnitude of time dilation.</div>
@@ -1172,7 +1172,7 @@ class SisyphusModel {
     this.params = {
       M:20, L:20, w_min:0.10, w_max:0.90, beta:1.5, rho:0.6, gamma:1.5,
       c_min:0.03, c_max:0.10, alpha:0.3, g_n:1, s_w:20, 
-      max_delay: 45.0, chaos_dt: 0.005, chaos_intensity: 1.0
+      max_delay: 45.0, chaos_dt: 0.0025, chaos_intensity: 1.0
     };
     this.reset();
   }
@@ -1616,7 +1616,7 @@ class ChaosEngine {
   }
 
   setParams(dt, intensity) {
-      this.dt = dt || 0.005;
+      this.dt = dt || 0.0025;
       this.intensity = intensity || 1.0;
   }
   
