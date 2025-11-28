@@ -6,7 +6,7 @@
 
 ## 🏔️ Overview
 
-The goal is simple: Push the stone to the Summit (Height 20). However, the journey is governed by probability and chaos.
+The goal is simple: Push the stone to the Summit. However, the journey is governed by probability and chaos.
 
 Each roll of the dice results in one of three outcomes:
 1.  **Ascent:** The stone rises.
