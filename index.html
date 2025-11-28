@@ -1301,7 +1301,7 @@ class ChaosEngine {
     this.statusEl = document.getElementById('weather-status-main');
     this.modEl = document.getElementById('weather-mod-val');
     
-    this.SIGMA = 10; this.RHO = 28; this.BETA = 8/3; this.DT = 0.0025; 
+    this.SIGMA = 10; this.RHO = 28; this.BETA = 8/3; this.DT = 0.005; 
     
     this.x = 10 + (Math.random() - 0.5) * 2; 
     this.y = 10 + (Math.random() - 0.5) * 2; 
@@ -1355,7 +1355,7 @@ class ChaosEngine {
   }
 
   updateWeather(velocity) {
-    let intensity = velocity * 1.33; 
+    let intensity = velocity * .667; 
     if(intensity > 1) intensity = 1;
     this.multiplier = 0.5 + (intensity * 2.0);
     if (this.modEl) this.modEl.textContent = this.multiplier.toFixed(2) + "x";
