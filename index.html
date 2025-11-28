@@ -3,33 +3,61 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v3.7 (Summit & Single Slots)</title>
+<title>Sisyphus' Ruin v3.8.2 (Atmosphere Fix)</title>
 <style>
-  :root{
-    --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
-    --accent:#ff9e2c; --accent-2:#ff00b8; --accent-3:#00b7ff; --accent-4:#ff4efc;
-    --danger:#ff3333; --success:#00ff9d;
-  }
+  :root {
+    /* Default Colors (Cosmic) - These are overridden by JS themes */
+    --bg: #080014;
+    --text: #fef8ff;
+    --muted: #cdaeff;
+    --accent: #ff9e2c;   /* Gold/Orange */
+    --accent-2: #ff00b8; /* Pink */
+    --accent-3: #00b7ff; /* Blue */
+    --accent-4: #ff4efc; /* Purple */
+    --danger: #ff3333;
+    --success: #00ff9d;
+    
+    --card-bg: rgba(12, 0, 32, 0.6);
+    --card-border: rgba(255,255,255,0.05);
 
-  body{
-    margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; color:var(--text);
-    min-height: 100vh; background-color:#050010;
-    background-image:
+    --bg-image: 
       radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%),
       radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%),
       linear-gradient(180deg,#0b0014 0%, #050010 100%);
-    background-repeat:no-repeat; background-size:cover;
+  }
+
+  body {
+    margin: 0; font-family: Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; 
+    color: var(--text);
+    min-height: 100vh; 
+    background-color: var(--bg);
+    background-image: var(--bg-image);
+    background-repeat: no-repeat; 
+    background-size: cover;
+    background-attachment: fixed;
+    transition: background-color 0.5s ease, color 0.5s ease, background-image 0.5s ease;
   }
   
   .app{max-width:1100px;margin:0 auto;padding:12px}
+  
   h1{
     text-align:center; font-size:clamp(22px,3vw,30px); margin:14px 0 12px; letter-spacing:.5px;
-    background:linear-gradient(90deg,var(--accent),var(--accent-2),var(--accent-3));
+    background:linear-gradient(9deg,var(--accent),var(--accent-2),var(--accent-3));
     -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
   }
+  
   .grid{display:grid;grid-template-columns:1fr 360px;gap:12px}
   @media(max-width:900px){.grid{grid-template-columns:1fr}}
-  .card{background:rgba(12, 0, 32, 0.6); backdrop-filter:blur(4px); padding:14px; border-radius:8px; border:1px solid rgba(255,255,255,0.05);}
+  
+  .card {
+    background: var(--card-bg); 
+    backdrop-filter: blur(4px); 
+    padding: 14px; 
+    border-radius: 8px; 
+    border: 1px solid var(--card-border);
+    transition: background 0.5s ease, border-color 0.5s ease;
+  }
   
   .card h2 { font-size: 18px; margin: 0 0 8px; opacity: 0.9; }
 
@@ -37,8 +65,9 @@
     appearance:none; background:#1c0130; border:none; color:var(--text); border-radius:6px;
     padding:10px 14px; cursor:pointer; font-weight:600; letter-spacing:.3px;
     transition:background .15s ease,transform .1s ease; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
+    background: rgba(0,0,0,0.3); /* Adaptive button bg */
   }
-  .btn:hover{background:#2d0048}
+  .btn:hover{background:rgba(255,255,255,0.1)}
   .btn:active{transform:scale(.97)}
   .btn:focus{outline:2px solid var(--accent);outline-offset:2px}
   
@@ -53,7 +82,7 @@
   }
   .checkbox-wrapper:hover { opacity: 1; }
   .checkbox-wrapper input[type="checkbox"] {
-    appearance: none; width: 16px; height: 16px; background: #140026;
+    appearance: none; width: 16px; height: 16px; background: rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.3); border-radius: 3px; cursor: pointer;
     display: grid; place-content: center; margin: 0;
   }
@@ -67,9 +96,9 @@
 
   .docked-control {
     position: sticky; top: 0; z-index: 1000;
-    background: rgba(5, 0, 16, 0.85); backdrop-filter: blur(8px);
+    background: var(--card-bg); backdrop-filter: blur(8px);
     margin: -12px -12px 12px -12px; padding: 12px;
-    border-bottom: 1px solid rgba(255, 166, 0, 0.15);
+    border-bottom: 1px solid var(--accent);
     display: flex; justify-content: center;
   }
 
@@ -77,22 +106,22 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     width:100%; padding:12px; margin-bottom:0; 
     background: linear-gradient(90deg, var(--accent), var(--accent-3), #ff2400); 
-    color:#120026; font-weight:800; max-width: 600px; min-height: 64px; 
+    color: var(--bg); font-weight:800; max-width: 600px; min-height: 64px; 
     line-height: 1.2; transition: background 0.3s ease; border: none;
     text-shadow: 0 0 10px rgba(255,255,255,0.2);
   }
   .btn.big:hover{opacity: 0.9;}
   
-  .btn.big.outcome-win:disabled { background: var(--accent) !important; color: #120026 !important; opacity: 1 !important; }
-  .btn.big.outcome-neu:disabled { background: var(--accent-3) !important; color: #120026 !important; opacity: 1 !important; }
-  .btn.big.outcome-loss:disabled { background: #ff2400 !important; color: #ffffff !important; opacity: 1 !important; }
+  .btn.big.outcome-win:disabled { background: var(--accent) !important; color: var(--bg) !important; opacity: 1 !important; }
+  .btn.big.outcome-neu:disabled { background: var(--accent-3) !important; color: var(--bg) !important; opacity: 1 !important; }
+  .btn.big.outcome-loss:disabled { background: var(--danger) !important; color: #ffffff !important; opacity: 1 !important; }
   
   .btn-main-text { font-size: 20px; text-transform: uppercase; }
 
   label{width:120px;font-size:12px;color:var(--muted)}
   
   input[type="number"],select{
-    background:#140026; color:var(--text); border:none; border-radius:4px;
+    background:rgba(0,0,0,0.3); color:var(--text); border:none; border-radius:4px;
     padding:6px 8px; width: 54px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
   }
   select#speed { width: auto; }
@@ -102,15 +131,15 @@
   .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .bar{
     height:10px; background:rgba(255,255,255,.06); border-radius:8px;
-    overflow:hidden; margin:3px 0; border:1px solid rgba(255,166,0,.12);
+    overflow:hidden; margin:3px 0; border:1px solid rgba(255,255,255,.1);
   }
   .bar>div{height:100%}
   .bar .win{background:var(--accent)}
   .bar .neu{background:var(--accent-3)}
-  .bar .loss{background:#ff2400}
+  .bar .loss{background:var(--danger)}
 
   .kpos-track,.lpos-track{
-    height:6px; background:rgba(255,255,255,.06); border:1px solid rgba(255,166,0,.12);
+    height:6px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
     border-radius:6px; overflow:hidden;
   }
   
@@ -151,30 +180,30 @@
 
   .kpos-fill.reverse-motion, .lpos-fill.reverse-motion {
     animation-direction: reverse; 
-    border-right: 2px solid #ff9999;
+    border-right: 2px solid var(--danger);
     background-image: 
       linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
-      linear-gradient(90deg, #ff4d4d, #ff3333) !important;
+      linear-gradient(90deg, var(--danger), var(--danger)) !important;
   }
   
   .tiny{font-size:11px;opacity:.65;color:var(--muted)}
   .mono{font-family:monospace;}
   .small{font-size:12px;}
 
-  .recent.win #recent-outcome{color:#ffd54a; text-shadow:0 0 6px rgba(255,213,74,.65),0 0 18px rgba(255,180,0,.4);}
-  .recent.neu #recent-outcome{color:var(--accent-3); text-shadow:0 0 6px rgba(0,183,255,.65),0 0 18px rgba(0,183,255,.4);}
-  .recent.loss #recent-outcome{color:#ff4d4d; text-shadow:0 0 6px rgba(255,77,77,.65),0 0 18px rgba(255,40,40,.4);}
+  .recent.win #recent-outcome{color:var(--accent); text-shadow:0 0 12px var(--accent);}
+  .recent.neu #recent-outcome{color:var(--accent-3); text-shadow:0 0 12px var(--accent-3);}
+  .recent.loss #recent-outcome{color:var(--danger); text-shadow:0 0 12px var(--danger);}
   
   .cycle-entry {
     font-family: monospace; font-size: 11px; border-radius: 4px; 
     border-left: 3px solid rgba(255,255,255,.12); padding: 4px 6px; 
-    margin-bottom: 4px; background: rgba(12,0,32,0.6); 
+    margin-bottom: 4px; background: rgba(0,0,0,0.3); 
     white-space: pre-wrap; word-break: break-word;
     display: flex; flex-direction: column; gap: 1px;
   }
-  .cycle-entry.loss { border-color: rgba(255,90,90,.8); }
-  .cycle-entry.top { border-color: rgba(255,210,90,.9); background: rgba(30,20,0,0.4); }
-  .cycle-entry.active { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.05); }
+  .cycle-entry.loss { border-color: var(--danger); }
+  .cycle-entry.top { border-color: var(--accent); background: rgba(255,255,255,0.1); }
+  .cycle-entry.active { border-color: var(--text); background: rgba(255,255,255,0.05); }
 
   .cycle-entry-top-row { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; opacity: 0.9; line-height: 1.2; }
   .cycle-id { color: var(--accent-3); margin-right: 6px; }
@@ -195,7 +224,7 @@
   /* Modals */
   .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); z-index: 2000; align-items: center; justify-content: center; }
   .modal.show { display: flex; }
-  .modal-content { background: rgba(20,0,38,0.95); border: 2px solid var(--accent); padding: 24px; border-radius: 10px; max-width: 450px; width: 90%; box-shadow: 0 0 40px rgba(0,0,0,0.8); position: relative; }
+  .modal-content { background: var(--bg); border: 2px solid var(--accent); padding: 24px; border-radius: 10px; max-width: 450px; width: 90%; box-shadow: 0 0 40px rgba(0,0,0,0.8); position: relative; }
   .modal h3 { margin-top: 0; color: var(--accent); font-size: 20px; letter-spacing: 0.5px; }
   .modal kbd { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-family: monospace; border: 1px solid rgba(255,255,255,0.2); }
   
@@ -204,9 +233,9 @@
   .welcome-list strong { color: var(--accent-3); }
 
   .weather-status { font-weight: 800; letter-spacing: 0.5px; }
-  .weather-good { color: var(--accent); text-shadow: 0 0 5px rgba(255,158,44,0.4); }
-  .weather-ok { color: var(--accent-3); text-shadow: 0 0 5px rgba(0,183,255,0.4); }
-  .weather-bad { color: #ff3333; text-shadow: 0 0 5px rgba(255,51,51,0.4); }
+  .weather-good { color: var(--accent); text-shadow: 0 0 5px var(--accent); }
+  .weather-ok { color: var(--accent-3); text-shadow: 0 0 5px var(--accent-3); }
+  .weather-bad { color: var(--danger); text-shadow: 0 0 5px var(--danger); }
 
   #weather-card { position: relative; overflow: hidden; min-height: 250px; display: flex; flex-direction: column; justify-content: space-between; }
   #weather-content { position: relative; z-index: 2; }
@@ -216,13 +245,13 @@
   .slot-mode-switch { display: flex; gap: 4px; margin-bottom: 8px; }
   .slot-mode-btn { flex: 1; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px; border: 1px solid transparent; opacity: 0.5; transition: all 0.2s ease; }
   .slot-mode-btn.active { opacity: 1; font-weight: 800; }
-  .mode-save .slot-mode-btn[data-mode="save"] { background: var(--accent); color: #120026; box-shadow: 0 0 8px var(--accent); }
-  .mode-load .slot-mode-btn[data-mode="load"] { background: var(--accent-3); color: #120026; box-shadow: 0 0 8px var(--accent-3); }
+  .mode-save .slot-mode-btn[data-mode="save"] { background: var(--accent); color: var(--bg); box-shadow: 0 0 8px var(--accent); }
+  .mode-load .slot-mode-btn[data-mode="load"] { background: var(--accent-3); color: var(--bg); box-shadow: 0 0 8px var(--accent-3); }
 
   .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-  .slot-btn { background: #1c0130; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px 4px; font-family: monospace; font-size: 10px; color: var(--muted); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px; text-align: center; }
-  .slot-btn:hover { background: #2d0048; border-color: rgba(255,255,255,0.3); }
-  .slot-btn.has-data { border-color: rgba(255,255,255,0.3); color: var(--text); background: linear-gradient(180deg, #1c0130, #22023a); }
+  .slot-btn { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px 4px; font-family: monospace; font-size: 10px; color: var(--muted); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px; text-align: center; }
+  .slot-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
+  .slot-btn.has-data { border-color: rgba(255,255,255,0.3); color: var(--text); background: rgba(255,255,255,0.05); }
   .slot-btn.empty { opacity: 0.6; font-style: italic; }
   .mode-save .slot-btn:hover { border-color: var(--accent); color: var(--accent); }
   .mode-load .slot-btn:hover { border-color: var(--accent-3); color: var(--accent-3); }
@@ -238,9 +267,7 @@
   details[open] > summary::before { transform: rotate(90deg); }
 </style>
 <link rel="icon" type="image/svg+xml" href="/sisyphus-icon.svg">
-
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
 </head>
@@ -281,7 +308,7 @@
 </div>
 
 <div class="modal" id="summit-modal" role="dialog" aria-labelledby="summit-title">
-  <div class="modal-content" style="border-color: var(--success); box-shadow: 0 0 50px rgba(0,255,157,0.15);">
+  <div class="modal-content" style="border-color: var(--success); box-shadow: 0 0 50px var(--success);">
     <h3 id="summit-title" style="color:var(--success); text-align:center; font-size:24px; margin-bottom:8px">The Summit</h3>
     <div class="tiny" style="text-align:center; margin-bottom:20px; font-style:italic; opacity:0.8">
       The stone rests. The air is still. For a moment, the struggle ceases.
@@ -454,6 +481,17 @@
           </summary>
           
           <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
+              
+              <div class="row" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <label for="theme-select" style="color:var(--accent-3)">Visual Theme</label>
+                <select id="theme-select" style="width:100%">
+                    <option value="default">Cosmic (Default)</option>
+                    <option value="magma">Sisyphus (Magma)</option>
+                    <option value="terminal">Terminal (Matrix)</option>
+                    <option value="paper">Academic (Light)</option>
+                    <option value="ocean">Abyss (Deep Blue)</option>
+                </select>
+              </div>
               <div class="row"><label for="M">M (Max Height)</label><input id="M" type="number" value="20"></div>
               <div class="desc">Max steps to win (k).</div>
               <div class="row"><label for="L">L (Max Poise)</label><input id="L" type="number" value="20"></div>
@@ -585,6 +623,45 @@
 </div>
 
 <script>
+
+const THEMES = {
+  default: {
+    '--bg': '#080014', '--text': '#fef8ff', '--muted': '#cdaeff',
+    '--accent': '#ff9e2c', '--accent-2': '#ff00b8', '--accent-3': '#00b7ff', '--accent-4': '#ff4efc',
+    '--danger': '#ff3333', '--success': '#00ff9d',
+    '--card-bg': 'rgba(12, 0, 32, 0.6)', '--card-border': 'rgba(255,255,255,0.05)',
+    '--bg-image': 'radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%), radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%), linear-gradient(180deg,#0b0014 0%, #050010 100%)'
+  },
+  magma: {
+    '--bg': '#1a0500', '--text': '#ffe0d0', '--muted': '#ff9e80',
+    '--accent': '#ffcc00', '--accent-2': '#ff4400', '--accent-3': '#ff8800', '--accent-4': '#ff2200',
+    '--danger': '#ff0000', '--success': '#ffcc00',
+    '--card-bg': 'rgba(40, 5, 0, 0.7)', '--card-border': 'rgba(255, 100, 0, 0.2)',
+    '--bg-image': 'radial-gradient(circle at 50% 0%, rgba(255,200,0,0.2), transparent 60%), linear-gradient(0deg, #1a0500 0%, #3d0c02 100%)'
+  },
+  terminal: {
+    '--bg': '#000000', '--text': '#00ff00', '--muted': '#008f11',
+    '--accent': '#00ff00', '--accent-2': '#00cc00', '--accent-3': '#008800', '--accent-4': '#004400',
+    '--danger': '#ff3333', '--success': '#00ff00',
+    '--card-bg': 'rgba(0, 20, 0, 0.85)', '--card-border': 'rgba(0,255,0,0.3)',
+    '--bg-image': 'linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px)'
+  },
+  paper: {
+    '--bg': '#f0f2f5', '--text': '#1a1a1a', '--muted': '#555555',
+    '--accent': '#d9534f', '--accent-2': '#337ab7', '--accent-3': '#5bc0de', '--accent-4': '#5cb85c',
+    '--danger': '#d9534f', '--success': '#5cb85c',
+    '--card-bg': 'rgba(255, 255, 255, 0.8)', '--card-border': 'rgba(0,0,0,0.1)',
+    '--bg-image': 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
+  },
+  ocean: {
+    '--bg': '#000814', '--text': '#e0f7ff', '--muted': '#7abaff',
+    '--accent': '#00d9ff', '--accent-2': '#0055ff', '--accent-3': '#0088ff', '--accent-4': '#002288',
+    '--danger': '#ff3333', '--success': '#00ffcc',
+    '--card-bg': 'rgba(0, 10, 30, 0.6)', '--card-border': 'rgba(0,180,255,0.1)',
+    '--bg-image': 'radial-gradient(circle at 50% 100%, rgba(0,255,180,0.15), transparent 70%), linear-gradient(180deg, #000814 0%, #001a33 100%)'
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 /* MODULE 0: UTILITIES & HELPERS                                             */
 /* -------------------------------------------------------------------------- */
@@ -910,7 +987,7 @@ class SisyphusModel {
 }
 
 /* -------------------------------------------------------------------------- */
-/* MODULE 3: UI MANAGER (UPDATED FOR ANIMATION)                               */
+/* MODULE 3: UI MANAGER                                                       */
 /* -------------------------------------------------------------------------- */
 class SisyphusUI {
   constructor(model) {
@@ -1226,20 +1303,21 @@ class ChaosEngine {
     
     this.SIGMA = 10; this.RHO = 28; this.BETA = 8/3; this.DT = 0.0025; 
     
-    // START ON THE WING: Initialize near the attractor's "eye"
-    // Randomized slightly so every reload is unique, but immediate.
     this.x = 10 + (Math.random() - 0.5) * 2; 
     this.y = 10 + (Math.random() - 0.5) * 2; 
     this.z = 25 + (Math.random() - 0.5) * 2;
 
     this.MAX_POINTS = 10000;
     this.points = new Array(this.MAX_POINTS).fill(null);
-    this.head = 0; // Where the next point goes
-    this.count = 0; // How many valid points we have
+    this.head = 0; 
+    this.count = 0; 
     
     this.angle = 0; this.rotSpeed = 0.005; 
     this.scale = 9; this.fov = 300; this.yOffset = 20;     
     this.multiplier = 1.0; 
+    
+    // Fallback palette
+    this.colors = { calm: '#ff9e2c', windy: '#00b7ff', storm: '#ff3333' };
 
     this.resize();
     window.addEventListener('resize', () => this.resize());
@@ -1261,6 +1339,21 @@ class ChaosEngine {
     return Math.sqrt(dx*dx + dy*dy + dz*dz);
   }
   
+  setPalette(theme) {
+     this.colors = {
+         calm: theme['--accent'],
+         windy: theme['--accent-3'],
+         storm: theme['--danger']
+     };
+  }
+  
+  // NEW: Safely clears the trail without crashing the animation loop
+  clearTrail() {
+    this.points.fill(null);
+    this.head = 0;
+    this.count = 0;
+  }
+
   updateWeather(velocity) {
     let intensity = velocity * 1.33; 
     if(intensity > 1) intensity = 1;
@@ -1268,9 +1361,14 @@ class ChaosEngine {
     if (this.modEl) this.modEl.textContent = this.multiplier.toFixed(2) + "x";
 
     let statusText = "", statusClass = "", color = "";
-    if(intensity < 0.17) { statusText = "CALM"; statusClass = "weather-good"; color = "#ff9e2c"; } 
-    else if (intensity < 0.37) { statusText = "WINDY"; statusClass = "weather-ok"; color = "#00b7ff"; } 
-    else { statusText = "STORM"; statusClass = "weather-bad"; color = "#ff3333"; }
+    
+    if(intensity < 0.17) { 
+        statusText = "CALM"; statusClass = "weather-good"; color = this.colors.calm;
+    } else if (intensity < 0.37) { 
+        statusText = "WINDY"; statusClass = "weather-ok"; color = this.colors.windy;
+    } else { 
+        statusText = "STORM"; statusClass = "weather-bad"; color = this.colors.storm;
+    }
 
     if (this.statusEl) {
       this.statusEl.textContent = statusText;
@@ -1293,8 +1391,6 @@ class ChaosEngine {
     this.points.fill(null);
     this.count = 0;
     this.head = 0;
-    
-    // RESET TO WING
     this.x = 10 + (Math.random() - 0.5) * 2; 
     this.y = 10 + (Math.random() - 0.5) * 2; 
     this.z = 25 + (Math.random() - 0.5) * 2;
@@ -1350,7 +1446,6 @@ class ChaosEngine {
     this.ctx.stroke();
   }
 
-  // 👇 NEW: highlight the leading edge
   if (this.count > 0) {
     const lastIdx = (this.head - 1 + this.MAX_POINTS) % this.MAX_POINTS;
     const lastP = this.points[lastIdx];
@@ -1359,7 +1454,7 @@ class ChaosEngine {
     this.ctx.save();
     this.ctx.shadowColor = "rgba(255,255,255,0.9)";
     this.ctx.shadowBlur = 12;
-    this.ctx.fillStyle = "#ffffff";    // leading point = white
+    this.ctx.fillStyle = "#ffffff";
     this.ctx.beginPath();
     this.ctx.arc(lastProj.x, lastProj.y, 3, 0, Math.PI * 2);
     this.ctx.fill();
@@ -1401,11 +1496,14 @@ class GameController {
     this.bindEvents();
     this.bindKeyboard();
     this.load(); 
+    
+    const savedTheme = localStorage.getItem('sisyphus_theme') || 'default';
+    this.setTheme(savedTheme);
+
     this.recalcExpectations();
     this.ui.render(this.grids, true); 
     this.updateSlotUI();
     
-    // First Ascent Modal check
     if (!localStorage.getItem('sisyphus_welcome_seen')) {
       document.getElementById('welcome-modal').classList.add('show');
     }
@@ -1444,13 +1542,32 @@ class GameController {
     document.querySelectorAll('.slot-mode-btn').forEach(b => b.addEventListener('click', (e) => this.setSlotMode(e.target.dataset.mode)));
     document.querySelectorAll('.slot-btn').forEach(b => b.addEventListener('click', (e) => this.handleSlotAction(e.currentTarget.dataset.slot)));
     
-    // Import / Export
     $('btn-export').onclick = () => this.exportSlot();
     $('btn-import').onclick = () => $('file-import').click();
     $('file-import').onchange = (e) => {
       if(e.target.files.length > 0) this.importToSlot(e.target.files[0]);
-      e.target.value = ''; // Reset input
+      e.target.value = ''; 
     };
+
+    $('theme-select').onchange = (e) => this.setTheme(e.target.value);
+  }
+
+  setTheme(name) {
+      const theme = THEMES[name] || THEMES.default;
+      const root = document.documentElement;
+      Object.entries(theme).forEach(([key, val]) => {
+        root.style.setProperty(key, val);
+      });
+      localStorage.setItem('sisyphus_theme', name);
+      
+      const sel = document.getElementById('theme-select');
+      if(sel) sel.value = name;
+      
+      // FIX: Call clearTrail() to reset counters, avoiding the "null point" crash
+      if(this.chaos) {
+          this.chaos.setPalette(theme);
+          this.chaos.clearTrail();
+      }
   }
 
   setSlotMode(mode) {
@@ -1491,15 +1608,13 @@ class GameController {
       Object.keys(this.model.params).forEach(k => { const el = document.getElementById(k); if(el) el.value = this.model.params[k]; });
       this.recalcExpectations();
       this.ui.render(this.grids, true);
-      this.chaos.reset(); // Clear chaos trail on load
+      this.chaos.reset(); 
       
-      // Ensure Goal text matches loaded params
       const lblM = document.getElementById('lbl-M-goal');
       if(lblM) lblM.textContent = this.model.params.M;
     }
   }
   
-  // NEW EXPORT LOGIC: Single Slot or Current Run
   exportSlot() {
     const slot = prompt("Export which slot?\n0 = Current Run\n1-5 = Saved Slot");
     if (slot === null) return;
@@ -1531,13 +1646,11 @@ class GameController {
     this.announcer.announce("Export complete");
   }
 
-  // NEW IMPORT LOGIC: Import into Slot
   importToSlot(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
         try {
             const json = JSON.parse(e.target.result);
-            // Handle legacy format (with wrappers) or new raw format
             const state = json.main || json;
             
             const slot = prompt("Import data into which slot?\n0 = Overwrite Current Run (Play Immediately)\n1-5 = Save to Slot");
@@ -1616,30 +1729,20 @@ class GameController {
     if (this.controlsLocked) return;
     if(this.isAuto) this.toggleAuto();
     
-    // Capture state BEFORE the step
     const prevK = this.model.state.k;
     const prevL = this.model.state.l;
 
-    // Run the Logic
     const res = this.model.step();
     this.handleStepResult(res); 
     this.save();
 
     const delay = this.getDynamicDelay();
 
-    // Check if we should animate: Only if there is a delay and we haven't won yet
     if (res !== 'top' && delay > 50) {
-      // 1. Render charts/stats immediately so user sees the outcome text (Ascent/Ruin)
-      // BUT pass true to 'skipBars' so the bars don't jump instantly
       this.ui.render(this.grids, true, true); 
-
-      // 2. Trigger the bar animation from Prev -> Current over Delay
       this.ui.animateChange(prevK, prevL, this.model.state.k, this.model.state.l, delay, this.model.params);
-
-      // 3. Lock controls
       this.lockControls(delay, res);
     } else {
-      // Instant render (no delay or turbo mode)
       this.ui.render(this.grids);
     }
   }
@@ -1663,7 +1766,6 @@ class GameController {
         btn.className = 'btn big';
         mainSpan.textContent = "ROLL";
         
-        // Finalize UI: Snap bars and text to the true model state at the end of animation
         this.ui.render(this.grids); 
       } else {
         mainSpan.textContent = `${verb} · ${(Math.max(0, remaining)/1000).toFixed(1)}s`;
@@ -1725,7 +1827,6 @@ class GameController {
     
     document.getElementById('summit-duration').textContent = this.ui._formatDuration(elapsed);
     document.getElementById('summit-steps').textContent = this.model.state.step;
-    // cycleId is 1-based, so current cycle ID is the count of attempts including this one
     document.getElementById('summit-cycles').textContent = this.model.cycleId;
     
     modal.classList.add('show');
@@ -1737,7 +1838,6 @@ class GameController {
       const el = document.getElementById(k); if(el) p[k] = +el.value;
     });
 
-    // Update goal description
     const lblM = document.getElementById('lbl-M-goal');
     if(lblM) lblM.textContent = p.M;
 
@@ -1750,7 +1850,6 @@ class GameController {
     this.chaos.reset(); 
     this.recalcExpectations();
     this.ui.render(this.grids, true);
-    // Log clear removed
     this.save();
     this.announcer.announce("Game reset");
   }
@@ -1770,7 +1869,7 @@ class GameController {
     };
   }
 
-  deserialize(data) {
+    deserialize(data) {
     Object.assign(this.model.params, data.params); Object.assign(this.model.state, data.state);
     Object.assign(this.model.stats, data.stats);
     if(data.historyK) this.model.historyK = data.historyK;
@@ -1794,7 +1893,6 @@ class GameController {
       if(raw) {
         this.deserialize(JSON.parse(raw));
         Object.keys(this.model.params).forEach(k => { const el = document.getElementById(k); if(el) el.value = this.model.params[k]; });
-        // Set goal text on load
         const lblM = document.getElementById('lbl-M-goal');
         if(lblM) lblM.textContent = this.model.params.M;
       }
