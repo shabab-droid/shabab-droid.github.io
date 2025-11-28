@@ -887,58 +887,128 @@ class ColorUtils {
                `linear-gradient(180deg, ${bgBase} 0%, ${bgDark} 100%)`;
     }
     
-    // Improved palette generation with semantic awareness
-// Improved palette generation with relaxed constraints
+    // Color harmony schemes for aesthetically pleasing palettes
+    static HARMONY_SCHEMES = {
+        complementary: (base) => [base, base + Math.PI],
+        triadic: (base) => [base, base + (2*Math.PI/3), base + (4*Math.PI/3)],
+        splitComplementary: (base) => [base, base + Math.PI - 0.52, base + Math.PI + 0.52],
+        analogous: (base) => [base, base + 0.52, base - 0.52],
+        tetradic: (base) => [base, base + Math.PI/2, base + Math.PI, base + 3*Math.PI/2],
+    };
+    
+    // Normalize hue to 0-2π range
+    static normalizeHue(h) {
+        while (h < 0) h += 2 * Math.PI;
+        while (h >= 2 * Math.PI) h -= 2 * Math.PI;
+        return h;
+    }
+    
+    // Get perceptual distance between two hues
+    static hueDistance(h1, h2) {
+        const d = Math.abs(this.normalizeHue(h1) - this.normalizeHue(h2));
+        return Math.min(d, 2 * Math.PI - d);
+    }
+    
+    // Ensure color has sufficient contrast against background
+    static ensureContrast(lightness, chroma, hue, bgLightness, minContrast = 0.35) {
+        let L = lightness;
+        const diff = Math.abs(L - bgLightness);
+        if (diff < minContrast) {
+            // Push lightness away from background
+            L = bgLightness < 0.5 ? Math.min(0.95, bgLightness + minContrast + 0.1) 
+                                   : Math.max(0.2, bgLightness - minContrast - 0.1);
+        }
+        return this.generateOklchColor(L, chroma, hue);
+    }
+    
+    // Improved palette generation using color harmony theory
     static generateSemanticPalette() {
+        // Pick a random harmony scheme
+        const schemes = Object.keys(this.HARMONY_SCHEMES);
+        const schemeName = schemes[Math.floor(Math.random() * schemes.length)];
+        const scheme = this.HARMONY_SCHEMES[schemeName];
+        
+        // Base hue - random starting point
         const hueBase = Math.random() * 2 * Math.PI;
+        const harmonyHues = scheme(hueBase).map(h => this.normalizeHue(h));
         
-        // Relaxed Constraints:
-        // Chroma: Allow much higher saturation (up to 0.3) and lower (0.05)
-        const chromaBase = this.Lerp(0.05, 0.30, Math.random());
-        // Lightness: Allow darker accents (0.4) up to very bright (0.95)
-        const lightnessBase = this.Lerp(0.40, 0.95, Math.random());
+        // Theme mood: affects lightness/chroma ranges
+        const mood = Math.random();
+        let lightnessRange, chromaRange;
         
-        // Main accent - vibrant, any hue
-        const accent = this.generateOklchColor(lightnessBase, chromaBase, hueBase);
+        if (mood < 0.33) {
+            // Vibrant/energetic: high chroma, medium-high lightness
+            chromaRange = { min: 0.18, max: 0.28 };
+            lightnessRange = { min: 0.60, max: 0.85 };
+        } else if (mood < 0.66) {
+            // Elegant/muted: medium chroma, varied lightness
+            chromaRange = { min: 0.10, max: 0.20 };
+            lightnessRange = { min: 0.50, max: 0.80 };
+        } else {
+            // Bold/dramatic: high chroma, high contrast
+            chromaRange = { min: 0.20, max: 0.30 };
+            lightnessRange = { min: 0.65, max: 0.92 };
+        }
         
-        // Accent-2 - complementary/split
-        const hue2 = hueBase + Math.PI * (0.2 + Math.random() * 0.8); // Wider hue shift variance
-        const accent2 = this.generateOklchColor(lightnessBase, chromaBase, hue2);
+        const chromaBase = this.Lerp(chromaRange.min, chromaRange.max, Math.random());
+        const lightnessBase = this.Lerp(lightnessRange.min, lightnessRange.max, Math.random());
         
-        // Accent-3 - Distinct hue, randomize lightness relationship to main accent
-        const hue3 = hueBase + Math.PI * (0.5 + Math.random() * 0.5);
-        // Randomly make it lighter or darker than base
-        const acc3Light = Math.max(0.3, Math.min(0.98, lightnessBase + (Math.random() - 0.5) * 0.4));
-        const accent3 = this.generateOklchColor(acc3Light, chromaBase, hue3);
-        
-        // Danger - Warm hues, but match the theme's intensity (Chroma/Lightness)
-        const dangerHue = Math.random() * Math.PI * 0.4; // Keep hue warm for readability (0-72deg)
-        const danger = this.generateOklchColor(lightnessBase, chromaBase, dangerHue);
-        
-        // Success - Cool/Green hues, match theme intensity
-        const successHue = Math.PI * 0.5 + Math.random() * Math.PI * 0.4; // Green-Cyan range
-        const success = this.generateOklchColor(lightnessBase, chromaBase, successHue);
-        
-        // Background - Allow more color tint (chroma up to 0.08 vs previous 0.02)
-        // Also allow it to be slightly lighter (up to 0.2) for "deep" colors vs just black
-        const bgLightness = this.Lerp(0.02, 0.20, Math.random());
-        const bgChroma = this.Lerp(0.01, 0.08, Math.random());
+        // Background: dark with subtle tint from base hue
+        const bgLightness = this.Lerp(0.03, 0.12, Math.random());
+        const bgChroma = this.Lerp(0.01, 0.04, Math.random());
         const bg = this.generateOklchColor(bgLightness, bgChroma, hueBase);
         
-        // Text - High contrast is the only strict readability rule left
-        // If BG is dark (<0.5), text is light. If BG happened to get light, text goes dark.
-        const textLightness = bgLightness < 0.5 ? 0.95 : 0.05;
-        const text = this.generateOklchColor(textLightness, 0.01, hueBase);
+        // Main accent: from harmony scheme
+        const accent = this.ensureContrast(lightnessBase, chromaBase, harmonyHues[0], bgLightness);
         
-        // Muted - derived from accent
+        // Accent-2: second harmony color, slight lightness variation
+        const light2 = this.Lerp(lightnessBase - 0.1, lightnessBase + 0.1, Math.random());
+        const hue2 = harmonyHues[1] || (hueBase + Math.PI * 0.6);
+        const accent2 = this.ensureContrast(Math.max(0.4, Math.min(0.9, light2)), chromaBase, hue2, bgLightness);
+        
+        // Accent-3: third harmony color or derived, different lightness for distinction
+        const light3Direction = Math.random() > 0.5 ? 1 : -1;
+        const light3 = Math.max(0.4, Math.min(0.9, lightnessBase + light3Direction * this.Lerp(0.1, 0.25, Math.random())));
+        const hue3 = harmonyHues[2] || (hueBase + Math.PI * 1.2);
+        const accent3 = this.ensureContrast(light3, chromaBase * 0.9, hue3, bgLightness);
+        
+        // Danger: Always warm (red-orange range), high visibility
+        // Constrain to 0-60° in radians (0 to π/3) with some orange allowed
+        const dangerHue = this.Lerp(0, Math.PI * 0.35, Math.random());
+        const dangerChroma = Math.max(chromaBase, 0.20); // Ensure danger is saturated
+        const dangerLightness = Math.max(lightnessBase, 0.60); // Ensure danger is visible
+        const danger = this.ensureContrast(dangerLightness, dangerChroma, dangerHue, bgLightness);
+        
+        // Success: Always cool-green (green-cyan range), fresh feeling
+        // Constrain to 120°-180° in radians (2π/3 to π)
+        const successHue = this.Lerp(Math.PI * 0.55, Math.PI * 0.85, Math.random());
+        const successChroma = Math.max(chromaBase, 0.18);
+        const successLightness = Math.max(lightnessBase, 0.65);
+        const success = this.ensureContrast(successLightness, successChroma, successHue, bgLightness);
+        
+        // Verify danger and success are perceptually distinct from accents
+        // If danger is too close to accent, shift it more toward pure red
+        const dangerDistToAccent = this.hueDistance(dangerHue, harmonyHues[0]);
+        let finalDanger = danger;
+        if (dangerDistToAccent < 0.5) {
+            finalDanger = this.ensureContrast(dangerLightness, dangerChroma, 0.1, bgLightness);
+        }
+        
+        // Text: high contrast against background
+        const textLightness = bgLightness < 0.5 ? 0.94 : 0.06;
+        const text = this.generateOklchColor(textLightness, 0.015, hueBase);
+        
+        // Muted: derived from accent, pulled toward neutral
         const muted = this.generateMutedColor(accent, bg);
         
-        // Background gradient
+        // Background gradient using theme colors
         const bgImage = this.generateBgGradient(accent2, accent3, bg);
         
-        // Card background - semi-transparent
+        // Card background
         const bgRgb = this.hexToRgb(bg);
-        const cardBg = bgRgb ? `rgba(${Math.min(255, bgRgb.r + 5)}, ${Math.min(255, bgRgb.g + 5)}, ${Math.min(255, bgRgb.b + 5)}, 0.6)` : 'rgba(12, 0, 32, 0.6)';
+        const cardBg = bgRgb 
+            ? `rgba(${Math.min(255, bgRgb.r + 8)}, ${Math.min(255, bgRgb.g + 8)}, ${Math.min(255, bgRgb.b + 8)}, 0.55)` 
+            : 'rgba(12, 0, 32, 0.6)';
         
         return {
             '--bg': bg,
@@ -947,7 +1017,7 @@ class ColorUtils {
             '--accent': accent,
             '--accent-2': accent2,
             '--accent-3': accent3,
-            '--danger': danger,
+            '--danger': finalDanger,
             '--success': success,
             '--card-bg': cardBg,
             '--card-border': 'rgba(255,255,255,0.05)',
