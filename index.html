@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v3.8.2 (Atmosphere Fix)</title>
+<title>Sisyphus' Ruin v4.7 (Palette Reversal)</title>
 <style>
   :root {
     /* Default Colors (Cosmic) - These are overridden by JS themes */
@@ -14,7 +14,8 @@
     --accent-2: #ff00b8; /* Pink */
     --accent-3: #00b7ff; /* Blue */
     --accent-4: #ff4efc; /* Purple */
-    --danger: #ff3333;
+    --accent-5: #00ff9d; /* Green/Cyan */
+    --danger: #ff3333;   /* Red (Ruin/Storm) */
     --success: #00ff9d;
     
     --card-bg: rgba(12, 0, 32, 0.6);
@@ -38,34 +39,38 @@
     transition: background-color 0.5s ease, color 0.5s ease, background-image 0.5s ease;
   }
   
-  .app{max-width:1100px;margin:0 auto;padding:12px}
+  .app{max-width:1100px;margin:0 auto;padding:6px}
   
   h1{
-    text-align:center; font-size:clamp(22px,3vw,30px); margin:14px 0 12px; letter-spacing:.5px;
+    text-align:center; font-size:clamp(18px,3vw,26px); margin:6px 0 6px; letter-spacing:.5px;
     background:linear-gradient(9deg,var(--accent),var(--accent-2),var(--accent-3));
     -webkit-background-clip:text; background-clip:text; color:transparent;
     text-shadow: 0 2px 10px rgba(0,0,0,0.2);
   }
   
-  .grid{display:grid;grid-template-columns:1fr 360px;gap:12px}
+  /* Reduced grid gap */
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:6px}
   @media(max-width:900px){.grid{grid-template-columns:1fr}}
   
+  /* Compact Card Styling */
   .card {
     background: var(--card-bg); 
     backdrop-filter: blur(4px); 
-    padding: 14px; 
+    padding: 8px; 
     border-radius: 8px; 
     border: 1px solid var(--card-border);
     transition: background 0.5s ease, border-color 0.5s ease;
+    margin-bottom: 6px; /* Reduced margin between cards */
   }
   
-  .card h2 { font-size: 18px; margin: 0 0 8px; opacity: 0.9; }
+  .card h2 { font-size: 15px; margin: 0 0 4px; opacity: 0.9; }
 
   .btn{
     appearance:none; background:#1c0130; border:none; color:var(--text); border-radius:6px;
-    padding:10px 14px; cursor:pointer; font-weight:600; letter-spacing:.3px;
+    padding:6px 10px; cursor:pointer; font-weight:600; letter-spacing:.3px;
     transition:background .15s ease,transform .1s ease; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
     background: rgba(0,0,0,0.3); /* Adaptive button bg */
+    font-size: 11px;
   }
   .btn:hover{background:rgba(255,255,255,0.1)}
   .btn:active{transform:scale(.97)}
@@ -77,12 +82,12 @@
   }
   
   .checkbox-wrapper {
-    display: flex; align-items: center; gap: 8px; padding: 0 8px; width: auto; 
-    height: 38px; cursor: pointer; user-select: none; opacity: 0.85; transition: opacity 0.2s;
+    display: flex; align-items: center; gap: 6px; padding: 0 6px; width: auto; 
+    height: 28px; cursor: pointer; user-select: none; opacity: 0.85; transition: opacity 0.2s;
   }
   .checkbox-wrapper:hover { opacity: 1; }
   .checkbox-wrapper input[type="checkbox"] {
-    appearance: none; width: 16px; height: 16px; background: rgba(0,0,0,0.3);
+    appearance: none; width: 14px; height: 14px; background: rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.3); border-radius: 3px; cursor: pointer;
     display: grid; place-content: center; margin: 0;
   }
@@ -92,21 +97,22 @@
   }
   .checkbox-wrapper input[type="checkbox"]:checked::before { transform: scale(1); }
   .checkbox-wrapper input[type="checkbox"]:checked { border-color: var(--accent); }
-  .checkbox-wrapper label { cursor: pointer; color: var(--text); width: auto; font-size: 13px; font-weight: 500; }
+  .checkbox-wrapper label { cursor: pointer; color: var(--text); width: auto; font-size: 11px; font-weight: 500; }
 
   .docked-control {
     position: sticky; top: 0; z-index: 1000;
     background: var(--card-bg); backdrop-filter: blur(8px);
-    margin: -12px -12px 12px -12px; padding: 12px;
+    margin: -6px -6px 6px -6px; padding: 6px;
     border-bottom: 1px solid var(--accent);
     display: flex; justify-content: center;
   }
 
   .btn.big{
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    width:100%; padding:12px; margin-bottom:0; 
-    background: linear-gradient(90deg, var(--accent), var(--accent-3), #ff2400); 
-    color: var(--bg); font-weight:800; max-width: 600px; min-height: 64px; 
+    width:100%; padding:8px; margin-bottom:0; 
+    /* Changed fixed red (#ff2400) to variable */
+    background: linear-gradient(90deg, var(--accent), var(--accent-3), var(--danger)); 
+    color: var(--bg); font-weight:800; max-width: 600px; min-height: 48px; 
     line-height: 1.2; transition: background 0.3s ease; border: none;
     text-shadow: 0 0 10px rgba(255,255,255,0.2);
   }
@@ -116,22 +122,28 @@
   .btn.big.outcome-neu:disabled { background: var(--accent-3) !important; color: var(--bg) !important; opacity: 1 !important; }
   .btn.big.outcome-loss:disabled { background: var(--danger) !important; color: #ffffff !important; opacity: 1 !important; }
   
-  .btn-main-text { font-size: 20px; text-transform: uppercase; }
+  .btn-main-text { font-size: 16px; text-transform: uppercase; }
 
-  label{width:120px;font-size:12px;color:var(--muted)}
+  label{width:100px;font-size:10px;color:var(--muted); line-height: 1.1;}
   
   input[type="number"],select{
     background:rgba(0,0,0,0.3); color:var(--text); border:none; border-radius:4px;
-    padding:6px 8px; width: 54px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
+    padding:3px 5px; width: 45px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1); font-size: 10px;
   }
+  input[type="color"] {
+    -webkit-appearance: none; border: none; width: 20px; height: 20px; padding: 0; overflow: hidden; border-radius: 3px; background: none; cursor: pointer;
+  }
+  input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2); }
+  
   select#speed { width: auto; }
-  input#nRolls { width: 60px; }
+  input#nRolls { width: 45px; }
 
-  .desc{font-size:11px;opacity:.6;color:var(--muted);margin:-2px 0 8px; display:block; line-height:1.3;}
-  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .desc{font-size:9px;opacity:.6;color:var(--muted);margin:-2px 0 3px; display:block; line-height:1.2;}
+  .row{display:flex;gap:4px;align-items:center;flex-wrap:wrap; margin-bottom: 3px;}
   .bar{
-    height:10px; background:rgba(255,255,255,.06); border-radius:8px;
-    overflow:hidden; margin:3px 0; border:1px solid rgba(255,255,255,.1);
+    height:8px; background:rgba(255,255,255,.06); border-radius:6px;
+    overflow:hidden; margin:2px 0; border:1px solid rgba(255,255,255,.1);
   }
   .bar>div{height:100%}
   .bar .win{background:var(--accent)}
@@ -139,8 +151,8 @@
   .bar .loss{background:var(--danger)}
 
   .kpos-track,.lpos-track{
-    height:6px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
-    border-radius:6px; overflow:hidden;
+    height:5px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+    border-radius:4px; overflow:hidden;
   }
   
   .kpos-fill, .lpos-fill {
@@ -186,18 +198,18 @@
       linear-gradient(90deg, var(--danger), var(--danger)) !important;
   }
   
-  .tiny{font-size:11px;opacity:.65;color:var(--muted)}
+  .tiny{font-size:10px;opacity:.65;color:var(--muted)}
   .mono{font-family:monospace;}
-  .small{font-size:12px;}
+  .small{font-size:11px;}
 
   .recent.win #recent-outcome{color:var(--accent); text-shadow:0 0 12px var(--accent);}
   .recent.neu #recent-outcome{color:var(--accent-3); text-shadow:0 0 12px var(--accent-3);}
   .recent.loss #recent-outcome{color:var(--danger); text-shadow:0 0 12px var(--danger);}
   
   .cycle-entry {
-    font-family: monospace; font-size: 11px; border-radius: 4px; 
-    border-left: 3px solid rgba(255,255,255,.12); padding: 4px 6px; 
-    margin-bottom: 4px; background: rgba(0,0,0,0.3); 
+    font-family: monospace; font-size: 10px; border-radius: 4px; 
+    border-left: 2px solid rgba(255,255,255,.12); padding: 3px 5px; 
+    margin-bottom: 2px; background: rgba(0,0,0,0.3); 
     white-space: pre-wrap; word-break: break-word;
     display: flex; flex-direction: column; gap: 1px;
   }
@@ -207,16 +219,16 @@
 
   .cycle-entry-top-row { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; opacity: 0.9; line-height: 1.2; }
   .cycle-id { color: var(--accent-3); margin-right: 6px; }
-  .cycle-meta { font-weight: 400; opacity: 0.65; font-size: 10px; }
-  .cycle-entry-path { opacity: 0.75; font-size: 10px; line-height: 1.1; letter-spacing: 1px; margin-top: 1px; }
+  .cycle-meta { font-weight: 400; opacity: 0.65; font-size: 9px; }
+  .cycle-entry-path { opacity: 0.75; font-size: 9px; line-height: 1.1; letter-spacing: 1px; margin-top: 1px; }
 
   .stats-grid {
-    display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 6px;
-    background: rgba(255,255,255,0.03); padding: 6px; border-radius: 6px;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; margin-top: 4px;
+    background: rgba(255,255,255,0.03); padding: 4px; border-radius: 4px;
   }
   .stat-box { display: flex; flex-direction: column; align-items: center; }
-  .stat-label { font-size: 10px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.5px; }
-  .stat-val { font-family: monospace; font-size: 13px; font-weight: 600; color: var(--accent-3); }
+  .stat-label { font-size: 8px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-val { font-family: monospace; font-size: 10px; font-weight: 600; color: var(--accent-3); }
 
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
   .perf-indicator { position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-family: monospace; opacity: 0.5; pointer-events: none; }
@@ -237,34 +249,45 @@
   .weather-ok { color: var(--accent-3); text-shadow: 0 0 5px var(--accent-3); }
   .weather-bad { color: var(--danger); text-shadow: 0 0 5px var(--danger); }
 
-  #weather-card { position: relative; overflow: hidden; min-height: 250px; display: flex; flex-direction: column; justify-content: space-between; }
+  #weather-card { position: relative; overflow: hidden; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
   #weather-content { position: relative; z-index: 2; }
   #chaosCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.4; pointer-events: none; }
 
-  .save-slots-container { margin: 12px 0; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
-  .slot-mode-switch { display: flex; gap: 4px; margin-bottom: 8px; }
-  .slot-mode-btn { flex: 1; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px; border: 1px solid transparent; opacity: 0.5; transition: all 0.2s ease; }
+  .save-slots-container { margin: 6px 0; padding: 4px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+  .slot-mode-switch { display: flex; gap: 4px; margin-bottom: 4px; }
+  .slot-mode-btn { flex: 1; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px; border: 1px solid transparent; opacity: 0.5; transition: all 0.2s ease; }
   .slot-mode-btn.active { opacity: 1; font-weight: 800; }
   .mode-save .slot-mode-btn[data-mode="save"] { background: var(--accent); color: var(--bg); box-shadow: 0 0 8px var(--accent); }
   .mode-load .slot-mode-btn[data-mode="load"] { background: var(--accent-3); color: var(--bg); box-shadow: 0 0 8px var(--accent-3); }
 
-  .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-  .slot-btn { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 6px 4px; font-family: monospace; font-size: 10px; color: var(--muted); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px; text-align: center; }
+  .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+  .slot-btn { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px; font-family: monospace; font-size: 8px; color: var(--muted); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 32px; text-align: center; }
   .slot-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
   .slot-btn.has-data { border-color: rgba(255,255,255,0.3); color: var(--text); background: rgba(255,255,255,0.05); }
   .slot-btn.empty { opacity: 0.6; font-style: italic; }
   .mode-save .slot-btn:hover { border-color: var(--accent); color: var(--accent); }
   .mode-load .slot-btn:hover { border-color: var(--accent-3); color: var(--accent-3); }
-  .slot-label { font-weight: 800; font-size: 12px; margin-bottom: 2px; }
-  .slot-info { font-size: 9px; line-height: 1.1; opacity: 0.8; }
+  .slot-label { font-weight: 800; font-size: 9px; margin-bottom: 0px; }
+  .slot-info { font-size: 7px; line-height: 1.1; opacity: 0.8; }
 
   /* Accordion Styling */
-  details summary { cursor: pointer; padding: 4px 0; user-select: none; outline: none; }
-  details summary:hover h3, details summary:hover { color: var(--accent); }
+  details { margin-bottom: 2px; background: rgba(255,255,255,0.02); border-radius: 4px; overflow: hidden; }
+  details summary { cursor: pointer; padding: 3px 6px; user-select: none; outline: none; background: rgba(255,255,255,0.03); font-weight: 600; font-size: 11px; color: var(--muted); }
+  details summary:hover { color: var(--accent); background: rgba(255,255,255,0.06); }
   details > summary { list-style: none; }
   details > summary::-webkit-details-marker { display: none; }
-  details > summary::before { content: '▶'; display: inline-block; margin-right: 6px; font-size: 10px; color: var(--accent); transition: transform 0.2s; }
+  details > summary::before { content: '▶'; display: inline-block; margin-right: 6px; font-size: 9px; color: var(--accent); transition: transform 0.2s; }
   details[open] > summary::before { transform: rotate(90deg); }
+  
+  /* Nested details for submenus should look distinct or same, here same but indented slightly by default logic */
+  details .details-content { padding: 4px 6px; border-top: 1px solid rgba(255,255,255,0.05); }
+  
+  /* Top level details within cards might need less margin if stacked */
+  .card details { margin-bottom: 2px; }
+
+  .palette-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; margin-top: 4px; }
+  .palette-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .palette-label { font-size: 8px; opacity: 0.7; }
 </style>
 <link rel="icon" type="image/svg+xml" href="/sisyphus-icon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -369,7 +392,7 @@
         </div>
         
         <div class="recent-bars" style="margin-top:8px;">
-          <div class="bar" style="display:flex; height:14px; overflow:hidden; margin-bottom:4px" role="progressbar">
+          <div class="bar" style="display:flex; height:12px; overflow:hidden; margin-bottom:4px" role="progressbar">
             <div id="rbar-win" class="win" style="width:0%"></div>
             <div id="rbar-neu" class="neu" style="width:0%"></div>
             <div id="rbar-loss" class="loss" style="width:0%"></div>
@@ -404,11 +427,11 @@
           <div style="display:flex; justify-content:space-between; align-items:center">
             <div>
               <div class="tiny" style="margin-bottom:2px">CONDITION</div>
-              <div id="weather-status-main" style="font-size:18px; font-weight:800; letter-spacing:1px">CALIBRATING</div>
+              <div id="weather-status-main" style="font-size:16px; font-weight:800; letter-spacing:1px">CALIBRATING</div>
             </div>
             <div style="text-align:right">
               <div class="tiny" style="margin-bottom:2px">TIME DILATION</div>
-              <div id="weather-mod-val" class="mono" style="font-size:18px;">1.0x</div>
+              <div id="weather-mod-val" class="mono" style="font-size:16px;">1.0x</div>
             </div>
           </div>
         </div>
@@ -418,7 +441,7 @@
         <div style="display:flex; justify-content:space-between; align-items:baseline">
           <h2>Climb History</h2>
         </div>
-        <details open style="margin-bottom:8px">
+        <details open style="margin-bottom:6px">
             <summary class="tiny" style="opacity:0.7">Legend</summary>
             <div class="tiny" style="border-left:2px solid rgba(255,255,255,0.1); padding-left:8px; margin-top:4px; line-height:1.4">
               An <b>Attempt</b> ends in <b>Ruin</b> or <b>Summit</b>.<br>
@@ -429,18 +452,18 @@
       </div>
 
       <div class="card"><h2>Run Stats</h2>
-        <div style="margin-bottom:6px; font-size:11px; opacity:0.8">steps: <span class="mono" id="run-steps">0</span></div>
-        <div class="bar" style="display:flex; height:14px; overflow:hidden" role="progressbar" aria-label="Run Distribution">
+        <div style="margin-bottom:4px; font-size:10px; opacity:0.8">steps: <span class="mono" id="run-steps">0</span></div>
+        <div class="bar" style="display:flex; height:12px; overflow:hidden" role="progressbar" aria-label="Run Distribution">
           <div class="win" id="bar-win" style="width:0%"></div>
           <div class="neu" id="bar-neu" style="width:0%"></div>
           <div class="loss" id="bar-loss" style="width:0%"></div>
         </div>
-        <div class="row" style="justify-content:space-between; font-size:11px; opacity:0.8">
+        <div class="row" style="justify-content:space-between; font-size:10px; opacity:0.8">
           <div>Ascent: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
           <div>Steady: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
           <div>Ruin: <span class="mono" id="c-loss">0</span> (<span class="mono" id="r-loss">0.0%</span>)</div>
         </div>
-        <div class="row tiny" style="margin-top:6px;justify-content:space-between">
+        <div class="row tiny" style="margin-top:4px;justify-content:space-between">
           <div>run time: <span class="mono" id="run-time">0s</span></div>
           <div>Max Height: <span class="mono" id="max-k">1</span></div>
         </div>
@@ -450,85 +473,134 @@
     <div>
       
       <div class="card">
-        <h2 style="margin:0 0 8px">The Burden</h2>
-        <div class="tiny" style="line-height:1.5; opacity:0.9">
+        <h2 style="margin:0 0 6px">The Burden</h2>
+        <div class="tiny" style="line-height:1.4; opacity:0.9">
           The stone is bound for the summit (Height <span id="lbl-M-goal" style="font-weight:bold; color:var(--accent)">20</span>).
           <br><br>
           Each roll has one of three outcomes:
           <br>
-          <ul style="padding-left: 16px; margin: 6px 0;">
+          <ul style="padding-left: 12px; margin: 4px 0;">
               <li><strong>Steady:</strong> The stone holds fast. Poise accumulates.</li>
               <li><strong>Ascent:</strong> The stone rises. Poise is shattered by the effort.</li>
               <li><strong>Ruin:</strong> Gravity wins. Height resets.</li>
           </ul>
           <br>
-          <strong>Poise</strong> dictates the favor of the odds. High Poise shields against Ruin and invites Ascent.
+          <strong>Poise Mechanics:</strong> <br>
+          Poise represents stability. As Poise increases, the probability of <strong>Ascent</strong> rises and the probability of <strong>Ruin</strong> falls. However, every Ascent consumes a significant amount of Poise, making consecutive climbs perilous.
           <br><br>
-          <strong>The Atmosphere:</strong><br>
-          Time itself is subject to the chaos of the storm. <br>
-          <strong>Turbulence</strong> dilates the delay between events, forcing long waits. <br>
-          <strong>Calm</strong> allows for swift progression.<br>
-          <br>
-          <span style="opacity:0.7; font-style:italic">Note: The Atmosphere distorts the flow of time, but it does not alter the probability of the fall.</span>
+          <strong>Weather Mechanics:</strong> <br>
+          The chaotic atmosphere affects the passage of time. <strong>Stormy</strong> conditions dilate time, increasing the cooldown between moves. <strong>Calm</strong> weather allows for rapid progression. The weather does not affect the outcome of the roll, only the time it takes to recover.
         </div>
       </div>
 
       <div class="card" id="params-container">
+        <!-- Wraps the entire parameters section -->
         <details>
-          <summary>
-            <h3 style="display:inline-block; margin:0; font-size:14px; opacity:0.9">Advanced Parameters</h3>
-            <div class="tiny" style="opacity:0.6; font-weight:400; margin-left: 4px; display:inline-block">(Click to expand)</div>
-          </summary>
-          
-          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-              
-              <div class="row" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                <label for="theme-select" style="color:var(--accent-3)">Visual Theme</label>
-                <select id="theme-select" style="width:100%">
-                    <option value="default">Cosmic (Default)</option>
-                    <option value="magma">Sisyphus (Magma)</option>
-                    <option value="terminal">Terminal (Matrix)</option>
-                    <option value="paper">Academic (Light)</option>
-                    <option value="ocean">Abyss (Deep Blue)</option>
-                </select>
-              </div>
-              <div class="row"><label for="M">M (Max Height)</label><input id="M" type="number" value="20"></div>
-              <div class="desc">Max steps to win (k).</div>
-              <div class="row"><label for="L">L (Max Poise)</label><input id="L" type="number" value="20"></div>
-              <div class="desc">Poise scale (ℓ).</div>
-              <div class="row"><label>w_min → w_max</label><input id="w_min" type="number" step="0.01" value="0.10"><input id="w_max" type="number" step="0.01" value="0.90"></div>
-              <div class="desc">Win probability scaling.</div>
-              <div class="row"><label for="beta">β (Height ramp)</label><input id="beta" type="number" step="0.1" value="1.5"></div>
-              <div class="desc">β > 1 makes late ascent easier.</div>
-              <div class="row"><label>ρ, γ (Poise boost)</label><input id="rho" type="number" step="0.05" value="0.6"><input id="gamma" type="number" step="0.1" value="1.5"></div>
-              <div class="desc">Effect of Poise on win rate.</div>
-              <div class="row"><label>c_min → c_max</label><input id="c_min" type="number" step="0.01" value="0.03"><input id="c_max" type="number" step="0.01" value="0.10"></div>
-              <div class="desc">Loss probability range.</div>
-              <div class="row"><label for="alpha">α (Loss decay)</label><input id="alpha" type="number" step="0.1" value="0.3"></div>
-              <div class="desc">How fast Poise reduces loss chance.</div>
-              <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1"><input id="s_w" type="number" value="20"></div>
-              <div class="desc">Poise gain (Steady) vs spend (Ascent).</div>
-              <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="45.0"></div>
-              <div class="desc">Base cooldown time.</div>
-              
-              <div class="row" style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px">
-                  <button class="btn" id="apply">Apply & Reset</button>
-                  <button class="btn" id="resetState" aria-keyshortcuts="R">Reset State</button>
-              </div>
-          </div>
+            <summary><h2 style="display:inline; font-size:16px; margin:0">Parameters</h2></summary>
+            
+            <div class="details-content">
+                <!-- Main System Submenu -->
+                <details id="submenu-system">
+                  <summary>Main System</summary>
+                  <div class="details-content">
+                    <div class="row"><label for="M">M (Max Height)</label><input id="M" type="number" value="20"></div>
+                    <div class="desc">Max steps to win (k).</div>
+                    <div class="row"><label for="L">L (Max Poise)</label><input id="L" type="number" value="20"></div>
+                    <div class="desc">Poise scale (ℓ).</div>
+                    <div class="row"><label>w_min → w_max</label><input id="w_min" type="number" step="0.01" value="0.10"><input id="w_max" type="number" step="0.01" value="0.90"></div>
+                    <div class="desc">Win probability scaling.</div>
+                    <div class="row"><label for="beta">β (Height ramp)</label><input id="beta" type="number" step="0.1" value="1.5"></div>
+                    <div class="desc">β > 1 makes late ascent easier.</div>
+                    <div class="row"><label>ρ, γ (Poise boost)</label><input id="rho" type="number" step="0.05" value="0.6"><input id="gamma" type="number" step="0.1" value="1.5"></div>
+                    <div class="desc">Effect of Poise on win rate.</div>
+                    <div class="row"><label>c_min → c_max</label><input id="c_min" type="number" step="0.01" value="0.03"><input id="c_max" type="number" step="0.01" value="0.10"></div>
+                    <div class="desc">Loss probability range.</div>
+                    <div class="row"><label for="alpha">α (Loss decay)</label><input id="alpha" type="number" step="0.1" value="0.3"></div>
+                    <div class="desc">How fast Poise reduces loss chance.</div>
+                    <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1"><input id="s_w" type="number" value="20"></div>
+                    <div class="desc">Poise gain (Steady) vs spend (Ascent).</div>
+                  </div>
+                </details>
+
+                <!-- Weather System Submenu -->
+                <details id="submenu-weather">
+                    <summary>Weather System</summary>
+                    <div class="details-content">
+                        <div class="row"><label for="chaos_dt">Dt (Chaos Step)</label><input id="chaos_dt" type="number" step="0.001" value="0.005"></div>
+                        <div class="desc">Simulation speed (Time Step).</div>
+                        <div class="row"><label for="chaos_intensity">Intensity</label><input id="chaos_intensity" type="number" step="0.1" value="1.0"></div>
+                        <div class="desc">Magnitude of time dilation.</div>
+                        <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="45.0"></div>
+                        <div class="desc">Base cooldown time.</div>
+                    </div>
+                </details>
+
+                <!-- Theme Submenu -->
+                <details id="submenu-theme">
+                    <summary>Visual Theme</summary>
+                    <div class="details-content">
+                        <div class="row" style="margin-bottom: 6px;">
+                            <label for="theme-select" style="color:var(--accent-3); width:auto; margin-right:8px;">Preset:</label>
+                            <select id="theme-select" style="flex:1">
+                                <option value="default">Cosmic (Default)</option>
+                                <option value="magma">Sisyphus (Magma)</option>
+                                <option value="terminal">Terminal (Matrix)</option>
+                                <option value="paper">Academic (Light)</option>
+                                <option value="ocean">Abyss (Deep Blue)</option>
+                                <option value="custom">Custom (Below)</option>
+                            </select>
+                        </div>
+                        
+                        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top:6px; margin-top:6px;">
+                            <div class="row" style="justify-content:space-between; margin-bottom:3px">
+                                <span class="tiny" style="font-weight:bold; color:var(--accent)">Palette Tool</span>
+                                <button class="btn" id="btn-random-palette" style="padding:2px 6px; font-size:9px;">Random OKLCH</button>
+                            </div>
+                            <div class="palette-grid">
+                                <div class="palette-item">
+                                    <input type="color" id="picker-accent" value="#ff9e2c">
+                                    <span class="palette-label">Main</span>
+                                </div>
+                                <div class="palette-item">
+                                    <input type="color" id="picker-accent-2" value="#ff00b8">
+                                    <span class="palette-label">Sec</span>
+                                </div>
+                                <div class="palette-item">
+                                    <input type="color" id="picker-accent-3" value="#00b7ff">
+                                    <span class="palette-label">Tert</span>
+                                </div>
+                                <div class="palette-item">
+                                    <input type="color" id="picker-accent-4" value="#ff4efc">
+                                    <span class="palette-label">Quart</span>
+                                </div>
+                                <div class="palette-item">
+                                    <input type="color" id="picker-accent-5" value="#00ff9d">
+                                    <span class="palette-label">Quint</span>
+                                </div>
+                                <div class="palette-item">
+                                    <input type="color" id="picker-danger" value="#ff3333">
+                                    <span class="palette-label">Ruin</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+                
+                <!-- Apply & Reset Separated Inside Collapsed Block -->
+                <div class="row" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1); justify-content: space-between;">
+                    <button class="btn" id="apply" style="flex:1; font-size:11px; padding:6px">Apply Params</button>
+                    <button class="btn" id="resetState" aria-keyshortcuts="R" style="flex:1; opacity:0.8; font-size:11px; padding:6px; background:#440000; color:#ffcccc">Reset State</button>
+                </div>
+            </div>
         </details>
       </div>
 
       <div class="card">
         <details>
-          <summary>
-             <h2 style="display:inline-block; margin:0; font-size:14px; opacity:0.9">Play Controls and Saves</h2>
-             <div class="tiny" style="opacity:0.6; font-weight:400; margin-left: 4px; display:inline-block">(Click to expand)</div>
-          </summary>
-          
-          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <div class="row" style="align-items: center; gap: 6px;">
-              <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1">Auto Play</button>
+          <summary><h2 style="display:inline; font-size:16px; margin:0">Play Controls</h2></summary>
+          <div class="details-content">
+            <div class="row" style="align-items: center; gap: 4px;">
+              <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1; font-size:11px; padding:6px">Auto Play</button>
               <label class="checkbox-wrapper" for="use-delay">
                 <input type="checkbox" id="use-delay">
                 <span>Delay</span>
@@ -536,22 +608,22 @@
               <select id="speed" aria-label="Auto-play speed">
                 <option value="1000">Slow</option>
                 <option value="100" selected>Normal</option>
-                <option value="10">Fast (Turbo)</option>
+                <option value="10">Fast</option>
               </select>
             </div>
-            <div class="row" style="margin-top:8px">
-              <input id="nRolls" type="number" value="20" aria-label="Number of rolls or cycles" style="width:60px">
-              <button class="btn" id="rollN" style="flex:1">Roll N Steps</button>
-              <button class="btn" id="rollNCycles" style="flex:1">Roll N Attempts</button>
+            <div class="row" style="margin-top:4px">
+              <input id="nRolls" type="number" value="20" aria-label="Number of rolls or cycles" style="width:40px">
+              <button class="btn" id="rollN" style="flex:1; font-size:10px; padding:6px">Roll N Steps</button>
+              <button class="btn" id="rollNCycles" style="flex:1; font-size:10px; padding:6px">Roll N Attempts</button>
             </div>
-            <div class="row" style="margin-top:8px">
-              <span class="tiny" style="min-width:110px">Set Height/Poise:</span>
-              <input id="set-k" type="number" min="1" value="1" aria-label="Set k value">
-              <input id="set-l" type="number" min="0" value="0" aria-label="Set l value">
-              <button class="btn" id="setStateBtn">Set</button>
+            <div class="row" style="margin-top:4px">
+              <span class="tiny" style="min-width:70px">Set H/P:</span>
+              <input id="set-k" type="number" min="1" value="1" aria-label="Set k value" style="width:40px">
+              <input id="set-l" type="number" min="0" value="0" aria-label="Set l value" style="width:40px">
+              <button class="btn" id="setStateBtn" style="padding:4px 8px; font-size:10px; flex:1">Set</button>
             </div>
 
-            <div class="save-slots-container mode-load" id="slot-container" style="margin-top:12px">
+            <div class="save-slots-container mode-load" id="slot-container" style="margin-top:6px">
                <div class="slot-mode-switch">
                  <button class="btn slot-mode-btn" data-mode="save">Save Mode</button>
                  <button class="btn slot-mode-btn active" data-mode="load">Load Mode</button>
@@ -563,14 +635,14 @@
                  <button class="slot-btn empty" data-slot="4"><div class="slot-label">4</div><div class="slot-info">Empty</div></button>
                  <button class="slot-btn empty" data-slot="5"><div class="slot-label">5</div><div class="slot-info">Empty</div></button>
                </div>
-               <div class="desc" style="margin-top:6px; text-align:center;">
+               <div class="desc" style="margin-top:3px; text-align:center;">
                  <span id="slot-mode-desc">Click to LOAD a saved game.</span>
                </div>
             </div>
 
-            <div class="row" style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1)">
-                <button class="btn" id="btn-export" style="flex:1">Export Single Slot</button>
-                <button class="btn" id="btn-import" style="flex:1">Import to Slot</button>
+            <div class="row" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1)">
+                <button class="btn" id="btn-export" style="flex:1; font-size:10px; padding:4px">Export Slot</button>
+                <button class="btn" id="btn-import" style="flex:1; font-size:10px; padding:4px">Import Slot</button>
                 <input type="file" id="file-import" style="display:none" accept=".json">
             </div>
 
@@ -580,11 +652,8 @@
 
       <div class="card">
         <details>
-          <summary>
-            <h3 style="display:inline-block; margin:0; font-size:14px; opacity:0.8">Expectations</h3>
-             <div class="tiny" style="opacity:0.6; font-weight:400; margin-left: 4px; display:inline-block">(Click to expand)</div>
-          </summary>
-          <div style="margin-top:6px">
+          <summary><h2 style="display:inline; font-size:16px; margin:0">Expectations</h2></summary>
+          <div class="details-content">
             <div class="row tiny" style="flex-direction:column;align-items:flex-start;gap:2px">
               <div>Ascent rate (per roll): <span class="mono" id="exp-win-rate">—</span></div>
               <div>Ruin rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
@@ -598,15 +667,15 @@
         </details>
       </div>
 
-      <div class="card"><h3 style="margin:0 0 6px; font-size:14px; opacity:0.8">Distributions</h3>
-        <div class="tiny" style="margin-top:6px">Time spent at Height:</div>
-        <div id="hist-k" class="tiny" style="margin-top:2px;min-height:24px"></div>
-        <div class="tiny" style="margin-top:6px">Time spent at Poise:</div>
-        <div id="hist-l" class="tiny" style="margin-top:2px;min-height:24px"></div>
-        <div class="tiny" style="margin-top:6px">Height / Poise Heatmap:</div>
-        <div id="hist-kl" class="tiny" style="margin-top:2px;min-height:32px"></div>
+      <div class="card"><h3 style="margin:0 0 4px; font-size:14px; opacity:0.8">Distributions</h3>
+        <div class="tiny" style="margin-top:4px">Time spent at Height:</div>
+        <div id="hist-k" class="tiny" style="margin-top:2px;min-height:20px"></div>
+        <div class="tiny" style="margin-top:4px">Time spent at Poise:</div>
+        <div id="hist-l" class="tiny" style="margin-top:2px;min-height:20px"></div>
+        <div class="tiny" style="margin-top:4px">Height / Poise Heatmap:</div>
+        <div id="hist-kl" class="tiny" style="margin-top:2px;min-height:28px"></div>
         
-        <div class="tiny" style="margin-top:12px; font-weight:600; color:var(--muted)">Attempt Durations (Global N=<span id="global-n">0</span>)</div>
+        <div class="tiny" style="margin-top:8px; font-weight:600; color:var(--muted)">Attempt Durations (Global N=<span id="global-n">0</span>)</div>
         <div class="stats-grid" id="global-stats">
           <div class="stat-box"><div class="stat-label">Min</div><div class="stat-val" id="gs-min">—</div></div>
           <div class="stat-box"><div class="stat-label">25%</div><div class="stat-val" id="gs-25">—</div></div>
@@ -615,7 +684,7 @@
           <div class="stat-box"><div class="stat-label">Max</div><div class="stat-val" id="gs-max">—</div></div>
         </div>
 
-        <div class="tiny" style="margin-top:8px">Last 40 Attempts:</div>
+        <div class="tiny" style="margin-top:6px">Last 40 Attempts:</div>
         <div id="hist-cycle-len" class="tiny" style="margin-top:2px"></div>
       </div>
     </div>
@@ -627,35 +696,35 @@
 const THEMES = {
   default: {
     '--bg': '#080014', '--text': '#fef8ff', '--muted': '#cdaeff',
-    '--accent': '#ff9e2c', '--accent-2': '#ff00b8', '--accent-3': '#00b7ff', '--accent-4': '#ff4efc',
+    '--accent': '#ff9e2c', '--accent-2': '#ff00b8', '--accent-3': '#00b7ff', '--accent-4': '#ff4efc', '--accent-5': '#00ff9d',
     '--danger': '#ff3333', '--success': '#00ff9d',
     '--card-bg': 'rgba(12, 0, 32, 0.6)', '--card-border': 'rgba(255,255,255,0.05)',
     '--bg-image': 'radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%), radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%), linear-gradient(180deg,#0b0014 0%, #050010 100%)'
   },
   magma: {
     '--bg': '#1a0500', '--text': '#ffe0d0', '--muted': '#ff9e80',
-    '--accent': '#ffcc00', '--accent-2': '#ff4400', '--accent-3': '#ff8800', '--accent-4': '#ff2200',
+    '--accent': '#ffcc00', '--accent-2': '#ff4400', '--accent-3': '#ff8800', '--accent-4': '#ff2200', '--accent-5': '#ff5500',
     '--danger': '#ff0000', '--success': '#ffcc00',
     '--card-bg': 'rgba(40, 5, 0, 0.7)', '--card-border': 'rgba(255, 100, 0, 0.2)',
     '--bg-image': 'radial-gradient(circle at 50% 0%, rgba(255,200,0,0.2), transparent 60%), linear-gradient(0deg, #1a0500 0%, #3d0c02 100%)'
   },
   terminal: {
     '--bg': '#000000', '--text': '#00ff00', '--muted': '#008f11',
-    '--accent': '#00ff00', '--accent-2': '#00cc00', '--accent-3': '#008800', '--accent-4': '#004400',
+    '--accent': '#00ff00', '--accent-2': '#00cc00', '--accent-3': '#008800', '--accent-4': '#004400', '--accent-5': '#00ff00',
     '--danger': '#ff3333', '--success': '#00ff00',
     '--card-bg': 'rgba(0, 20, 0, 0.85)', '--card-border': 'rgba(0,255,0,0.3)',
     '--bg-image': 'linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px)'
   },
   paper: {
     '--bg': '#f0f2f5', '--text': '#1a1a1a', '--muted': '#555555',
-    '--accent': '#d9534f', '--accent-2': '#337ab7', '--accent-3': '#5bc0de', '--accent-4': '#5cb85c',
+    '--accent': '#d9534f', '--accent-2': '#337ab7', '--accent-3': '#5bc0de', '--accent-4': '#5cb85c', '--accent-5': '#d9534f',
     '--danger': '#d9534f', '--success': '#5cb85c',
     '--card-bg': 'rgba(255, 255, 255, 0.8)', '--card-border': 'rgba(0,0,0,0.1)',
     '--bg-image': 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
   },
   ocean: {
     '--bg': '#000814', '--text': '#e0f7ff', '--muted': '#7abaff',
-    '--accent': '#00d9ff', '--accent-2': '#0055ff', '--accent-3': '#0088ff', '--accent-4': '#002288',
+    '--accent': '#00d9ff', '--accent-2': '#0055ff', '--accent-3': '#0088ff', '--accent-4': '#002288', '--accent-5': '#00d9ff',
     '--danger': '#ff3333', '--success': '#00ffcc',
     '--card-bg': 'rgba(0, 10, 30, 0.6)', '--card-border': 'rgba(0,180,255,0.1)',
     '--bg-image': 'radial-gradient(circle at 50% 100%, rgba(0,255,180,0.15), transparent 70%), linear-gradient(180deg, #000814 0%, #001a33 100%)'
@@ -665,6 +734,95 @@ const THEMES = {
 /* -------------------------------------------------------------------------- */
 /* MODULE 0: UTILITIES & HELPERS                                             */
 /* -------------------------------------------------------------------------- */
+
+class ColorUtils {
+    static Lerp(min, max, t) { return min + (max - min) * t; }
+
+    static oklab_to_linear_srgb(L, a, b) {
+      let l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+      let m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+      let s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+      let l = l_ * l_ * l_;
+      let m = m_ * m_ * m_;
+      let s = s_ * s_ * s_;
+      return [
+        (+4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+        (-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+        (-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s),
+      ];
+    }
+    
+    static oklch_to_oklab(L, c, h) {
+      return [(L), (c * Math.cos(h)), (c * Math.sin(h))];
+    }
+
+    static rgbToHex(r, g, b) {
+        const toHex = (n) => {
+            const hex = Math.max(0, Math.min(255, Math.round(n))).toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        };
+        return '#' + toHex(r) + toHex(g) + toHex(b);
+    }
+    
+    // Implements Acerola's Tetradic Complementary OKLCH Logic
+    static generateTetradicPalette(count = 6) {
+        // Random seed-like settings
+        const settings = {
+            hueBase: Math.random(),
+            hueContrast: Math.random(),
+            saturationBase: Math.random(),
+            saturationContrast: Math.random(),
+            luminanceBase: Math.random(),
+            luminanceContrast: Math.random(),
+            fixed: Math.random(),
+            saturationConstant: true,
+            colorCount: count
+        };
+
+        const oklchColors = [];
+        const hueBase = settings.hueBase * 2 * Math.PI;
+        const hueContrast = this.Lerp(0.33, 1.0, settings.hueContrast);
+
+        const chromaBase = this.Lerp(0.01, 0.1, settings.saturationBase);
+        const chromaContrast = this.Lerp(0.075, 0.125 - chromaBase, settings.saturationContrast);
+        const chromaFixed = this.Lerp(0.01, 0.125, settings.fixed);
+
+        const lightnessBase = this.Lerp(0.3, 0.6, settings.luminanceBase);
+        const lightnessContrast = this.Lerp(0.3, 1.0 - lightnessBase, settings.luminanceContrast);
+        const lightnessFixed = this.Lerp(0.6, 0.9, settings.fixed);
+
+        const chromaConstant = settings.saturationConstant;
+        const lightnessConstant = !chromaConstant;
+
+        for (let i = 0; i < settings.colorCount; ++i) {
+            let linearIterator = (i) / (settings.colorCount - 1);
+            
+            // "Tetradic Complementary" Mode specific math
+            // Distributes colors over 0.75 (270 degrees) of the hue circle
+            let hueOffset = linearIterator * hueContrast * 2 * Math.PI + (Math.PI / 4);
+            hueOffset *= 0.75; 
+            
+            hueOffset += (Math.random() * 2 - 1) * 0.01; // Jitter
+
+            let chroma = chromaBase + linearIterator * chromaContrast;
+            let lightness = lightnessBase + linearIterator * lightnessContrast;
+
+            if (chromaConstant) chroma = chromaFixed;
+            if (lightnessConstant) lightness = lightnessFixed;
+
+            let lab = this.oklch_to_oklab(lightness, chroma, hueBase + hueOffset);
+            let rgb = this.oklab_to_linear_srgb(lab[0], lab[1], lab[2]);
+
+            // Gamma correction for sRGB display
+            const r = Math.pow(Math.max(0, Math.min(rgb[0], 1)), 1/2.2) * 255;
+            const g = Math.pow(Math.max(0, Math.min(rgb[1], 1)), 1/2.2) * 255;
+            const b = Math.pow(Math.max(0, Math.min(rgb[2], 1)), 1/2.2) * 255;
+            
+            oklchColors.push(this.rgbToHex(r, g, b));
+        }
+        return oklchColors.reverse();
+    }
+}
 
 class BackgroundTimer {
   constructor() {
@@ -887,7 +1045,8 @@ class SisyphusModel {
   constructor() {
     this.params = {
       M:20, L:20, w_min:0.10, w_max:0.90, beta:1.5, rho:0.6, gamma:1.5,
-      c_min:0.03, c_max:0.10, alpha:0.3, g_n:1, s_w:20, max_delay: 45.0
+      c_min:0.03, c_max:0.10, alpha:0.3, g_n:1, s_w:20, 
+      max_delay: 45.0, chaos_dt: 0.005, chaos_intensity: 1.0
     };
     this.reset();
   }
@@ -1041,7 +1200,6 @@ class SisyphusUI {
     return `${d}d ${h%24}h`;
   }
 
-  // UPDATED: Added skipBars parameter
   render(grids, full = true, skipBars = false) {
     const m = this.model, s = m.state, st = m.stats;
     const lr = m.lastRoll || { outcome:null, k0:1, l0:0, k1:s.k, l1:s.l };
@@ -1071,13 +1229,11 @@ class SisyphusUI {
     }
     this.batchUpdate('recent-p-top', 'textContent', pTopText);
 
-    // UPDATED: Only update bars and text if we aren't animating them separately
     if (!skipBars) {
       this.batchUpdate('kpos-fill', 'style.width', pct(lr.k1 / m.params.M));
       this.batchUpdate('kpos-text', 'textContent', `${lr.k1} / ${m.params.M}`);
       this.batchUpdate('lpos-fill', 'style.width', pct(lr.l1 / m.params.L));
       this.batchUpdate('lpos-text', 'textContent', `${lr.l1} / ${m.params.L}`);
-      // Ensure transitions are off for instant renders
       this.batchUpdate('kpos-fill', 'style.transition', 'none');
       this.batchUpdate('lpos-fill', 'style.transition', 'none');
     }
@@ -1102,37 +1258,30 @@ class SisyphusUI {
     if(full) { this._renderDistributions(); this._renderGlobalStats(); }
   }
 
-  // --- NEW ANIMATION LOGIC (Barber Pole + Direction + Text Update) ---
   animateChange(k0, l0, k1, l1, duration, params) {
     const kFill = this.els['kpos-fill'];
     const lFill = this.els['lpos-fill'];
     const kText = this.els['kpos-text'];
     const lText = this.els['lpos-text'];
     
-    // 1. Calculate Percentages
     const pK0 = (100 * Math.max(0, Math.min(1, k0 / params.M))).toFixed(2) + '%';
     const pL0 = (100 * Math.max(0, Math.min(1, l0 / params.L))).toFixed(2) + '%';
     const pK1 = (100 * Math.max(0, Math.min(1, k1 / params.M))).toFixed(2) + '%';
     const pL1 = (100 * Math.max(0, Math.min(1, l1 / params.L))).toFixed(2) + '%';
 
-    // 2. Clean Slate
     kFill.classList.remove('active-motion', 'reverse-motion');
     lFill.classList.remove('active-motion', 'reverse-motion');
     
-    // 3. Set Start Position & TEXT INDICATORS
     kFill.style.transition = 'none';
     lFill.style.transition = 'none';
     kFill.style.width = pK0;
     lFill.style.width = pL0;
     
-    // Update Text: If changing, show "Prev -> Next / Max", otherwise standard
     if (k0 !== k1) kText.textContent = `${k0} → ${k1} / ${params.M}`;
     if (l0 !== l1) lText.textContent = `${l0} → ${l1} / ${params.L}`;
 
-    // 4. Force Browser Reflow
     void kFill.offsetWidth; 
 
-    // 5. Apply Motion Classes
     if (duration > 100) {
         if (k0 !== k1) {
             kFill.classList.add('active-motion');
@@ -1144,15 +1293,12 @@ class SisyphusUI {
         }
     }
 
-    // 6. Set End Position with Linear Transition
     const transitionStr = `width ${duration}ms linear`;
-    
     kFill.style.transition = transitionStr;
     lFill.style.transition = transitionStr;
     kFill.style.width = pK1;
     lFill.style.width = pL1;
     
-    // 7. Cleanup
     setTimeout(() => {
         kFill.classList.remove('active-motion', 'reverse-motion');
         lFill.classList.remove('active-motion', 'reverse-motion');
@@ -1301,7 +1447,7 @@ class ChaosEngine {
     this.statusEl = document.getElementById('weather-status-main');
     this.modEl = document.getElementById('weather-mod-val');
     
-    this.SIGMA = 10; this.RHO = 28; this.BETA = 8/3; this.DT = 0.005; 
+    this.SIGMA = 10; this.RHO = 28; this.BETA = 8/3; 
     
     this.x = 10 + (Math.random() - 0.5) * 2; 
     this.y = 10 + (Math.random() - 0.5) * 2; 
@@ -1319,9 +1465,18 @@ class ChaosEngine {
     // Fallback palette
     this.colors = { calm: '#ff9e2c', windy: '#00b7ff', storm: '#ff3333' };
 
+    // Dynamic Params
+    this.dt = 0.005;
+    this.intensity = 1.0;
+
     this.resize();
     window.addEventListener('resize', () => this.resize());
     this.animate();
+  }
+
+  setParams(dt, intensity) {
+      this.dt = dt || 0.005;
+      this.intensity = intensity || 1.0;
   }
   
   resize() {
@@ -1332,9 +1487,9 @@ class ChaosEngine {
   }
   
   step() {
-    const dx = (this.SIGMA * (this.y - this.x)) * this.DT;
-    const dy = (this.x * (this.RHO - this.z) - this.y) * this.DT;
-    const dz = (this.x * this.y - this.BETA * this.z) * this.DT;
+    const dx = (this.SIGMA * (this.y - this.x)) * this.dt;
+    const dy = (this.x * (this.RHO - this.z) - this.y) * this.dt;
+    const dz = (this.x * this.y - this.BETA * this.z) * this.dt;
     this.x += dx; this.y += dy; this.z += dz;
     return Math.sqrt(dx*dx + dy*dy + dz*dz);
   }
@@ -1347,7 +1502,6 @@ class ChaosEngine {
      };
   }
   
-  // NEW: Safely clears the trail without crashing the animation loop
   clearTrail() {
     this.points.fill(null);
     this.head = 0;
@@ -1355,16 +1509,19 @@ class ChaosEngine {
   }
 
   updateWeather(velocity) {
-    let intensity = velocity * .667; 
-    if(intensity > 1) intensity = 1;
-    this.multiplier = 0.5 + (intensity * 2.0);
+    let rawIntensity = velocity * 0.667; 
+    if(rawIntensity > 1) rawIntensity = 1;
+    
+    // Scale the effect by user intensity param
+    this.multiplier = 0.5 + (rawIntensity * 2.0 * this.intensity);
     if (this.modEl) this.modEl.textContent = this.multiplier.toFixed(2) + "x";
 
     let statusText = "", statusClass = "", color = "";
     
-    if(intensity < 0.17) { 
+    // Adjust thresholds visually based on intensity? Keep simple for now
+    if(rawIntensity < 0.17) { 
         statusText = "CALM"; statusClass = "weather-good"; color = this.colors.calm;
-    } else if (intensity < 0.37) { 
+    } else if (rawIntensity < 0.37) { 
         statusText = "WINDY"; statusClass = "weather-ok"; color = this.colors.windy;
     } else { 
         statusText = "STORM"; statusClass = "weather-bad"; color = this.colors.storm;
@@ -1387,7 +1544,7 @@ class ChaosEngine {
     return { x: cx + rx * this.scale * depth, y: (cy + this.yOffset) + (-(z - 25)) * this.scale * depth };
   }
   
-    reset() {
+  reset() {
     this.points.fill(null);
     this.count = 0;
     this.head = 0;
@@ -1498,11 +1655,17 @@ class GameController {
     this.load(); 
     
     const savedTheme = localStorage.getItem('sisyphus_theme') || 'default';
-    this.setTheme(savedTheme);
+    if (savedTheme === 'custom') {
+        const customColors = JSON.parse(localStorage.getItem('sisyphus_custom_colors') || '{}');
+        this.applyCustomTheme(customColors);
+    } else {
+        this.setTheme(savedTheme);
+    }
 
     this.recalcExpectations();
     this.ui.render(this.grids, true); 
     this.updateSlotUI();
+    this.syncWeatherParams();
     
     if (!localStorage.getItem('sisyphus_welcome_seen')) {
       document.getElementById('welcome-modal').classList.add('show');
@@ -1550,9 +1713,34 @@ class GameController {
     };
 
     $('theme-select').onchange = (e) => this.setTheme(e.target.value);
+    
+    // Palette Bindings
+    $('btn-random-palette').onclick = () => this.randomizePalette();
+    
+    const colorInputs = ['picker-accent','picker-accent-2','picker-accent-3','picker-accent-4','picker-accent-5','picker-danger'];
+    colorInputs.forEach((id, idx) => {
+        const el = $(id);
+        if(el) el.addEventListener('input', (e) => this.updateCustomColor(idx, e.target.value));
+    });
   }
 
   setTheme(name) {
+      if(name === 'custom') {
+          // If switching to custom but no custom colors set, maybe copy current?
+          // For now, let applyCustomTheme handle it via picker state
+          const acc = document.getElementById('picker-accent').value;
+          const acc2 = document.getElementById('picker-accent-2').value;
+          const acc3 = document.getElementById('picker-accent-3').value;
+          const acc4 = document.getElementById('picker-accent-4').value;
+          const acc5 = document.getElementById('picker-accent-5').value;
+          const dang = document.getElementById('picker-danger').value;
+          this.applyCustomTheme({ 
+              '--accent': acc, '--accent-2': acc2, '--accent-3': acc3, 
+              '--accent-4': acc4, '--accent-5': acc5, '--danger': dang 
+          });
+          return;
+      }
+
       const theme = THEMES[name] || THEMES.default;
       const root = document.documentElement;
       Object.entries(theme).forEach(([key, val]) => {
@@ -1563,11 +1751,99 @@ class GameController {
       const sel = document.getElementById('theme-select');
       if(sel) sel.value = name;
       
-      // FIX: Call clearTrail() to reset counters, avoiding the "null point" crash
       if(this.chaos) {
           this.chaos.setPalette(theme);
           this.chaos.clearTrail();
       }
+      
+      // Update pickers to match preset
+      if(theme['--accent']) document.getElementById('picker-accent').value = theme['--accent'];
+      if(theme['--accent-2']) document.getElementById('picker-accent-2').value = theme['--accent-2'];
+      if(theme['--accent-3']) document.getElementById('picker-accent-3').value = theme['--accent-3'];
+      if(theme['--accent-4']) document.getElementById('picker-accent-4').value = theme['--accent-4'];
+      if(theme['--accent-5']) document.getElementById('picker-accent-5').value = theme['--accent-5'];
+      if(theme['--danger']) document.getElementById('picker-danger').value = theme['--danger'];
+  }
+  
+  updateCustomColor(idx, hex) {
+      document.getElementById('theme-select').value = 'custom';
+      const root = document.documentElement;
+      // Index 5 is specifically for danger/ruin
+      const varName = idx === 5 ? '--danger' : (idx === 0 ? '--accent' : `--accent-${idx+1}`);
+      root.style.setProperty(varName, hex);
+      
+      this.saveCustomTheme();
+      
+      // Update Chaos palette live
+      if(this.chaos) {
+          const t = {
+              '--accent': getComputedStyle(root).getPropertyValue('--accent').trim(),
+              '--accent-3': getComputedStyle(root).getPropertyValue('--accent-3').trim(),
+              '--danger': getComputedStyle(root).getPropertyValue('--danger').trim()
+          };
+          this.chaos.setPalette(t);
+      }
+  }
+
+  saveCustomTheme() {
+      const root = document.documentElement;
+      const style = getComputedStyle(root);
+      const custom = {
+          '--accent': style.getPropertyValue('--accent').trim(),
+          '--accent-2': style.getPropertyValue('--accent-2').trim(),
+          '--accent-3': style.getPropertyValue('--accent-3').trim(),
+          '--accent-4': style.getPropertyValue('--accent-4').trim(),
+          '--accent-5': style.getPropertyValue('--accent-5').trim(),
+          '--danger': style.getPropertyValue('--danger').trim()
+      };
+      localStorage.setItem('sisyphus_theme', 'custom');
+      localStorage.setItem('sisyphus_custom_colors', JSON.stringify(custom));
+  }
+  
+  applyCustomTheme(colors) {
+      const root = document.documentElement;
+      const def = THEMES.default;
+      // Apply base dark theme then override accents
+      Object.entries(def).forEach(([k,v]) => { if(!k.startsWith('--accent') && k !== '--danger') root.style.setProperty(k,v); });
+      
+      if(colors['--accent']) root.style.setProperty('--accent', colors['--accent']);
+      if(colors['--accent-2']) root.style.setProperty('--accent-2', colors['--accent-2']);
+      if(colors['--accent-3']) root.style.setProperty('--accent-3', colors['--accent-3']);
+      if(colors['--accent-4']) root.style.setProperty('--accent-4', colors['--accent-4']);
+      if(colors['--accent-5']) root.style.setProperty('--accent-5', colors['--accent-5']);
+      if(colors['--danger']) root.style.setProperty('--danger', colors['--danger']);
+      
+      document.getElementById('picker-accent').value = colors['--accent'] || def['--accent'];
+      document.getElementById('picker-accent-2').value = colors['--accent-2'] || def['--accent-2'];
+      document.getElementById('picker-accent-3').value = colors['--accent-3'] || def['--accent-3'];
+      document.getElementById('picker-accent-4').value = colors['--accent-4'] || def['--accent-4'];
+      document.getElementById('picker-accent-5').value = colors['--accent-5'] || def['--accent-5'];
+      document.getElementById('picker-danger').value = colors['--danger'] || def['--danger'];
+      
+      document.getElementById('theme-select').value = 'custom';
+      if(this.chaos) {
+          this.chaos.setPalette({
+              '--accent': colors['--accent'] || def['--accent'],
+              '--accent-3': colors['--accent-3'] || def['--accent-3'],
+              '--danger': colors['--danger'] || def['--danger']
+          });
+          this.chaos.clearTrail();
+      }
+  }
+
+  randomizePalette() {
+      // Use Tetradic Complementary Mode with 6 colors (5 Accents + 1 Danger)
+      const colors = ColorUtils.generateTetradicPalette(6);
+      const map = {
+          '--accent': colors[0],
+          '--accent-2': colors[1],
+          '--accent-3': colors[2],
+          '--accent-4': colors[3],
+          '--accent-5': colors[4],
+          '--danger': colors[5] // The 6th color becomes the Ruin color
+      };
+      this.applyCustomTheme(map);
+      this.saveCustomTheme();
   }
 
   setSlotMode(mode) {
@@ -1605,7 +1881,7 @@ class GameController {
     if (raw) {
       this.deserialize(JSON.parse(raw));
       this.announcer.announce(`Loaded Slot ${id}`);
-      Object.keys(this.model.params).forEach(k => { const el = document.getElementById(k); if(el) el.value = this.model.params[k]; });
+      this.syncUIParams();
       this.recalcExpectations();
       this.ui.render(this.grids, true);
       this.chaos.reset(); 
@@ -1680,13 +1956,21 @@ class GameController {
   }
 
   postLoadUpdate() {
-      Object.keys(this.model.params).forEach(k => { const el = document.getElementById(k); if(el) el.value = this.model.params[k]; });
+      this.syncUIParams();
       this.recalcExpectations();
       this.ui.render(this.grids, true);
       this.updateSlotUI();
       this.chaos.reset();
       const lblM = document.getElementById('lbl-M-goal');
       if(lblM) lblM.textContent = this.model.params.M;
+  }
+  
+  syncUIParams() {
+      Object.keys(this.model.params).forEach(k => { 
+          const el = document.getElementById(k); 
+          if(el) el.value = this.model.params[k]; 
+      });
+      this.syncWeatherParams();
   }
 
   updateSlotUI() {
@@ -1834,7 +2118,7 @@ class GameController {
 
   applyParams() {
     const p = this.model.params;
-    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w','max_delay'].forEach(k => {
+    ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w','max_delay','chaos_dt','chaos_intensity'].forEach(k => {
       const el = document.getElementById(k); if(el) p[k] = +el.value;
     });
 
@@ -1842,7 +2126,12 @@ class GameController {
     if(lblM) lblM.textContent = p.M;
 
     SisyphusMath.clearCache();
+    this.syncWeatherParams();
     this.reset(); 
+  }
+  
+  syncWeatherParams() {
+      if(this.chaos) this.chaos.setParams(this.model.params.chaos_dt, this.model.params.chaos_intensity);
   }
 
   reset() {
@@ -1892,7 +2181,7 @@ class GameController {
       const raw = localStorage.getItem('sisyphus_v9_delay') || localStorage.getItem('sisyphus_v8_optimized'); 
       if(raw) {
         this.deserialize(JSON.parse(raw));
-        Object.keys(this.model.params).forEach(k => { const el = document.getElementById(k); if(el) el.value = this.model.params[k]; });
+        this.syncUIParams();
         const lblM = document.getElementById('lbl-M-goal');
         if(lblM) lblM.textContent = this.model.params.M;
       }
