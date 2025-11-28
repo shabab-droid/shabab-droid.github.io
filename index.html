@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v4.9 (Apply Option)</title>
+<title>Sisyphus' Ruin v4.10 (Intensity Fix)</title>
 <style>
   :root {
     /* Default Colors (Cosmic) - These are overridden by JS themes */
@@ -1513,19 +1513,22 @@ class ChaosEngine {
   }
 
   updateWeather(velocity) {
-    let rawIntensity = velocity * 0.667; 
-    if(rawIntensity > 1) rawIntensity = 1;
+    let rawInput = velocity * 0.667; 
     
-    // Scale the effect by user intensity param
-    this.multiplier = 0.5 + (rawIntensity * 2.0 * this.intensity);
+    // Scale BOTH multiplier AND threshold check by user intensity
+    let scaledIntensity = rawInput * this.intensity;
+    
+    // Multiplier logic remains similar but uses scaled value
+    this.multiplier = 0.5 + (scaledIntensity * 2.0);
+    
     if (this.modEl) this.modEl.textContent = this.multiplier.toFixed(2) + "x";
 
     let statusText = "", statusClass = "", color = "";
     
-    // Adjust thresholds visually based on intensity? Keep simple for now
-    if(rawIntensity < 0.17) { 
+    // Thresholds checked against SCALED intensity
+    if(scaledIntensity < 0.17) { 
         statusText = "CALM"; statusClass = "weather-good"; color = this.colors.calm;
-    } else if (rawIntensity < 0.37) { 
+    } else if (scaledIntensity < 0.37) { 
         statusText = "WINDY"; statusClass = "weather-ok"; color = this.colors.windy;
     } else { 
         statusText = "STORM"; statusClass = "weather-bad"; color = this.colors.storm;
