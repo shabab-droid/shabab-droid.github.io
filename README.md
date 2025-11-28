@@ -2,7 +2,7 @@
 
 > "The struggle itself towards the heights is enough to fill a man's heart. One must imagine Sisyphus happy." — Albert Camus
 
-**Sisyphus' Ruin** is a browser-based probabilistic simulation and incremental game that explores the mathematics of persistence, failure, and the absurd. It combines a clean, modern UI with a chaotic "Atmosphere" engine to visualize the struggle of pushing the boulder up the mountain.
+**Sisyphus' Ruin** is a browser-based probabilistic simulation and interactive experience that explores the mathematics of persistence, failure, and the absurd. 
 
 ## 🏔️ Overview
 
