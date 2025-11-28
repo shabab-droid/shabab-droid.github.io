@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin v3.6 (Import/Export)</title>
+<title>Sisyphus' Ruin v3.7 (Summit & Single Slots)</title>
 <style>
   :root{
     --bg:#080014; --text:#fef8ff; --muted:#cdaeff;
@@ -237,13 +237,10 @@
   details > summary::before { content: '▶'; display: inline-block; margin-right: 6px; font-size: 10px; color: var(--accent); transition: transform 0.2s; }
   details[open] > summary::before { transform: rotate(90deg); }
 </style>
-<!-- Favicon (SVG, modern browsers) -->
 <link rel="icon" type="image/svg+xml" href="/sisyphus-icon.svg">
 
-<!-- Fallback PNG (optional but recommended) -->
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 
-<!-- iOS / mobile home-screen icon -->
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
 </head>
@@ -280,6 +277,39 @@
       <li><strong>3. Endure:</strong> The atmosphere will distort, delaying or speeding your next move.</li>
     </ul>
     <button class="btn" style="width:100%" onclick="document.getElementById('welcome-modal').classList.remove('show'); localStorage.setItem('sisyphus_welcome_seen', 'true');">Begin</button>
+  </div>
+</div>
+
+<div class="modal" id="summit-modal" role="dialog" aria-labelledby="summit-title">
+  <div class="modal-content" style="border-color: var(--success); box-shadow: 0 0 50px rgba(0,255,157,0.15);">
+    <h3 id="summit-title" style="color:var(--success); text-align:center; font-size:24px; margin-bottom:8px">The Summit</h3>
+    <div class="tiny" style="text-align:center; margin-bottom:20px; font-style:italic; opacity:0.8">
+      The stone rests. The air is still. For a moment, the struggle ceases.
+    </div>
+    
+    <div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:6px; margin-bottom:20px;">
+      <div class="row" style="justify-content:space-between; margin-bottom:8px">
+        <span style="opacity:0.7">Duration</span>
+        <span class="mono" id="summit-duration" style="font-weight:bold">0s</span>
+      </div>
+      <div class="row" style="justify-content:space-between; margin-bottom:8px">
+        <span style="opacity:0.7">Total Steps</span>
+        <span class="mono" id="summit-steps" style="font-weight:bold">0</span>
+      </div>
+      <div class="row" style="justify-content:space-between">
+        <span style="opacity:0.7">Attempts</span>
+        <span class="mono" id="summit-cycles" style="font-weight:bold">0</span>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:12px; flex-direction:column">
+      <button class="btn big outcome-win" id="btn-summit-reset">
+        BEGIN AGAIN
+      </button>
+      <button class="btn" id="btn-summit-close" style="background:transparent; border:1px solid rgba(255,255,255,0.2); opacity:0.8">
+        Survey the mountain
+      </button>
+    </div>
   </div>
 </div>
 
@@ -501,8 +531,8 @@
             </div>
 
             <div class="row" style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.1)">
-                <button class="btn" id="btn-export" style="flex:1">Export File</button>
-                <button class="btn" id="btn-import" style="flex:1">Import File</button>
+                <button class="btn" id="btn-export" style="flex:1">Export Single Slot</button>
+                <button class="btn" id="btn-import" style="flex:1">Import to Slot</button>
                 <input type="file" id="file-import" style="display:none" accept=".json">
             </div>
 
@@ -995,10 +1025,12 @@ class SisyphusUI {
     if(full) { this._renderDistributions(); this._renderGlobalStats(); }
   }
 
-  // --- NEW ANIMATION LOGIC (Barber Pole + Direction) ---
+  // --- NEW ANIMATION LOGIC (Barber Pole + Direction + Text Update) ---
   animateChange(k0, l0, k1, l1, duration, params) {
     const kFill = this.els['kpos-fill'];
     const lFill = this.els['lpos-fill'];
+    const kText = this.els['kpos-text'];
+    const lText = this.els['lpos-text'];
     
     // 1. Calculate Percentages
     const pK0 = (100 * Math.max(0, Math.min(1, k0 / params.M))).toFixed(2) + '%';
@@ -1010,11 +1042,15 @@ class SisyphusUI {
     kFill.classList.remove('active-motion', 'reverse-motion');
     lFill.classList.remove('active-motion', 'reverse-motion');
     
-    // 3. Set Start Position
+    // 3. Set Start Position & TEXT INDICATORS
     kFill.style.transition = 'none';
     lFill.style.transition = 'none';
     kFill.style.width = pK0;
     lFill.style.width = pL0;
+    
+    // Update Text: If changing, show "Prev -> Next / Max", otherwise standard
+    if (k0 !== k1) kText.textContent = `${k0} → ${k1} / ${params.M}`;
+    if (l0 !== l1) lText.textContent = `${l0} → ${l1} / ${params.L}`;
 
     // 4. Force Browser Reflow
     void kFill.offsetWidth; 
@@ -1023,11 +1059,11 @@ class SisyphusUI {
     if (duration > 100) {
         if (k0 !== k1) {
             kFill.classList.add('active-motion');
-            if (k1 < k0) kFill.classList.add('reverse-motion'); // Ruin = Reverse
+            if (k1 < k0) kFill.classList.add('reverse-motion'); 
         }
         if (l0 !== l1) {
             lFill.classList.add('active-motion');
-            if (l1 < l0) lFill.classList.add('reverse-motion'); // Spending Poise = Reverse
+            if (l1 < l0) lFill.classList.add('reverse-motion'); 
         }
     }
 
@@ -1397,14 +1433,22 @@ class GameController {
       this.ui.render(this.grids);
     }
     
+    $('btn-summit-reset').onclick = () => {
+      document.getElementById('summit-modal').classList.remove('show');
+      this.reset();
+    };
+    $('btn-summit-close').onclick = () => {
+      document.getElementById('summit-modal').classList.remove('show');
+    };
+    
     document.querySelectorAll('.slot-mode-btn').forEach(b => b.addEventListener('click', (e) => this.setSlotMode(e.target.dataset.mode)));
     document.querySelectorAll('.slot-btn').forEach(b => b.addEventListener('click', (e) => this.handleSlotAction(e.currentTarget.dataset.slot)));
     
     // Import / Export
-    $('btn-export').onclick = () => this.exportToFile();
+    $('btn-export').onclick = () => this.exportSlot();
     $('btn-import').onclick = () => $('file-import').click();
     $('file-import').onchange = (e) => {
-      if(e.target.files.length > 0) this.importFromFile(e.target.files[0]);
+      if(e.target.files.length > 0) this.importToSlot(e.target.files[0]);
       e.target.value = ''; // Reset input
     };
   }
@@ -1455,55 +1499,64 @@ class GameController {
     }
   }
   
-  exportToFile() {
-    const data = {
-        main: this.serialize(),
-        slots: {}
-    };
-    for(let i=1; i<=5; i++) {
-        const s = localStorage.getItem(`sisyphus_slot_${i}`);
-        if(s) data.slots[i] = s;
+  // NEW EXPORT LOGIC: Single Slot or Current Run
+  exportSlot() {
+    const slot = prompt("Export which slot?\n0 = Current Run\n1-5 = Saved Slot");
+    if (slot === null) return;
+    const slotNum = parseInt(slot, 10);
+    
+    let data = null;
+    let filename = "";
+
+    if (slotNum === 0) {
+        data = this.serialize();
+        filename = `sisyphus-ruin-current-${new Date().toISOString().slice(0,10)}.json`;
+    } else if (slotNum >= 1 && slotNum <= 5) {
+        const raw = localStorage.getItem(`sisyphus_slot_${slotNum}`);
+        if (!raw) { alert(`Slot ${slotNum} is empty.`); return; }
+        data = JSON.parse(raw);
+        filename = `sisyphus-ruin-slot-${slotNum}.json`;
+    } else {
+        alert("Invalid selection.");
+        return;
     }
+
     const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `sisyphus-ruin-save-${new Date().toISOString().slice(0,10)}.json`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
-    this.announcer.announce("Save file exported");
+    this.announcer.announce("Export complete");
   }
 
-  importFromFile(file) {
+  // NEW IMPORT LOGIC: Import into Slot
+  importToSlot(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
         try {
             const json = JSON.parse(e.target.result);
-            // Handle new format (with slots) or raw export
+            // Handle legacy format (with wrappers) or new raw format
             const state = json.main || json;
             
-            // Confirm overwrite if needed
-            if ((this.model.state.step > 0) && !confirm("Overwrite current run with imported file?")) return;
+            const slot = prompt("Import data into which slot?\n0 = Overwrite Current Run (Play Immediately)\n1-5 = Save to Slot");
+            if (slot === null) return;
+            const slotNum = parseInt(slot, 10);
 
-            this.deserialize(state);
-            
-            // Restore slots if present
-            if(json.slots) {
-                for(const [k, v] of Object.entries(json.slots)) {
-                    localStorage.setItem(`sisyphus_slot_${k}`, v);
-                }
+            if (slotNum === 0) {
+                 if ((this.model.state.step > 0) && !confirm("Overwrite current run with imported file?")) return;
+                 this.deserialize(state);
+                 this.postLoadUpdate();
+                 alert("File imported and loaded.");
+            } else if (slotNum >= 1 && slotNum <= 5) {
+                if(localStorage.getItem(`sisyphus_slot_${slotNum}`) && !confirm(`Overwrite Slot ${slotNum}?`)) return;
+                localStorage.setItem(`sisyphus_slot_${slotNum}`, JSON.stringify(state));
+                this.updateSlotUI();
+                alert(`File saved to Slot ${slotNum}. Switch to Load Mode to play it.`);
+            } else {
+                alert("Invalid selection.");
             }
-
-            // Update UI
-            Object.keys(this.model.params).forEach(k => { const el = document.getElementById(k); if(el) el.value = this.model.params[k]; });
-            this.recalcExpectations();
-            this.ui.render(this.grids, true);
-            this.updateSlotUI();
-            this.chaos.reset();
-            const lblM = document.getElementById('lbl-M-goal');
-            if(lblM) lblM.textContent = this.model.params.M;
-            
-            alert("Save Imported Successfully");
 
         } catch(err) {
             console.error(err);
@@ -1511,6 +1564,16 @@ class GameController {
         }
     };
     reader.readAsText(file);
+  }
+
+  postLoadUpdate() {
+      Object.keys(this.model.params).forEach(k => { const el = document.getElementById(k); if(el) el.value = this.model.params[k]; });
+      this.recalcExpectations();
+      this.ui.render(this.grids, true);
+      this.updateSlotUI();
+      this.chaos.reset();
+      const lblM = document.getElementById('lbl-M-goal');
+      if(lblM) lblM.textContent = this.model.params.M;
   }
 
   updateSlotUI() {
@@ -1646,11 +1709,26 @@ class GameController {
   }
 
   handleStepResult(res) {
-    if (res === 'top') { this.announcer.announce("Congratulations! Summit reached!"); alert("Summit Reached!"); }
+    if (res === 'top') { 
+      this.announcer.announce("Congratulations! Summit reached!"); 
+      this.showSummitModal(); 
+    }
     else if (res === 'win') this.announcer.announce(`Ascent! Now at Height ${this.model.state.k}`);
     else if (res === 'loss') this.announcer.announce("Ruin. Reset to Height 1");
     else if (res === 'neu') this.announcer.announce("Steady. Poise increased");
     if(res && res !== 'top') this.ui.log(`step ${this.model.state.step}: ${this.model.lastRoll.outcome.toUpperCase()}`);
+  }
+
+  showSummitModal() {
+    const modal = document.getElementById('summit-modal');
+    const elapsed = Math.max(0, Date.now() - this.model.startTime);
+    
+    document.getElementById('summit-duration').textContent = this.ui._formatDuration(elapsed);
+    document.getElementById('summit-steps').textContent = this.model.state.step;
+    // cycleId is 1-based, so current cycle ID is the count of attempts including this one
+    document.getElementById('summit-cycles').textContent = this.model.cycleId;
+    
+    modal.classList.add('show');
   }
 
   applyParams() {
