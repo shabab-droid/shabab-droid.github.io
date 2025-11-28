@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sisyphus' Ruin</title>
+<title>Sisyphus' Ruin v4.9 (Apply Option)</title>
 <style>
   :root {
     /* Default Colors (Cosmic) - These are overridden by JS themes */
@@ -587,9 +587,13 @@
                 </details>
                 
                 <!-- Apply & Reset Separated Inside Collapsed Block -->
-                <div class="row" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1); justify-content: space-between;">
+                <div class="row" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1); justify-content: flex-end;">
+                    <label class="checkbox-wrapper" style="margin-right:auto;">
+                        <input type="checkbox" id="chk-reset-on-apply" checked>
+                        <span>Reset on Apply</span>
+                    </label>
                     <button class="btn" id="apply" style="flex:1; font-size:11px; padding:6px">Apply Params</button>
-                    <button class="btn" id="resetState" aria-keyshortcuts="R" style="flex:1; opacity:0.8; font-size:11px; padding:6px; background:#440000; color:#ffcccc">Reset State</button>
+                    <button class="btn" id="resetState" aria-keyshortcuts="R" style="flex:1; opacity:0.8; font-size:11px; padding:6px; background:#440000; color:#ffcccc">Reset Run</button>
                 </div>
             </div>
         </details>
@@ -2116,7 +2120,7 @@ class GameController {
     modal.classList.add('show');
   }
 
-  applyParams() {
+  applyParams(shouldReset = true) {
     const p = this.model.params;
     ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w','max_delay','chaos_dt','chaos_intensity'].forEach(k => {
       const el = document.getElementById(k); if(el) p[k] = +el.value;
@@ -2127,7 +2131,25 @@ class GameController {
 
     SisyphusMath.clearCache();
     this.syncWeatherParams();
-    this.reset(); 
+    
+    // Checkbox override logic
+    const chk = document.getElementById('chk-reset-on-apply');
+    if (chk) {
+        shouldReset = chk.checked;
+    }
+    
+    if (shouldReset) {
+        this.reset();
+    } else {
+        // Validate k/l against new M/L
+        this.model.state.k = Math.min(this.model.state.k, this.model.params.M);
+        this.model.state.l = Math.min(this.model.state.l, this.model.params.L);
+        // Recalc expectations based on new params
+        this.recalcExpectations();
+        this.ui.render(this.grids, true);
+        this.save();
+        this.announcer.announce("Parameters applied (State kept)");
+    }
   }
   
   syncWeatherParams() {
