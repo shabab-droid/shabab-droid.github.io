@@ -63,6 +63,4 @@ This project is built as a **Single Page Application (SPA)** with no external de
 * **R**: Reset the simulation.
 * **?**: Open Help/Shortcuts.
 
-## 📄 License
 
-[MIT License](LICENSE) - Feel free to fork, modify, and distribute.
