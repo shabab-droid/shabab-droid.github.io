@@ -6,20 +6,18 @@
 <title>Sisyphus' Ruin</title>
 <style>
   :root {
-    /* Default Colors (Cosmic) */
+    /* Default Colors (Cosmic) - These are overridden by JS themes */
     --bg: #080014;
     --text: #fef8ff;
-    --muted: #9e8fb2;
+    --muted: #cdaeff;
     --accent: #ff9e2c;   /* Gold/Orange - Ascent/Win */
     --accent-2: #ff00b8; /* Pink - Height bar accent */
     --accent-3: #00b7ff; /* Blue - Steady/Poise */
     --danger: #ff3333;   /* Red - Ruin/Storm */
     --success: #00ff9d;  /* Green - Summit */
     
-    --card-bg-color: #0c0020; 
-    --card-bg: rgba(12, 0, 32, 0.75);
-    --card-border: rgba(255,255,255,0.08);
-    --card-highlight: rgba(255,255,255,0.15);
+    --card-bg: rgba(12, 0, 32, 0.6);
+    --card-border: rgba(255,255,255,0.05);
 
     --bg-image: 
       radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%),
@@ -27,14 +25,8 @@
       linear-gradient(180deg,#0b0014 0%, #050010 100%);
   }
 
-  /* Custom Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
-
   body {
-    margin: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; font-family: Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; 
     color: var(--text);
     min-height: 100vh; 
     background-color: var(--bg);
@@ -43,136 +35,113 @@
     background-size: cover;
     background-attachment: fixed;
     transition: background-color 0.5s ease, color 0.5s ease, background-image 0.5s ease;
-    overflow-y: scroll;
   }
   
-  .app{max-width:1100px;margin:0 auto;padding:4px}
+  .app{max-width:1100px;margin:0 auto;padding:6px}
   
   h1{
-    text-align:center; font-size:18px; margin:4px 0 8px; letter-spacing:2px; font-weight: 800; text-transform: uppercase;
-    background:linear-gradient(9deg,var(--accent),var(--text),var(--accent-3));
+    text-align:center; font-size:clamp(18px,3vw,26px); margin:6px 0 6px; letter-spacing:.5px;
+    background:linear-gradient(9deg,var(--accent),var(--accent-2),var(--accent-3));
     -webkit-background-clip:text; background-clip:text; color:transparent;
-    text-shadow: 0 2px 20px rgba(0,0,0,0.4); opacity: 0.9;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
   }
   
-  /* Grid Layout */
-  .grid{display:grid;grid-template-columns:1fr 350px;gap:4px}
+  /* Reduced grid gap */
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:6px}
   @media(max-width:900px){.grid{grid-template-columns:1fr}}
   
-  /* Card Styling */
+  /* Compact Card Styling */
   .card {
     background: var(--card-bg); 
-    backdrop-filter: blur(12px); 
+    backdrop-filter: blur(4px); 
     padding: 8px; 
-    border-radius: 6px; 
+    border-radius: 8px; 
     border: 1px solid var(--card-border);
-    border-top: 1px solid var(--card-highlight);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     transition: background 0.5s ease, border-color 0.5s ease;
-    margin-bottom: 4px;
-    position: relative;
+    margin-bottom: 6px; /* Reduced margin between cards */
   }
   
-  .card h2 { 
-    font-size: 10px; 
-    text-transform: uppercase; 
-    letter-spacing: 1px; 
-    font-weight: 700;
-    color: var(--muted);
-    margin: 0 0 6px; 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding-bottom: 4px;
-  }
+  .card h2 { font-size: 15px; margin: 0 0 4px; opacity: 0.9; }
 
   .btn{
-    appearance:none; border:none; color:var(--text); border-radius:4px;
-    padding:4px 8px; cursor:pointer; font-weight:600; letter-spacing:.3px;
-    transition: all .15s ease; 
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
-    background: rgba(255,255,255,0.03);
-    font-size: 10px;
+    appearance:none; background:#1c0130; border:none; color:var(--text); border-radius:6px;
+    padding:6px 10px; cursor:pointer; font-weight:600; letter-spacing:.3px;
+    transition:background .15s ease,transform .1s ease; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
+    background: rgba(0,0,0,0.3); /* Adaptive button bg */
+    font-size: 11px;
   }
-  .btn:hover{background:rgba(255,255,255,0.08); box-shadow:inset 0 0 0 1px rgba(255,255,255,.2); color: #fff;}
-  .btn:active{transform:translateY(1px); background:rgba(255,255,255,0.02);}
-  .btn:focus{outline:none; box-shadow:inset 0 0 0 1px var(--accent);}
+  .btn:hover{background:rgba(255,255,255,0.1)}
+  .btn:active{transform:scale(.97)}
+  .btn:focus{outline:2px solid var(--accent);outline-offset:2px}
   
   .btn:disabled {
-    opacity: 0.5; cursor: not-allowed; background: #111 !important;
-    color: #555 !important; transform: none !important; box-shadow: none !important;
+    opacity: 0.9; cursor: not-allowed; background: #2a2a2a !important;
+    color: #aaa !important; transform: none !important; box-shadow: none !important;
   }
   
   .checkbox-wrapper {
-    display: flex; align-items: center; gap: 6px; padding: 0 4px; width: auto; 
-    height: 24px; cursor: pointer; user-select: none; opacity: 0.8; transition: opacity 0.2s;
+    display: flex; align-items: center; gap: 6px; padding: 0 6px; width: auto; 
+    height: 28px; cursor: pointer; user-select: none; opacity: 0.85; transition: opacity 0.2s;
   }
   .checkbox-wrapper:hover { opacity: 1; }
   .checkbox-wrapper input[type="checkbox"] {
-    appearance: none; width: 12px; height: 12px; background: rgba(0,0,0,0.5);
-    border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; cursor: pointer;
+    appearance: none; width: 14px; height: 14px; background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.3); border-radius: 3px; cursor: pointer;
     display: grid; place-content: center; margin: 0;
   }
   .checkbox-wrapper input[type="checkbox"]::before {
-    content: ""; width: 6px; height: 6px; background: var(--accent);
+    content: ""; width: 8px; height: 8px; background: var(--accent);
     transform: scale(0); transition: 0.1s transform; border-radius: 1px;
   }
   .checkbox-wrapper input[type="checkbox"]:checked::before { transform: scale(1); }
   .checkbox-wrapper input[type="checkbox"]:checked { border-color: var(--accent); }
-  .checkbox-wrapper label { cursor: pointer; color: var(--text); width: auto; font-size: 10px; font-weight: 500; }
+  .checkbox-wrapper label { cursor: pointer; color: var(--text); width: auto; font-size: 11px; font-weight: 500; }
 
   .docked-control {
     position: sticky; top: 0; z-index: 1000;
-    background: rgba(8,0,20, 0.9); backdrop-filter: blur(10px);
-    margin: -4px -4px 4px -4px; padding: 4px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    background: var(--card-bg); backdrop-filter: blur(8px);
+    margin: -6px -6px 6px -6px; padding: 6px;
+    border-bottom: 1px solid var(--accent);
     display: flex; justify-content: center;
   }
 
   .btn.big{
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    width:100%; padding:4px; margin-bottom:0; 
-    background: linear-gradient(135deg, var(--accent), var(--accent-3)); 
-    color: #000; font-weight:800; max-width: 600px; min-height: 44px; 
-    line-height: 1.1; transition: all 0.2s ease; border: none;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    border-radius: 4px;
+    width:100%; padding:8px; margin-bottom:0; 
+    /* Changed fixed red (#ff2400) to variable */
+    background: linear-gradient(90deg, var(--accent), var(--accent-3), var(--danger)); 
+    color: var(--bg); font-weight:800; max-width: 600px; min-height: 48px; 
+    line-height: 1.2; transition: background 0.3s ease; border: none;
+    text-shadow: 0 0 10px rgba(255,255,255,0.2);
   }
-  .btn.big:hover{ filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 15px rgba(var(--accent),0.4); }
-  .btn.big:active{ transform: translateY(1px); }
+  .btn.big:hover{opacity: 0.9;}
   
   .btn.big.outcome-win:disabled { background: var(--accent) !important; color: var(--bg) !important; opacity: 1 !important; }
   .btn.big.outcome-neu:disabled { background: var(--accent-3) !important; color: var(--bg) !important; opacity: 1 !important; }
   .btn.big.outcome-loss:disabled { background: var(--danger) !important; color: #ffffff !important; opacity: 1 !important; }
   
-  .btn-main-text { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+  .btn-main-text { font-size: 16px; text-transform: uppercase; }
 
-  label{width:90px;font-size:9px;color:var(--muted); line-height: 1.1;}
+  label{width:100px;font-size:10px;color:var(--muted); line-height: 1.1;}
   
-  input[type="number"],select,input[type="text"]{
-    background:rgba(0,0,0,0.4); color:var(--text); border:1px solid rgba(255,255,255,0.05); border-radius:3px;
-    padding:2px 4px; width: 45px; font-size: 10px; font-family: monospace;
-    transition: border-color 0.2s;
+  input[type="number"],select{
+    background:rgba(0,0,0,0.3); color:var(--text); border:none; border-radius:4px;
+    padding:3px 5px; width: 45px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1); font-size: 10px;
   }
-  input[type="number"]:focus,select:focus,input[type="text"]:focus {
-      outline: none; border-color: var(--accent); background: rgba(0,0,0,0.6);
-  }
-  
   input[type="color"] {
-    -webkit-appearance: none; border: none; width: 100%; height: 24px; padding: 0; overflow: hidden; border-radius: 2px; background: none; cursor: pointer;
+    -webkit-appearance: none; border: none; width: 20px; height: 20px; padding: 0; overflow: hidden; border-radius: 3px; background: none; cursor: pointer;
   }
   input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-  input[type="color"]::-webkit-color-swatch { border: none; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2); }
+  input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2); }
   
   select#speed { width: auto; }
-  input#nRolls { width: 40px; }
+  input#nRolls { width: 45px; }
 
   .desc{font-size:9px;opacity:.6;color:var(--muted);margin:-2px 0 3px; display:block; line-height:1.2;}
-  .row{display:flex;gap:4px;align-items:center;flex-wrap:wrap; margin-bottom: 2px;}
+  .row{display:flex;gap:4px;align-items:center;flex-wrap:wrap; margin-bottom: 3px;}
   .bar{
-    height:6px; background:rgba(255,255,255,.06); border-radius:2px;
-    overflow:hidden; margin:2px 0; border:1px solid rgba(255,255,255,.05);
+    height:8px; background:rgba(255,255,255,.06); border-radius:6px;
+    overflow:hidden; margin:2px 0; border:1px solid rgba(255,255,255,.1);
   }
   .bar>div{height:100%}
   .bar .win{background:var(--accent)}
@@ -180,135 +149,143 @@
   .bar .loss{background:var(--danger)}
 
   .kpos-track,.lpos-track{
-    height:5px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.05);
-    border-radius:2px; overflow:hidden;
+    height:5px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+    border-radius:4px; overflow:hidden;
   }
   
   .kpos-fill, .lpos-fill {
-    height: 100%; width: 0%; transition: width 0s linear; will-change: width, background-position;
+    height: 100%;
+    width: 0%; /* Default */
+    transition: width 0s linear; 
+    will-change: width, background-position;
   }
+  /* Base colors (Static) */
   .kpos-fill { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
   .lpos-fill { background: linear-gradient(90deg, var(--accent-3), var(--success)); }
 
-  @keyframes barberpole { 0% { background-position: 0 0; } 100% { background-position: 20px 0; } }
+  @keyframes barberpole {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 40px 0, 0 0; }
+  }
 
   .kpos-fill.active-motion, .lpos-fill.active-motion {
     animation: barberpole 0.5s linear infinite;
-    filter: brightness(1.2);
-    background-size: 10px 10px, 100% 100%;
+    filter: brightness(1.2) contrast(1.1);
+    box-shadow: 0 0 8px rgba(255,255,255,0.2);
+    border-right: 2px solid rgba(255,255,255,0.8);
+    background-size: 20px 20px, 100% 100%;
+  }
+
+  .kpos-fill.active-motion {
     background-image: 
       linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
       linear-gradient(90deg, var(--accent), var(--accent-2));
   }
+
   .lpos-fill.active-motion {
-      background-image: 
+    background-image: 
       linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
       linear-gradient(90deg, var(--accent-3), var(--success));
   }
+
   .kpos-fill.reverse-motion, .lpos-fill.reverse-motion {
     animation-direction: reverse; 
+    border-right: 2px solid var(--danger);
     background-image: 
       linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
       linear-gradient(90deg, var(--danger), var(--danger)) !important;
   }
   
-  .tiny{font-size:10px;opacity:.7;color:var(--muted)}
-  .mono{font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', 'Source Code Pro', monospace; letter-spacing: -0.5px;}
-  .small{font-size:10px;}
+  .tiny{font-size:10px;opacity:.65;color:var(--muted)}
+  .mono{font-family:monospace;}
+  .small{font-size:11px;}
 
-  .recent.win #recent-outcome{color:var(--accent); text-shadow:0 0 15px rgba(var(--accent), 0.5);}
-  .recent.neu #recent-outcome{color:var(--accent-3); text-shadow:0 0 15px rgba(var(--accent-3), 0.5);}
-  .recent.loss #recent-outcome{color:var(--danger); text-shadow:0 0 15px rgba(var(--danger), 0.5);}
+  .recent.win #recent-outcome{color:var(--accent); text-shadow:0 0 12px var(--accent);}
+  .recent.neu #recent-outcome{color:var(--accent-3); text-shadow:0 0 12px var(--accent-3);}
+  .recent.loss #recent-outcome{color:var(--danger); text-shadow:0 0 12px var(--danger);}
   
   .cycle-entry {
-    font-family: monospace; font-size: 9px; border-radius: 2px; 
-    border-left: 2px solid rgba(255,255,255,.05); padding: 2px 4px; 
-    margin-bottom: 2px; background: rgba(0,0,0,0.2); 
+    font-family: monospace; font-size: 10px; border-radius: 4px; 
+    border-left: 2px solid rgba(255,255,255,.12); padding: 3px 5px; 
+    margin-bottom: 2px; background: rgba(0,0,0,0.3); 
     white-space: pre-wrap; word-break: break-word;
     display: flex; flex-direction: column; gap: 1px;
-    transition: background 0.2s;
   }
-  .cycle-entry:hover { background: rgba(255,255,255,0.05); }
   .cycle-entry.loss { border-color: var(--danger); }
-  .cycle-entry.top { border-color: var(--accent); background: rgba(255,255,255,0.05); }
-  .cycle-entry.active { border-color: var(--text); background: rgba(255,255,255,0.02); }
+  .cycle-entry.top { border-color: var(--accent); background: rgba(255,255,255,0.1); }
+  .cycle-entry.active { border-color: var(--text); background: rgba(255,255,255,0.05); }
 
-  .cycle-entry-top-row { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; opacity: 0.9; line-height: 1.1; }
+  .cycle-entry-top-row { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; opacity: 0.9; line-height: 1.2; }
   .cycle-id { color: var(--accent-3); margin-right: 6px; }
-  .cycle-meta { font-weight: 400; opacity: 0.65; font-size: 8px; }
-  .cycle-entry-path { opacity: 0.5; font-size: 8px; line-height: 1; letter-spacing: 0.5px; margin-top: 1px; }
+  .cycle-meta { font-weight: 400; opacity: 0.65; font-size: 9px; }
+  .cycle-entry-path { opacity: 0.75; font-size: 9px; line-height: 1.1; letter-spacing: 1px; margin-top: 1px; }
 
   .stats-grid {
     display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; margin-top: 4px;
-    background: rgba(0,0,0,0.2); padding: 3px; border-radius: 3px;
+    background: rgba(255,255,255,0.03); padding: 4px; border-radius: 4px;
   }
   .stat-box { display: flex; flex-direction: column; align-items: center; }
-  .stat-label { font-size: 7px; opacity: 0.4; text-transform: uppercase; letter-spacing: 0.5px; }
-  .stat-val { font-family: monospace; font-size: 9px; font-weight: 600; color: var(--accent-3); }
+  .stat-label { font-size: 8px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-val { font-family: monospace; font-size: 10px; font-weight: 600; color: var(--accent-3); }
 
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-  .perf-indicator { position: fixed; bottom: 4px; right: 4px; background: rgba(0,0,0,0.8); padding: 2px 4px; border-radius: 3px; font-size: 9px; font-family: monospace; opacity: 0.3; pointer-events: none; }
+  .perf-indicator { position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-family: monospace; opacity: 0.5; pointer-events: none; }
 
   /* Modals */
-  .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; }
+  .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); z-index: 2000; align-items: center; justify-content: center; }
   .modal.show { display: flex; }
-  .modal-content { background: var(--bg); border: 1px solid var(--accent); padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; box-shadow: 0 0 50px rgba(0,0,0,0.9); position: relative; }
-  .modal h3 { margin-top: 0; color: var(--accent); font-size: 18px; letter-spacing: 1px; text-transform: uppercase; }
-  .modal kbd { background: rgba(255,255,255,0.1); padding: 1px 5px; border-radius: 3px; font-family: monospace; border: 1px solid rgba(255,255,255,0.2); font-size: 11px;}
+  .modal-content { background: var(--bg); border: 2px solid var(--accent); padding: 24px; border-radius: 10px; max-width: 450px; width: 90%; box-shadow: 0 0 40px rgba(0,0,0,0.8); position: relative; }
+  .modal h3 { margin-top: 0; color: var(--accent); font-size: 20px; letter-spacing: 0.5px; }
+  .modal kbd { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-family: monospace; border: 1px solid rgba(255,255,255,0.2); }
   
-  .welcome-list { margin: 10px 0; padding-left: 0; list-style: none; }
-  .welcome-list li { margin-bottom: 8px; line-height: 1.4; font-size: 13px; opacity: 0.8; }
+  .welcome-list { margin: 12px 0; padding-left: 0; list-style: none; }
+  .welcome-list li { margin-bottom: 12px; line-height: 1.5; font-size: 14px; opacity: 0.9; }
   .welcome-list strong { color: var(--accent-3); }
 
-  .weather-status { font-weight: 800; letter-spacing: 1px; }
-  .weather-good { color: var(--accent); text-shadow: 0 0 10px rgba(var(--accent),0.5); }
-  .weather-ok { color: var(--accent-3); text-shadow: 0 0 10px rgba(var(--accent-3),0.5); }
-  .weather-bad { color: var(--danger); text-shadow: 0 0 10px rgba(var(--danger),0.5); }
+  .weather-status { font-weight: 800; letter-spacing: 0.5px; }
+  .weather-good { color: var(--accent); text-shadow: 0 0 5px var(--accent); }
+  .weather-ok { color: var(--accent-3); text-shadow: 0 0 5px var(--accent-3); }
+  .weather-bad { color: var(--danger); text-shadow: 0 0 5px var(--danger); }
 
-  #weather-card { position: relative; overflow: hidden; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between; }
-  #weather-content { position: relative; z-index: 2; margin-top: auto; }
-  #chaosCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.3; pointer-events: none; mix-blend-mode: screen; }
+  #weather-card { position: relative; overflow: hidden; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
+  #weather-content { position: relative; z-index: 2; }
+  #chaosCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.4; pointer-events: none; }
 
-  .save-slots-container { margin: 4px 0; padding: 3px; background: rgba(0,0,0,0.2); border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
-  .slot-mode-switch { display: flex; gap: 2px; margin-bottom: 3px; }
-  .slot-mode-btn { flex: 1; font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px; border: 1px solid transparent; opacity: 0.5; transition: all 0.2s ease; }
-  .slot-mode-btn.active { opacity: 1; font-weight: 800; background: rgba(255,255,255,0.1); }
-  .mode-save .slot-mode-btn[data-mode="save"] { background: var(--accent); color: var(--bg); }
-  .mode-load .slot-mode-btn[data-mode="load"] { background: var(--accent-3); color: var(--bg); }
+  .save-slots-container { margin: 6px 0; padding: 4px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+  .slot-mode-switch { display: flex; gap: 4px; margin-bottom: 4px; }
+  .slot-mode-btn { flex: 1; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px; border: 1px solid transparent; opacity: 0.5; transition: all 0.2s ease; }
+  .slot-mode-btn.active { opacity: 1; font-weight: 800; }
+  .mode-save .slot-mode-btn[data-mode="save"] { background: var(--accent); color: var(--bg); box-shadow: 0 0 8px var(--accent); }
+  .mode-load .slot-mode-btn[data-mode="load"] { background: var(--accent-3); color: var(--bg); box-shadow: 0 0 8px var(--accent-3); }
 
-  .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
-  .slot-btn { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 3px; padding: 2px; font-family: monospace; font-size: 8px; color: var(--muted); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 32px; text-align: center; }
-  .slot-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
-  .slot-btn.has-data { border-color: rgba(255,255,255,0.2); color: var(--text); background: rgba(255,255,255,0.05); }
-  .slot-btn.empty { opacity: 0.4; font-style: italic; }
+  .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+  .slot-btn { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px; font-family: monospace; font-size: 8px; color: var(--muted); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 32px; text-align: center; }
+  .slot-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
+  .slot-btn.has-data { border-color: rgba(255,255,255,0.3); color: var(--text); background: rgba(255,255,255,0.05); }
+  .slot-btn.empty { opacity: 0.6; font-style: italic; }
   .mode-save .slot-btn:hover { border-color: var(--accent); color: var(--accent); }
   .mode-load .slot-btn:hover { border-color: var(--accent-3); color: var(--accent-3); }
-  .slot-label { font-weight: 800; font-size: 8px; margin-bottom: 0px; }
-  .slot-info { font-size: 7px; line-height: 1; opacity: 0.8; }
+  .slot-label { font-weight: 800; font-size: 9px; margin-bottom: 0px; }
+  .slot-info { font-size: 7px; line-height: 1.1; opacity: 0.8; }
 
   /* Accordion Styling */
-  details { margin-bottom: 2px; background: rgba(0,0,0,0.2); border-radius: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,0.03); }
-  details summary { cursor: pointer; padding: 2px 6px; user-select: none; outline: none; background: rgba(255,255,255,0.02); font-weight: 600; font-size: 10px; color: var(--muted); display: flex; align-items: center; }
-  details summary:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  details { margin-bottom: 2px; background: rgba(255,255,255,0.02); border-radius: 4px; overflow: hidden; }
+  details summary { cursor: pointer; padding: 3px 6px; user-select: none; outline: none; background: rgba(255,255,255,0.03); font-weight: 600; font-size: 11px; color: var(--muted); }
+  details summary:hover { color: var(--accent); background: rgba(255,255,255,0.06); }
   details > summary { list-style: none; }
   details > summary::-webkit-details-marker { display: none; }
-  details > summary::before { content: '▸'; display: inline-block; margin-right: 6px; font-size: 10px; color: var(--accent); transition: transform 0.1s; }
+  details > summary::before { content: '▶'; display: inline-block; margin-right: 6px; font-size: 9px; color: var(--accent); transition: transform 0.2s; }
   details[open] > summary::before { transform: rotate(90deg); }
   
+  /* Nested details for submenus should look distinct or same, here same but indented slightly by default logic */
   details .details-content { padding: 4px 6px; border-top: 1px solid rgba(255,255,255,0.05); }
+  
+  /* Top level details within cards might need less margin if stacked */
   .card details { margin-bottom: 2px; }
 
-  /* Expanded Palette Grid */
-  .palette-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 6px; }
-  .palette-item { display: flex; flex-direction: column; align-items: center; gap: 2px; background:rgba(255,255,255,0.03); padding:3px; border-radius:3px; }
-  .palette-label { font-size: 8px; opacity: 0.6; text-align: center; margin-top: 1px;}
-  
-  /* Reworked Palette Manager */
-  .palette-manager { margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; display:flex; flex-direction:column; gap:4px; }
-  
-  /* Utility for alignment */
-  .flex-v-center { display: flex; align-items: center; }
-  .space-between { justify-content: space-between; }
+  .palette-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; margin-top: 4px; }
+  .palette-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .palette-label { font-size: 8px; opacity: 0.7; }
 </style>
 <link rel="icon" type="image/svg+xml" href="/sisyphus-icon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -341,18 +318,18 @@
 <div class="modal" id="welcome-modal" role="dialog" aria-labelledby="welcome-title">
   <div class="modal-content">
     <h3 id="welcome-title">Welcome to Sisyphus' Ruin</h3>
-    <div class="tiny" style="margin-bottom:12px; opacity:0.7; font-style:italic">The struggle itself towards the heights is enough to fill a man's heart.</div>
+    <div class="tiny" style="margin-bottom:16px; opacity:0.7; font-style:italic">The struggle itself towards the heights is enough to fill a man's heart.</div>
     <ul class="welcome-list">
       <li><strong>1. Roll</strong> to push the stone.</li>
-      <li><strong>2. Watch</strong> the outcome: <strong>Ascent</strong> gains height, <strong>Ruin</strong> resets you. <strong>Steady</strong> builds poise.</li>
-      <li><strong>3. Endure:</strong> The atmosphere will distort time.</li>
+      <li><strong>2. Watch</strong> the outcome: <strong>Ascent</strong> gains height and <strong>Ruin</strong> returns you to the bottom. <strong>Steady</strong> builds your poise, raising the chance of ascent and reducing the chance of ruin.</li>
+      <li><strong>3. Endure:</strong> The atmosphere will distort, delaying or speeding your next move.</li>
     </ul>
     <button class="btn" style="width:100%" onclick="document.getElementById('welcome-modal').classList.remove('show'); localStorage.setItem('sisyphus_welcome_seen', 'true');">Begin</button>
   </div>
 </div>
 
 <div class="modal" id="summit-modal" role="dialog" aria-labelledby="summit-title">
-  <div class="modal-content" style="border-color: var(--success); box-shadow: 0 0 50px rgba(0,255,157,0.2);">
+  <div class="modal-content" style="border-color: var(--success); box-shadow: 0 0 50px var(--success);">
     <h3 id="summit-title" style="color:var(--success); text-align:center; font-size:24px; margin-bottom:8px">The Summit</h3>
     <div class="tiny" style="text-align:center; margin-bottom:20px; font-style:italic; opacity:0.8">
       The stone rests. The air is still. For a moment, the struggle ceases.
@@ -373,7 +350,7 @@
       </div>
     </div>
 
-    <div style="display:flex; gap:8px; flex-direction:column">
+    <div style="display:flex; gap:12px; flex-direction:column">
       <button class="btn big outcome-win" id="btn-summit-reset">
         BEGIN AGAIN
       </button>
@@ -409,35 +386,35 @@
     <div>
       <div class="card recent" id="recent-card" role="region" aria-label="Recent roll result">
         <div style="display:flex;flex-direction:column;gap:2px">
-          <div id="recent-outcome" style="font-weight:900;letter-spacing:1px;font-size:20px; text-transform:uppercase">NO ROLLS</div>
+          <div id="recent-outcome" style="font-weight:900;letter-spacing:1px;font-size:clamp(20px,3.2vw,32px)">No rolls yet</div>
         </div>
         
-        <div class="recent-bars" style="margin-top:6px;">
-          <div class="bar" style="display:flex; height:8px; overflow:hidden; margin-bottom:4px" role="progressbar">
+        <div class="recent-bars" style="margin-top:8px;">
+          <div class="bar" style="display:flex; height:12px; overflow:hidden; margin-bottom:4px" role="progressbar">
             <div id="rbar-win" class="win" style="width:0%"></div>
             <div id="rbar-neu" class="neu" style="width:0%"></div>
             <div id="rbar-loss" class="loss" style="width:0%"></div>
           </div>
-          <div class="row" style="justify-content:space-between; font-size:10px; opacity:0.8">
+          <div class="row" style="justify-content:space-between; font-size:11px; opacity:0.8">
             <div>Ascent: <span class="mono" id="rpct-win">0.0%</span></div>
             <div>Steady: <span class="mono" id="rpct-neu">0.0%</span></div>
             <div>Ruin: <span class="mono" id="rpct-loss">0.0%</span></div>
           </div>
         </div>
 
-        <div class="kpos" style="margin-top:6px">
-          <div class="small" style="display:flex; justify-content:space-between; margin-bottom:2px">
-            <span style="opacity:0.6; text-transform:uppercase; font-size:8px; font-weight:700">Height</span>
+        <div class="kpos" style="margin-top:8px">
+          <div class="kpos-track"><div id="kpos-fill" class="kpos-fill" style="width:0%"></div></div>
+          <div class="small" style="display:flex; justify-content:space-between">
+            <span>Height</span>
             <span id="kpos-text" class="mono">1 / 20</span>
           </div>
-          <div class="kpos-track"><div id="kpos-fill" class="kpos-fill" style="width:0%"></div></div>
         </div>
         <div class="lpos" style="margin-top:4px">
-            <div class="small" style="display:flex; justify-content:space-between; margin-bottom:2px">
-                <span style="opacity:0.6; text-transform:uppercase; font-size:8px; font-weight:700">Poise</span>
-                <span id="lpos-text" class="mono">0 / 20</span>
-              </div>
           <div class="lpos-track"><div id="lpos-fill" class="lpos-fill" style="width:0%"></div></div>
+          <div class="small" style="display:flex; justify-content:space-between">
+            <span>Poise</span>
+            <span id="lpos-text" class="mono">0 / 20</span>
+          </div>
         </div>
       </div>
 
@@ -445,79 +422,99 @@
         <canvas id="chaosCanvas"></canvas>
         <h2 style="position: relative; z-index: 2;">Atmosphere</h2>
         <div id="weather-content">
-          <div style="display:flex; justify-content:space-between; align-items:flex-end">
+          <div style="display:flex; justify-content:space-between; align-items:center">
             <div>
-              <div class="tiny" style="margin-bottom:1px">CONDITION</div>
-              <div id="weather-status-main" style="font-size:14px; font-weight:800; letter-spacing:1px">CALIBRATING</div>
+              <div class="tiny" style="margin-bottom:2px">CONDITION</div>
+              <div id="weather-status-main" style="font-size:16px; font-weight:800; letter-spacing:1px">CALIBRATING</div>
             </div>
             <div style="text-align:right">
-              <div class="tiny" style="margin-bottom:1px">DILATION</div>
-              <div id="weather-mod-val" class="mono" style="font-size:14px;">1.0x</div>
+              <div class="tiny" style="margin-bottom:2px">TIME DILATION</div>
+              <div id="weather-mod-val" class="mono" style="font-size:16px;">1.0x</div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="card">
-        <h2>History</h2>
-        <div id="cycle-box" class="tiny" style="max-height: 120px; overflow-y: auto;"></div>
+        <div style="display:flex; justify-content:space-between; align-items:baseline">
+          <h2>Climb History</h2>
+        </div>
+        <details open style="margin-bottom:6px">
+            <summary class="tiny" style="opacity:0.7">Legend</summary>
+            <div class="tiny" style="border-left:2px solid rgba(255,255,255,0.1); padding-left:8px; margin-top:4px; line-height:1.4">
+              An <b>Attempt</b> ends in <b>Ruin</b> or <b>Summit</b>.<br>
+              <span class="mono" style="opacity:0.8">(+)Ascent  (.)Steady  (X)Ruin</span>
+            </div>
+        </details>
+        <div id="cycle-box" class="tiny"></div>
       </div>
 
       <div class="card"><h2>Run Stats</h2>
-        <div style="margin-bottom:4px; font-size:9px; opacity:0.8; display:flex; justify-content:space-between;">
-            <span>STEPS: <span class="mono" id="run-steps">0</span></span>
-            <span>MAX: <span class="mono" id="max-k">1</span></span>
-        </div>
-        <div class="bar" style="display:flex; height:6px; overflow:hidden" role="progressbar" aria-label="Run Distribution">
+        <div style="margin-bottom:4px; font-size:10px; opacity:0.8">steps: <span class="mono" id="run-steps">0</span></div>
+        <div class="bar" style="display:flex; height:12px; overflow:hidden" role="progressbar" aria-label="Run Distribution">
           <div class="win" id="bar-win" style="width:0%"></div>
           <div class="neu" id="bar-neu" style="width:0%"></div>
           <div class="loss" id="bar-loss" style="width:0%"></div>
         </div>
-        <div class="row" style="justify-content:space-between; font-size:9px; opacity:0.6; margin-top:2px">
-          <div>Ascent: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0%</span>)</div>
-          <div>Steady: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0%</span>)</div>
-          <div>Ruin: <span class="mono" id="c-loss">0</span> (<span class="mono" id="r-loss">0%</span>)</div>
+        <div class="row" style="justify-content:space-between; font-size:10px; opacity:0.8">
+          <div>Ascent: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
+          <div>Steady: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
+          <div>Ruin: <span class="mono" id="c-loss">0</span> (<span class="mono" id="r-loss">0.0%</span>)</div>
         </div>
-        <div class="row tiny" style="margin-top:4px;justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); padding-top:2px">
-          <div>TIME: <span class="mono" id="run-time">0s</span></div>
+        <div class="row tiny" style="margin-top:4px;justify-content:space-between">
+          <div>run time: <span class="mono" id="run-time">0s</span></div>
+          <div>Max Height: <span class="mono" id="max-k">1</span></div>
         </div>
       </div>
     </div>
 
     <div>
-        <div class="card">
-            <h2>The Burden</h2>
-            <div class="tiny" style="line-height:1.4; opacity:0.9">
-              The stone is bound for the summit (Height <span id="lbl-M-goal" style="font-weight:bold; color:var(--accent)">20</span>).
-              <ul style="padding-left: 12px; margin: 4px 0;">
-                  <li><strong>Steady:</strong> The stone holds fast. Poise accumulates.</li>
-                  <li><strong>Ascent:</strong> The stone rises. Poise is shattered by the effort.</li>
-                  <li><strong>Ruin:</strong> Gravity wins. Height resets.</li>
-              </ul>
-              <strong>Poise Mechanics:</strong> <br>
-              Poise represents stability. As Poise increases, the probability of <strong>Ascent</strong> rises and the probability of <strong>Ruin</strong> falls. However, every Ascent consumes a significant amount of Poise, making subsequent rolls perilous.
-              <br><br>
-              <strong>Weather Mechanics:</strong> <br>
-              The chaotic atmosphere affects the passage of time. <strong>Stormy</strong> conditions dilate time, increasing the cooldown between moves.
-            </div>
+      
+      <div class="card">
+        <h2 style="margin:0 0 6px">The Burden</h2>
+        <div class="tiny" style="line-height:1.4; opacity:0.9">
+          The stone is bound for the summit (Height <span id="lbl-M-goal" style="font-weight:bold; color:var(--accent)">20</span>).
+          <br><br>
+          Each roll has one of three outcomes:
+          <br>
+          <ul style="padding-left: 12px; margin: 4px 0;">
+              <li><strong>Steady:</strong> The stone holds fast. Poise accumulates.</li>
+              <li><strong>Ascent:</strong> The stone rises. Poise is shattered by the effort.</li>
+              <li><strong>Ruin:</strong> Gravity wins. Height resets.</li>
+          </ul>
+          <br>
+          <strong>Poise Mechanics:</strong> <br>
+          Poise represents stability. As Poise increases, the probability of <strong>Ascent</strong> rises and the probability of <strong>Ruin</strong> falls. However, every Ascent consumes a significant amount of Poise, making subsequent rolls perilous.
+          <br><br>
+          <strong>Weather Mechanics:</strong> <br>
+          The chaotic atmosphere affects the passage of time. <strong>Stormy</strong> conditions dilate time, increasing the cooldown between moves. <strong>Calm</strong> weather allows for rapid progression. The weather does not affect the outcome of the roll, only the time it takes to recover.
         </div>
+      </div>
 
       <div class="card" id="params-container">
         <details>
-            <summary>PARAMETERS</summary>
+            <summary><h2 style="display:inline; font-size:16px; margin:0">Parameters</h2></summary>
             
             <div class="details-content">
                 <details id="submenu-system">
                   <summary>Main System</summary>
                   <div class="details-content">
                     <div class="row"><label for="M">M (Max Height)</label><input id="M" type="number" value="20"></div>
+                    <div class="desc">Max steps to win (k).</div>
                     <div class="row"><label for="L">L (Max Poise)</label><input id="L" type="number" value="20"></div>
+                    <div class="desc">Poise scale (ℓ).</div>
                     <div class="row"><label>w_min → w_max</label><input id="w_min" type="number" step="0.01" value="0.10"><input id="w_max" type="number" step="0.01" value="0.90"></div>
+                    <div class="desc">Win probability scaling.</div>
                     <div class="row"><label for="beta">β (Height ramp)</label><input id="beta" type="number" step="0.1" value="1.5"></div>
+                    <div class="desc">β > 1 makes late ascent easier.</div>
                     <div class="row"><label>ρ, γ (Poise boost)</label><input id="rho" type="number" step="0.05" value="0.6"><input id="gamma" type="number" step="0.1" value="1.5"></div>
+                    <div class="desc">Effect of Poise on win rate.</div>
                     <div class="row"><label>c_min → c_max</label><input id="c_min" type="number" step="0.01" value="0.03"><input id="c_max" type="number" step="0.01" value="0.10"></div>
+                    <div class="desc">Loss probability range.</div>
                     <div class="row"><label for="alpha">α (Loss decay)</label><input id="alpha" type="number" step="0.1" value="0.3"></div>
+                    <div class="desc">How fast Poise reduces loss chance.</div>
                     <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1"><input id="s_w" type="number" value="20"></div>
+                    <div class="desc">Poise gain (Steady) vs spend (Ascent).</div>
                   </div>
                 </details>
 
@@ -525,15 +522,18 @@
                     <summary>Weather System</summary>
                     <div class="details-content">
                         <div class="row"><label for="chaos_dt">Dt (Chaos Step)</label><input id="chaos_dt" type="number" step="0.001" value="0.0025"></div>
+                        <div class="desc">Simulation speed (Time Step).</div>
                         <div class="row"><label for="chaos_intensity">Intensity</label><input id="chaos_intensity" type="number" step="0.1" value="1.0"></div>
+                        <div class="desc">Magnitude of time dilation.</div>
                         <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="45.0"></div>
+                        <div class="desc">Base cooldown time.</div>
                     </div>
                 </details>
 
                 <details id="submenu-theme">
                     <summary>Visual Theme</summary>
                     <div class="details-content">
-                        <div class="row" style="margin-bottom: 4px;">
+                        <div class="row" style="margin-bottom: 6px;">
                             <label for="theme-select" style="color:var(--accent-3); width:auto; margin-right:8px;">Preset:</label>
                             <select id="theme-select" style="flex:1">
                                 <option value="default">Cosmic (Default)</option>
@@ -545,31 +545,15 @@
                             </select>
                         </div>
                         
-                        <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top:4px; margin-top:4px;">
-                            <div class="row" style="justify-content:space-between; margin-bottom:2px">
+                        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top:6px; margin-top:6px;">
+                            <div class="row" style="justify-content:space-between; margin-bottom:3px">
                                 <span class="tiny" style="font-weight:bold; color:var(--accent)">Palette Tool</span>
-                                <button class="btn" id="btn-random-palette" style="padding:1px 4px; font-size:8px;">Random OKLCH</button>
+                                <button class="btn" id="btn-random-palette" style="padding:2px 6px; font-size:9px;">Random OKLCH</button>
                             </div>
-                            <div id="contrast-warning" style="display:none; background:rgba(255,100,0,0.2); border:1px solid var(--danger); border-radius:3px; padding:2px 4px; margin-bottom:2px; font-size:8px; color:var(--danger);">
-                                ⚠️ <span id="contrast-warning-text">Low contrast</span>
+                            <div id="contrast-warning" style="display:none; background:rgba(255,100,0,0.2); border:1px solid var(--danger); border-radius:4px; padding:4px 6px; margin-bottom:4px; font-size:9px; color:var(--danger);">
+                                ⚠️ <span id="contrast-warning-text">Low contrast detected</span>
                             </div>
                             <div class="palette-grid">
-                                <div class="palette-item">
-                                    <input type="color" id="picker-bg" value="#080014">
-                                    <span class="palette-label">Bg</span>
-                                </div>
-                                <div class="palette-item">
-                                    <input type="color" id="picker-text" value="#fef8ff">
-                                    <span class="palette-label">Txt</span>
-                                </div>
-                                <div class="palette-item">
-                                    <input type="color" id="picker-card-bg" value="#0c0020">
-                                    <span class="palette-label">Card</span>
-                                </div>
-                                <div class="palette-item">
-                                    <input type="color" id="picker-muted" value="#9e8fb2">
-                                    <span class="palette-label">Muted</span>
-                                </div>
                                 <div class="palette-item">
                                     <input type="color" id="picker-accent" value="#ff9e2c">
                                     <span class="palette-label">Ascent</span>
@@ -590,38 +574,22 @@
                                     <input type="color" id="picker-success" value="#00ff9d">
                                     <span class="palette-label">Summit</span>
                                 </div>
+                                <div class="palette-item">
+                                    <input type="color" id="picker-muted" value="#cdaeff">
+                                    <span class="palette-label">Muted</span>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="palette-manager">
-                            <span class="tiny" style="font-weight:bold;">Palette Manager</span>
-                            <div class="row">
-                                <select id="saved-palettes-select" style="flex:1;">
-                                    <option value="">-- Select Saved --</option>
-                                </select>
-                            </div>
-                            <div class="row">
-                                <button class="btn" id="btn-load-palette" style="flex:1; font-size:9px;">Load</button>
-                                <button class="btn" id="btn-delete-palette" style="flex:1; font-size:9px; color:var(--danger);">Delete</button>
-                                <button class="btn" id="btn-export-palette" style="flex:1; font-size:9px;">Export</button>
-                            </div>
-                            <div class="row" style="margin-top:2px;">
-                                <input type="text" id="palette-name-input" placeholder="Theme Name" style="flex:2;">
-                                <button class="btn" id="btn-save-palette" style="flex:1; font-size:9px;">Save</button>
-                            </div>
-                            <button class="btn" id="btn-import-palette" style="width:100%; font-size:9px;">Import JSON</button>
-                            <input type="file" id="file-import-palette" style="display:none" accept=".json">
                         </div>
                     </div>
                 </details>
                 
-                <div class="row" style="margin-top:4px; padding-top:4px; border-top:1px solid rgba(255,255,255,0.1); justify-content: flex-end;">
+                <div class="row" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1); justify-content: flex-end;">
                     <label class="checkbox-wrapper" style="margin-right:auto;">
                         <input type="checkbox" id="chk-reset-on-apply" checked>
-                        <span>Reset</span>
+                        <span>Reset on Apply</span>
                     </label>
-                    <button class="btn" id="apply" style="flex:1; font-size:10px; padding:4px">Apply</button>
-                    <button class="btn" id="resetState" aria-keyshortcuts="R" style="flex:1; opacity:0.8; font-size:10px; padding:4px; background:#440000; color:#ffcccc">Reset</button>
+                    <button class="btn" id="apply" style="flex:1; font-size:11px; padding:6px">Apply Params</button>
+                    <button class="btn" id="resetState" aria-keyshortcuts="R" style="flex:1; opacity:0.8; font-size:11px; padding:6px; background:#440000; color:#ffcccc">Reset Run</button>
                 </div>
             </div>
         </details>
@@ -629,36 +597,36 @@
 
       <div class="card">
         <details>
-          <summary>CONTROLS</summary>
+          <summary><h2 style="display:inline; font-size:16px; margin:0">Play Controls</h2></summary>
           <div class="details-content">
             <div class="row" style="align-items: center; gap: 4px;">
-              <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1; font-size:10px; padding:4px">Auto</button>
+              <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1; font-size:11px; padding:6px">Auto Play</button>
               <label class="checkbox-wrapper" for="use-delay">
                 <input type="checkbox" id="use-delay">
                 <span>Delay</span>
               </label>
               <select id="speed" aria-label="Auto-play speed">
                 <option value="1000">Slow</option>
-                <option value="100" selected>Norm</option>
+                <option value="100" selected>Normal</option>
                 <option value="10">Fast</option>
               </select>
             </div>
             <div class="row" style="margin-top:4px">
-              <input id="nRolls" type="number" value="20" aria-label="N" style="width:30px">
-              <button class="btn" id="rollN" style="flex:1; font-size:9px; padding:4px">Roll N</button>
-              <button class="btn" id="rollNCycles" style="flex:1; font-size:9px; padding:4px">N Attempts</button>
+              <input id="nRolls" type="number" value="20" aria-label="Number of rolls or cycles" style="width:40px">
+              <button class="btn" id="rollN" style="flex:1; font-size:10px; padding:6px">Roll N Steps</button>
+              <button class="btn" id="rollNCycles" style="flex:1; font-size:10px; padding:6px">Roll N Attempts</button>
             </div>
             <div class="row" style="margin-top:4px">
-              <span class="tiny" style="min-width:40px">Set:</span>
-              <input id="set-k" type="number" min="1" value="1" style="width:30px">
-              <input id="set-l" type="number" min="0" value="0" style="width:30px">
-              <button class="btn" id="setStateBtn" style="padding:2px 6px; font-size:9px; flex:1">Set</button>
+              <span class="tiny" style="min-width:70px">Set H/P:</span>
+              <input id="set-k" type="number" min="1" value="1" aria-label="Set k value" style="width:40px">
+              <input id="set-l" type="number" min="0" value="0" aria-label="Set l value" style="width:40px">
+              <button class="btn" id="setStateBtn" style="padding:4px 8px; font-size:10px; flex:1">Set</button>
             </div>
 
-            <div class="save-slots-container mode-load" id="slot-container" style="margin-top:4px">
+            <div class="save-slots-container mode-load" id="slot-container" style="margin-top:6px">
                <div class="slot-mode-switch">
-                 <button class="btn slot-mode-btn" data-mode="save">Save</button>
-                 <button class="btn slot-mode-btn active" data-mode="load">Load</button>
+                 <button class="btn slot-mode-btn" data-mode="save">Save Mode</button>
+                 <button class="btn slot-mode-btn active" data-mode="load">Load Mode</button>
                </div>
                <div class="slot-grid">
                  <button class="slot-btn empty" data-slot="1"><div class="slot-label">1</div><div class="slot-info">Empty</div></button>
@@ -667,11 +635,14 @@
                  <button class="slot-btn empty" data-slot="4"><div class="slot-label">4</div><div class="slot-info">Empty</div></button>
                  <button class="slot-btn empty" data-slot="5"><div class="slot-label">5</div><div class="slot-info">Empty</div></button>
                </div>
+               <div class="desc" style="margin-top:3px; text-align:center;">
+                 <span id="slot-mode-desc">Click to LOAD a saved game.</span>
+               </div>
             </div>
 
-            <div class="row" style="margin-top:4px; padding-top:4px; border-top:1px solid rgba(255,255,255,0.1)">
-                <button class="btn" id="btn-export" style="flex:1; font-size:9px; padding:2px">Export</button>
-                <button class="btn" id="btn-import" style="flex:1; font-size:9px; padding:2px">Import</button>
+            <div class="row" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1)">
+                <button class="btn" id="btn-export" style="flex:1; font-size:10px; padding:4px">Export Slot</button>
+                <button class="btn" id="btn-import" style="flex:1; font-size:10px; padding:4px">Import Slot</button>
                 <input type="file" id="file-import" style="display:none" accept=".json">
             </div>
 
@@ -681,30 +652,30 @@
 
       <div class="card">
         <details>
-          <summary>EXPECTATIONS</summary>
+          <summary><h2 style="display:inline; font-size:16px; margin:0">Expectations</h2></summary>
           <div class="details-content">
             <div class="row tiny" style="flex-direction:column;align-items:flex-start;gap:2px">
-              <div class="space-between" style="width:100%"><span>Ascent rate:</span> <span class="mono" id="exp-win-rate">—</span></div>
-              <div class="space-between" style="width:100%"><span>Ruin rate:</span> <span class="mono" id="exp-loss-rate">—</span></div>
-              <div class="space-between" style="width:100%"><span>p(Asc | !Std):</span> <span id="recent-p-cond" class="mono">—</span></div>
-              <div class="space-between" style="width:100%"><span>p(Sum | now):</span> <span id="recent-p-top" class="mono">—</span></div>
-              <div style="width:100%; border-top:1px solid rgba(255,255,255,0.05); margin-top:2px; padding-top:2px;"></div>
-              <div class="space-between" style="width:100%"><span>E[Summit] (rolls):</span> <span class="mono" id="exp-time-top">—</span></div>
-              <div class="space-between" style="width:100%"><span>Opt. Asc/Hour:</span> <span class="mono" id="exp-wins-hour">—</span></div>
+              <div>Ascent rate (per roll): <span class="mono" id="exp-win-rate">—</span></div>
+              <div>Ruin rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
+              <div>p(Ascent | !Steady): <span id="recent-p-cond" class="mono">—</span></div>
+              <div>p(Summit | current): <span id="recent-p-top" class="mono">—</span></div>
+              <div style="margin-top:4px">avg steps/attempt: <span class="mono" id="exp-cycle-len">—</span></div>
+              <div>E[first Summit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
+              <div>Optimal Ascents/Hour: <span class="mono" id="exp-wins-hour">—</span></div>
             </div>
           </div>
         </details>
       </div>
 
-      <div class="card"><h2>Distributions</h2>
-        <div class="tiny" style="margin-top:2px">Height</div>
-        <div id="hist-k" class="tiny" style="margin-top:1px;height:40px"></div>
-        <div class="tiny" style="margin-top:2px">Poise</div>
-        <div id="hist-l" class="tiny" style="margin-top:1px;height:40px"></div>
-        <div class="tiny" style="margin-top:2px">Heatmap</div>
-        <div id="hist-kl" class="tiny" style="margin-top:1px;min-height:24px"></div>
+      <div class="card"><h3 style="margin:0 0 4px; font-size:14px; opacity:0.8">Distributions</h3>
+        <div class="tiny" style="margin-top:4px">Time spent at Height:</div>
+        <div id="hist-k" class="tiny" style="margin-top:2px;min-height:20px"></div>
+        <div class="tiny" style="margin-top:4px">Time spent at Poise:</div>
+        <div id="hist-l" class="tiny" style="margin-top:2px;min-height:20px"></div>
+        <div class="tiny" style="margin-top:4px">Height / Poise Heatmap:</div>
+        <div id="hist-kl" class="tiny" style="margin-top:2px;min-height:28px"></div>
         
-        <div class="tiny" style="margin-top:6px; font-weight:600; color:var(--muted)">Durations (N=<span id="global-n">0</span>)</div>
+        <div class="tiny" style="margin-top:8px; font-weight:600; color:var(--muted)">Attempt Durations (Global N=<span id="global-n">0</span>)</div>
         <div class="stats-grid" id="global-stats">
           <div class="stat-box"><div class="stat-label">Min</div><div class="stat-val" id="gs-min">—</div></div>
           <div class="stat-box"><div class="stat-label">25%</div><div class="stat-val" id="gs-25">—</div></div>
@@ -713,7 +684,7 @@
           <div class="stat-box"><div class="stat-label">Max</div><div class="stat-val" id="gs-max">—</div></div>
         </div>
 
-        <div class="tiny" style="margin-top:4px">Last 40 Attempts</div>
+        <div class="tiny" style="margin-top:6px">Last 40 Attempts:</div>
         <div id="hist-cycle-len" class="tiny" style="margin-top:2px"></div>
       </div>
     </div>
@@ -724,46 +695,45 @@
 
 const THEMES = {
   default: {
-    '--bg': '#080014', '--text': '#fef8ff', '--muted': '#9e8fb2',
+    '--bg': '#080014', '--text': '#fef8ff', '--muted': '#cdaeff',
     '--accent': '#ff9e2c', '--accent-2': '#ff00b8', '--accent-3': '#00b7ff',
     '--danger': '#ff3333', '--success': '#00ff9d',
-    '--card-bg-color': '#0c0020',
-    '--card-bg': 'rgba(12, 0, 32, 0.75)', '--card-border': 'rgba(255,255,255,0.08)',
+    '--card-bg': 'rgba(12, 0, 32, 0.6)', '--card-border': 'rgba(255,255,255,0.05)',
     '--bg-image': 'radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%), radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%), linear-gradient(180deg,#0b0014 0%, #050010 100%)'
   },
   magma: {
-    '--bg': '#1a0500', '--text': '#ffe0d0', '--muted': '#c47d63',
+    '--bg': '#1a0500', '--text': '#ffe0d0', '--muted': '#ff9e80',
     '--accent': '#ffcc00', '--accent-2': '#ff4400', '--accent-3': '#ff8800',
     '--danger': '#ff0000', '--success': '#ffcc00',
-    '--card-bg-color': '#280500',
-    '--card-bg': 'rgba(40, 5, 0, 0.8)', '--card-border': 'rgba(255, 100, 0, 0.2)',
+    '--card-bg': 'rgba(40, 5, 0, 0.7)', '--card-border': 'rgba(255, 100, 0, 0.2)',
     '--bg-image': 'radial-gradient(circle at 50% 0%, rgba(255,200,0,0.2), transparent 60%), linear-gradient(0deg, #1a0500 0%, #3d0c02 100%)'
   },
   terminal: {
     '--bg': '#000000', '--text': '#00ff00', '--muted': '#008f11',
     '--accent': '#00ff00', '--accent-2': '#00cc00', '--accent-3': '#008800',
     '--danger': '#ff3333', '--success': '#00ff00',
-    '--card-bg-color': '#001400',
-    '--card-bg': 'rgba(0, 20, 0, 0.9)', '--card-border': 'rgba(0,255,0,0.3)',
+    '--card-bg': 'rgba(0, 20, 0, 0.85)', '--card-border': 'rgba(0,255,0,0.3)',
     '--bg-image': 'linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px)'
   },
   paper: {
     '--bg': '#f0f2f5', '--text': '#1a1a1a', '--muted': '#555555',
     '--accent': '#d9534f', '--accent-2': '#337ab7', '--accent-3': '#5bc0de',
     '--danger': '#d9534f', '--success': '#5cb85c',
-    '--card-bg-color': '#ffffff',
-    '--card-bg': 'rgba(255, 255, 255, 0.9)', '--card-border': 'rgba(0,0,0,0.1)',
+    '--card-bg': 'rgba(255, 255, 255, 0.8)', '--card-border': 'rgba(0,0,0,0.1)',
     '--bg-image': 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
   },
   ocean: {
-    '--bg': '#000814', '--text': '#e0f7ff', '--muted': '#6a8faf',
+    '--bg': '#000814', '--text': '#e0f7ff', '--muted': '#7abaff',
     '--accent': '#00d9ff', '--accent-2': '#0055ff', '--accent-3': '#0088ff',
     '--danger': '#ff3333', '--success': '#00ffcc',
-    '--card-bg-color': '#000a1e',
-    '--card-bg': 'rgba(0, 10, 30, 0.7)', '--card-border': 'rgba(0,180,255,0.1)',
+    '--card-bg': 'rgba(0, 10, 30, 0.6)', '--card-border': 'rgba(0,180,255,0.1)',
     '--bg-image': 'radial-gradient(circle at 50% 100%, rgba(0,255,180,0.15), transparent 70%), linear-gradient(180deg, #000814 0%, #001a33 100%)'
   }
 };
+
+/* -------------------------------------------------------------------------- */
+/* MODULE 0: UTILITIES & HELPERS                                             */
+/* -------------------------------------------------------------------------- */
 
 class ColorUtils {
     static Lerp(min, max, t) { return min + (max - min) * t; }
@@ -803,12 +773,7 @@ class ColorUtils {
         } : null;
     }
     
-    static hexToRgba(hex, alpha) {
-        const rgb = this.hexToRgb(hex);
-        if(!rgb) return hex;
-        return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
-    }
-    
+    // Calculate relative luminance for WCAG contrast
     static getRelativeLuminance(hex) {
         const rgb = this.hexToRgb(hex);
         if (!rgb) return 0;
@@ -818,28 +783,67 @@ class ColorUtils {
         return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
     }
     
+    // WCAG contrast ratio between two colors
     static getContrastRatio(hex1, hex2) {
         const l1 = this.getRelativeLuminance(hex1);
         const l2 = this.getRelativeLuminance(hex2);
-        return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+        const lighter = Math.max(l1, l2);
+        const darker = Math.min(l1, l2);
+        return (lighter + 0.05) / (darker + 0.05);
     }
     
+    // Check if palette has accessibility issues
     static validatePalette(palette, bgColor = '#080014') {
         const issues = [];
-        const minContrast = 3.0; 
+        const minContrast = 3.0; // WCAG AA for large text / UI components
         
-        ['--accent', '--accent-2', '--accent-3', '--danger', '--success'].forEach(key => {
+        // Check each accent against background
+        const accentKeys = ['--accent', '--accent-2', '--accent-3', '--danger', '--success'];
+        for (const key of accentKeys) {
             if (palette[key]) {
                 const contrast = this.getContrastRatio(palette[key], bgColor);
                 if (contrast < minContrast) {
-                    issues.push({ message: `${key} has low contrast` });
+                    issues.push({
+                        color: key,
+                        value: palette[key],
+                        contrast: contrast.toFixed(2),
+                        message: `${key} (${palette[key]}) has low contrast (${contrast.toFixed(2)}:1) against background`
+                    });
                 }
             }
-        });
+        }
         
-        return { valid: issues.length === 0, issues: issues };
+        // Check that danger looks "dangerous" (warm hue)
+        if (palette['--danger']) {
+            const rgb = this.hexToRgb(palette['--danger']);
+            if (rgb && rgb.b > rgb.r && rgb.b > rgb.g) {
+                issues.push({
+                    color: '--danger',
+                    value: palette['--danger'],
+                    message: '--danger color appears cool/blue - may not read as warning'
+                });
+            }
+        }
+        
+        // Check accent vs accent-3 differentiation (win vs steady)
+        if (palette['--accent'] && palette['--accent-3']) {
+            const l1 = this.getRelativeLuminance(palette['--accent']);
+            const l2 = this.getRelativeLuminance(palette['--accent-3']);
+            if (Math.abs(l1 - l2) < 0.1) {
+                issues.push({
+                    color: '--accent/--accent-3',
+                    message: 'Accent and Accent-3 have similar luminance - may be hard to distinguish'
+                });
+            }
+        }
+        
+        return {
+            valid: issues.length === 0,
+            issues: issues
+        };
     }
     
+    // Generate OKLCH color with constraints
     static generateOklchColor(lightness, chroma, hue) {
         const lab = this.oklch_to_oklab(lightness, chroma, hue);
         const rgb = this.oklab_to_linear_srgb(lab[0], lab[1], lab[2]);
@@ -849,55 +853,174 @@ class ColorUtils {
         return this.rgbToHex(r, g, b);
     }
     
+    // Generate muted color from accent
     static generateMutedColor(accentHex, bgHex) {
         const accent = this.hexToRgb(accentHex);
         const bg = this.hexToRgb(bgHex);
         if (!accent || !bg) return '#888888';
-        const r = Math.round(accent.r * 0.4 + bg.r * 0.4 + 128 * 0.2);
-        const g = Math.round(accent.g * 0.4 + bg.g * 0.4 + 128 * 0.2);
-        const b = Math.round(accent.b * 0.4 + bg.b * 0.4 + 128 * 0.2);
+        
+        // Blend toward background and reduce saturation
+        const r = Math.round(accent.r * 0.5 + bg.r * 0.3 + 128 * 0.2);
+        const g = Math.round(accent.g * 0.5 + bg.g * 0.3 + 128 * 0.2);
+        const b = Math.round(accent.b * 0.5 + bg.b * 0.3 + 128 * 0.2);
         return this.rgbToHex(r, g, b);
     }
     
+    // Generate background gradient from palette colors
     static generateBgGradient(accent1, accent2, bgBase) {
         const rgb1 = this.hexToRgb(accent1);
         const rgb2 = this.hexToRgb(accent2);
-        if (!rgb1 || !rgb2) return 'linear-gradient(180deg, #0b0014 0%, #050010 100%)';
+        const rgbBg = this.hexToRgb(bgBase);
+        if (!rgb1 || !rgb2 || !rgbBg) return 'linear-gradient(180deg, #0b0014 0%, #050010 100%)';
+        
+        // Create subtle radial gradients using palette colors at low opacity
         const glow1 = `rgba(${rgb1.r},${rgb1.g},${rgb1.b},.12)`;
         const glow2 = `rgba(${rgb2.r},${rgb2.g},${rgb2.b},.10)`;
+        const bgDark = this.rgbToHex(
+            Math.max(0, rgbBg.r - 10),
+            Math.max(0, rgbBg.g - 10),
+            Math.max(0, rgbBg.b - 10)
+        );
+        
         return `radial-gradient(900px 700px at 50% -200px, ${glow1}, transparent 70%), ` +
                `radial-gradient(900px 700px at 50% 120%, ${glow2}, transparent 70%), ` +
-               `linear-gradient(180deg, ${bgBase} 0%, #000 100%)`;
+               `linear-gradient(180deg, ${bgBase} 0%, ${bgDark} 100%)`;
     }
     
+    // Color harmony schemes for aesthetically pleasing palettes
+    static HARMONY_SCHEMES = {
+        complementary: (base) => [base, base + Math.PI],
+        triadic: (base) => [base, base + (2*Math.PI/3), base + (4*Math.PI/3)],
+        splitComplementary: (base) => [base, base + Math.PI - 0.52, base + Math.PI + 0.52],
+        analogous: (base) => [base, base + 0.52, base - 0.52],
+        tetradic: (base) => [base, base + Math.PI/2, base + Math.PI, base + 3*Math.PI/2],
+    };
+    
+    // Normalize hue to 0-2π range
+    static normalizeHue(h) {
+        while (h < 0) h += 2 * Math.PI;
+        while (h >= 2 * Math.PI) h -= 2 * Math.PI;
+        return h;
+    }
+    
+    // Get perceptual distance between two hues
+    static hueDistance(h1, h2) {
+        const d = Math.abs(this.normalizeHue(h1) - this.normalizeHue(h2));
+        return Math.min(d, 2 * Math.PI - d);
+    }
+    
+    // Ensure color has sufficient contrast against background
+    static ensureContrast(lightness, chroma, hue, bgLightness, minContrast = 0.35) {
+        let L = lightness;
+        const diff = Math.abs(L - bgLightness);
+        if (diff < minContrast) {
+            // Push lightness away from background
+            L = bgLightness < 0.5 ? Math.min(0.95, bgLightness + minContrast + 0.1) 
+                                   : Math.max(0.2, bgLightness - minContrast - 0.1);
+        }
+        return this.generateOklchColor(L, chroma, hue);
+    }
+    
+    // Improved palette generation using color harmony theory
     static generateSemanticPalette() {
+        // Pick a random harmony scheme
+        const schemes = Object.keys(this.HARMONY_SCHEMES);
+        const schemeName = schemes[Math.floor(Math.random() * schemes.length)];
+        const scheme = this.HARMONY_SCHEMES[schemeName];
+        
+        // Base hue - random starting point
         const hueBase = Math.random() * 2 * Math.PI;
+        const harmonyHues = scheme(hueBase).map(h => this.normalizeHue(h));
+        
+        // Theme mood: affects lightness/chroma ranges
         const mood = Math.random();
-        let lightnessRange = mood < 0.5 ? { min: 0.60, max: 0.85 } : { min: 0.65, max: 0.92 };
+        let lightnessRange, chromaRange;
         
-        const chromaBase = 0.15 + Math.random() * 0.1;
+        if (mood < 0.33) {
+            // Vibrant/energetic: high chroma, medium-high lightness
+            chromaRange = { min: 0.18, max: 0.28 };
+            lightnessRange = { min: 0.60, max: 0.85 };
+        } else if (mood < 0.66) {
+            // Elegant/muted: medium chroma, varied lightness
+            chromaRange = { min: 0.10, max: 0.20 };
+            lightnessRange = { min: 0.50, max: 0.80 };
+        } else {
+            // Bold/dramatic: high chroma, high contrast
+            chromaRange = { min: 0.20, max: 0.30 };
+            lightnessRange = { min: 0.65, max: 0.92 };
+        }
+        
+        const chromaBase = this.Lerp(chromaRange.min, chromaRange.max, Math.random());
         const lightnessBase = this.Lerp(lightnessRange.min, lightnessRange.max, Math.random());
-        const bgLightness = 0.05 + Math.random() * 0.05;
-        const bg = this.generateOklchColor(bgLightness, 0.02, hueBase);
         
-        const accent = this.generateOklchColor(lightnessBase, chromaBase, hueBase);
-        const accent2 = this.generateOklchColor(lightnessBase, chromaBase, hueBase + 2);
-        const accent3 = this.generateOklchColor(lightnessBase, chromaBase, hueBase + 4);
+        // Background: dark with subtle tint from base hue
+        const bgLightness = this.Lerp(0.03, 0.12, Math.random());
+        const bgChroma = this.Lerp(0.01, 0.04, Math.random());
+        const bg = this.generateOklchColor(bgLightness, bgChroma, hueBase);
         
-        const text = this.generateOklchColor(0.95, 0.01, hueBase);
+        // Main accent: from harmony scheme
+        const accent = this.ensureContrast(lightnessBase, chromaBase, harmonyHues[0], bgLightness);
+        
+        // Accent-2: second harmony color, slight lightness variation
+        const light2 = this.Lerp(lightnessBase - 0.1, lightnessBase + 0.1, Math.random());
+        const hue2 = harmonyHues[1] || (hueBase + Math.PI * 0.6);
+        const accent2 = this.ensureContrast(Math.max(0.4, Math.min(0.9, light2)), chromaBase, hue2, bgLightness);
+        
+        // Accent-3: third harmony color or derived, different lightness for distinction
+        const light3Direction = Math.random() > 0.5 ? 1 : -1;
+        const light3 = Math.max(0.4, Math.min(0.9, lightnessBase + light3Direction * this.Lerp(0.1, 0.25, Math.random())));
+        const hue3 = harmonyHues[2] || (hueBase + Math.PI * 1.2);
+        const accent3 = this.ensureContrast(light3, chromaBase * 0.9, hue3, bgLightness);
+        
+        // Danger: Always warm (red-orange range), high visibility
+        // Constrain to 0-60° in radians (0 to π/3) with some orange allowed
+        const dangerHue = this.Lerp(0, Math.PI * 0.35, Math.random());
+        const dangerChroma = Math.max(chromaBase, 0.20); // Ensure danger is saturated
+        const dangerLightness = Math.max(lightnessBase, 0.60); // Ensure danger is visible
+        const danger = this.ensureContrast(dangerLightness, dangerChroma, dangerHue, bgLightness);
+        
+        // Success: Always cool-green (green-cyan range), fresh feeling
+        // Constrain to 120°-180° in radians (2π/3 to π)
+        const successHue = this.Lerp(Math.PI * 0.55, Math.PI * 0.85, Math.random());
+        const successChroma = Math.max(chromaBase, 0.18);
+        const successLightness = Math.max(lightnessBase, 0.65);
+        const success = this.ensureContrast(successLightness, successChroma, successHue, bgLightness);
+        
+        // Verify danger and success are perceptually distinct from accents
+        // If danger is too close to accent, shift it more toward pure red
+        const dangerDistToAccent = this.hueDistance(dangerHue, harmonyHues[0]);
+        let finalDanger = danger;
+        if (dangerDistToAccent < 0.5) {
+            finalDanger = this.ensureContrast(dangerLightness, dangerChroma, 0.1, bgLightness);
+        }
+        
+        // Text: high contrast against background
+        const textLightness = bgLightness < 0.5 ? 0.94 : 0.06;
+        const text = this.generateOklchColor(textLightness, 0.015, hueBase);
+        
+        // Muted: derived from accent, pulled toward neutral
         const muted = this.generateMutedColor(accent, bg);
+        
+        // Background gradient using theme colors
         const bgImage = this.generateBgGradient(accent2, accent3, bg);
         
+        // Card background
         const bgRgb = this.hexToRgb(bg);
-        const cardBgColor = bgRgb ? this.rgbToHex(bgRgb.r+5, bgRgb.g+5, bgRgb.b+5) : '#0c0020';
+        const cardBg = bgRgb 
+            ? `rgba(${Math.min(255, bgRgb.r + 8)}, ${Math.min(255, bgRgb.g + 8)}, ${Math.min(255, bgRgb.b + 8)}, 0.55)` 
+            : 'rgba(12, 0, 32, 0.6)';
         
         return {
-            '--bg': bg, '--text': text, '--muted': muted,
-            '--accent': accent, '--accent-2': accent2, '--accent-3': accent3,
-            '--danger': '#ff3333', '--success': '#00ff9d',
-            '--card-bg-color': cardBgColor,
-            '--card-bg': ColorUtils.hexToRgba(cardBgColor, 0.75),
-            '--card-border': 'rgba(255,255,255,0.08)',
+            '--bg': bg,
+            '--text': text,
+            '--muted': muted,
+            '--accent': accent,
+            '--accent-2': accent2,
+            '--accent-3': accent3,
+            '--danger': finalDanger,
+            '--success': success,
+            '--card-bg': cardBg,
+            '--card-border': 'rgba(255,255,255,0.05)',
             '--bg-image': bgImage
         };
     }
@@ -999,6 +1122,9 @@ class PerformanceMonitor {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* MODULE 1: SISYPHUS MATH                                                   */
+/* -------------------------------------------------------------------------- */
 class SisyphusMath {
   static EPSILON = 1e-10;
   static probCache = new ProbabilityCache();
@@ -1046,20 +1172,27 @@ class SisyphusMath {
   static solveExpectations(p) {
     const M = Math.max(1, p.M | 0);
     const L = Math.max(0, p.L | 0);
+    
     const createGrid = () => Array.from({length: M + 1}, () => new Float64Array(L + 1));
-    const TopHit = createGrid(); const CycleLen = createGrid(); const WinCount = createGrid(); const TimeLen = createGrid();
+    const TopHit = createGrid();
+    const CycleLen = createGrid();
+    const WinCount = createGrid();
+    const TimeLen = createGrid();
     
     const maxIter = 400, tol = 1e-6;
     const lossDelay = SisyphusMath.getDelay(1, 0, p) / 1000;
-    const s_w = p.s_w; const g_n = p.g_n;
+    const s_w = p.s_w;
+    const g_n = p.g_n;
 
     for (let it = 0; it < maxIter; it++) {
       let maxDiff = 0;
       for (let k = 1; k <= M; k++) {
         for (let l = 0; l <= L; l++) {
           const {p_win, p_neu, p_loss} = SisyphusMath.computeProbs(k, l, p);
+          
           const l_win = (l - s_w) < 0 ? 0 : (l - s_w);
           const l_neu = (l + g_n) > L ? L : (l + g_n);
+
           let valTop = 0, valCyc = 0, valWin = 0, valTime = 0;
           
           if (k === M) {
@@ -1078,9 +1211,14 @@ class SisyphusMath {
              const stepCost = (p_win * delayWin) + (p_neu * delayNeu) + (p_loss * lossDelay);
              valTime = stepCost + p_win * TimeLen[k+1][l_win] + p_neu * TimeLen[k][l_neu];
           }
+
           const diff = Math.abs(valTop - TopHit[k][l]);
           if(diff > maxDiff) maxDiff = diff;
-          TopHit[k][l] = valTop; CycleLen[k][l] = valCyc; WinCount[k][l] = valWin; TimeLen[k][l] = valTime;
+          
+          TopHit[k][l] = valTop;
+          CycleLen[k][l] = valCyc;
+          WinCount[k][l] = valWin;
+          TimeLen[k][l] = valTime;
         }
       }
       if (maxDiff < tol) break;
@@ -1102,6 +1240,9 @@ class SisyphusMath {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* MODULE 2: GAME MODEL                                                      */
+/* -------------------------------------------------------------------------- */
 class SisyphusModel {
   constructor() {
     this.params = {
@@ -1206,6 +1347,9 @@ class SisyphusModel {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* MODULE 3: UI MANAGER                                                       */
+/* -------------------------------------------------------------------------- */
 class SisyphusUI {
   constructor(model) {
     this.model = model;
@@ -1215,12 +1359,12 @@ class SisyphusUI {
     
     ['rbar-win','rbar-neu','rbar-loss','rpct-win','rpct-neu','rpct-loss',
      'kpos-fill','kpos-text','lpos-fill','lpos-text','recent-p-cond','recent-p-top',
-     'recent-outcome','recent-card',
+     'recent-outcome','recent-kl','recent-card',
      'bar-win','bar-neu','bar-loss','c-win','c-neu','c-loss',
      'r-win','r-neu','r-loss','run-steps','run-time','max-k',
      'cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
      'global-n','gs-min','gs-25','gs-50','gs-75','gs-max',
-     'exp-win-rate', 'exp-loss-rate', 'exp-time-top', 'exp-wins-hour',
+     'exp-win-rate', 'exp-loss-rate', 'exp-cycle-len', 'exp-time-top', 'exp-wins-hour',
      'btn-roll-main'
     ].forEach(id => this.els[id] = document.getElementById(id));
   }
@@ -1301,9 +1445,9 @@ class SisyphusUI {
     this.batchUpdate('c-win', 'textContent', st.wins);
     this.batchUpdate('c-neu', 'textContent', st.neus);
     this.batchUpdate('c-loss', 'textContent', st.loss);
-    this.batchUpdate('r-win', 'textContent', tot ? (100*st.wins/tot).toFixed(0)+'%' : '0%');
-    this.batchUpdate('r-neu', 'textContent', tot ? (100*st.neus/tot).toFixed(0)+'%' : '0%');
-    this.batchUpdate('r-loss', 'textContent', tot ? (100*st.loss/tot).toFixed(0)+'%' : '0%');
+    this.batchUpdate('r-win', 'textContent', tot ? (100*st.wins/tot).toFixed(1)+'%' : '0%');
+    this.batchUpdate('r-neu', 'textContent', tot ? (100*st.neus/tot).toFixed(1)+'%' : '0%');
+    this.batchUpdate('r-loss', 'textContent', tot ? (100*st.loss/tot).toFixed(1)+'%' : '0%');
     
     this.batchUpdate('bar-win', 'style.width', tot ? (100*st.wins/tot)+'%' : '0%');
     this.batchUpdate('bar-neu', 'style.width', tot ? (100*st.neus/tot)+'%' : '0%');
@@ -1329,8 +1473,11 @@ class SisyphusUI {
 
     kFill.classList.remove('active-motion', 'reverse-motion');
     lFill.classList.remove('active-motion', 'reverse-motion');
-    kFill.style.transition = 'none'; lFill.style.transition = 'none';
-    kFill.style.width = pK0; lFill.style.width = pL0;
+    
+    kFill.style.transition = 'none';
+    lFill.style.transition = 'none';
+    kFill.style.width = pK0;
+    lFill.style.width = pL0;
     
     if (k0 !== k1) kText.textContent = `${k0} → ${k1} / ${params.M}`;
     if (l0 !== l1) lText.textContent = `${l0} → ${l1} / ${params.L}`;
@@ -1349,8 +1496,10 @@ class SisyphusUI {
     }
 
     const transitionStr = `width ${duration}ms linear`;
-    kFill.style.transition = transitionStr; lFill.style.transition = transitionStr;
-    kFill.style.width = pK1; lFill.style.width = pL1;
+    kFill.style.transition = transitionStr;
+    lFill.style.transition = transitionStr;
+    kFill.style.width = pK1;
+    lFill.style.width = pL1;
     
     setTimeout(() => {
         kFill.classList.remove('active-motion', 'reverse-motion');
@@ -1370,7 +1519,7 @@ class SisyphusUI {
         clone.querySelector('.cycle-main-text').textContent = `#${current.id}: ACTIVE`;
         clone.querySelector('.cycle-meta').textContent = `L:${current.length} A:${current.wins}`;
         let wrapped = '';
-        for(let i=0; i<(current.path||'').length; i+=28) wrapped += current.path.slice(i, i+28) + '\n';
+        for(let i=0; i<(current.path||'').length; i+=32) wrapped += current.path.slice(i, i+32) + '\n';
         clone.querySelector('.cycle-entry-path').textContent = wrapped || '-';
         fragment.appendChild(clone);
     }
@@ -1382,7 +1531,7 @@ class SisyphusUI {
       clone.querySelector('.cycle-main-text').textContent = `#${c.id}: ${outText}`;
       clone.querySelector('.cycle-meta').textContent = `L:${c.length} A:${c.wins}`;
       let wrapped = '';
-      for(let i=0; i<(c.path||'').length; i+=28) wrapped += c.path.slice(i, i+28) + '\n';
+      for(let i=0; i<(c.path||'').length; i+=32) wrapped += c.path.slice(i, i+32) + '\n';
       clone.querySelector('.cycle-entry-path').textContent = wrapped || '-';
       fragment.appendChild(clone);
     });
@@ -1411,11 +1560,12 @@ class SisyphusUI {
       if(!data.length || !data.some(x=>x)) { host.textContent='—'; return; }
       const max = Math.max(...data.filter(n=>n));
       const wrap = document.createElement('div');
-      wrap.style.cssText = 'display:flex;align-items:flex-end;gap:1px;height:100%';
+      wrap.style.cssText = 'display:flex;align-items:flex-end;gap:2px';
       for(let i=(hostId==='hist-l'?0:1); i<data.length; i++){
         const bar = document.createElement('div');
-        bar.style.cssText = `flex:1;border-radius:1px;background:linear-gradient(180deg,var(--accent-3),var(--accent));`;
-        bar.style.height = (max ? 100 * (data[i]||0) / max : 0) + '%';
+        // MODIFIED: Use accent gradient
+        bar.style.cssText = `width:3px;border-radius:2px;background:linear-gradient(180deg,var(--accent-3),var(--accent));`;
+        bar.style.height = (6 + (max ? 24 * (data[i]||0) / max : 0)) + 'px';
         wrap.appendChild(bar);
       }
       host.appendChild(wrap);
@@ -1426,11 +1576,12 @@ class SisyphusUI {
     if(dist.cycles.length) {
       const maxCL = Math.max(...dist.cycles);
       const wrap = document.createElement('div');
-      wrap.style.cssText = 'display:flex;align-items:flex-end;gap:1px;height:24px';
+      wrap.style.cssText = 'display:flex;align-items:flex-end;gap:2px';
       dist.cycles.forEach(len => {
         const bar = document.createElement('div');
-        bar.style.cssText = 'flex:1;border-radius:1px;background:linear-gradient(180deg,var(--accent-3),var(--accent));';
-        bar.style.height = (maxCL ? 100 * len / maxCL : 0) + '%';
+        // MODIFIED: Use accent gradient
+        bar.style.cssText = 'width:4px;border-radius:2px;background:linear-gradient(180deg,var(--accent-3),var(--accent));';
+        bar.style.height = (8 + (maxCL ? 32 * len / maxCL : 0)) + 'px';
         wrap.appendChild(bar);
       });
       hostCl.appendChild(wrap);
@@ -1444,12 +1595,13 @@ class SisyphusUI {
       const M = this.model.params.M;
       const L = this.model.params.L;
       const grid = document.createElement('div');
-      grid.style.display = 'grid'; grid.style.gridTemplateColumns = `repeat(${M}, 1fr)`; grid.style.gap = '1px';
+      grid.style.display = 'grid'; grid.style.gridTemplateColumns = `repeat(${M}, minmax(4px, 1fr))`; grid.style.gap = '1px';
       const logMax = Math.log(1+maxC);
       for(let l=L; l>=0; l--) {
         for(let k=1; k<=M; k++) {
           const c = (klData[k] && klData[k][l]) || 0;
           const cell = document.createElement('div');
+          // MODIFIED: Use CSS var --accent and opacity
           const alpha = c > 0 ? (0.2 + 0.8 * (Math.log(1+c)/logMax)) : 0.05;
           cell.style.background = `var(--accent)`;
           cell.style.opacity = alpha.toFixed(3);
@@ -1458,6 +1610,17 @@ class SisyphusUI {
         }
       }
       hostHM.appendChild(grid);
+
+      // MODIFIED: Add Legend
+      const legend = document.createElement('div');
+      legend.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-top:4px; font-size:9px; color:var(--muted); opacity:0.8';
+      legend.innerHTML = `
+        <span>Rare</span>
+        <div style="flex:1; height:4px; margin:0 8px; border-radius:2px; background:linear-gradient(90deg, rgba(255,255,255,0.05), var(--accent));"></div>
+        <span>Frequent</span>
+      `;
+      hostHM.appendChild(legend);
+
     } else hostHM.textContent = '—';
   }
 
@@ -1473,23 +1636,27 @@ class SisyphusUI {
     if(c > 0) {
       el('exp-win-rate').textContent = fmt(w/c);
       el('exp-loss-rate').textContent = fmt((1-pCycleTop)/c);
+      el('exp-cycle-len').textContent = c.toFixed(1);
       
       if (pCycleTop > 1e-15) { 
         const expected = c / pCycleTop;
-        el('exp-time-top').textContent = expected > 1e9 ? expected.toExponential(2) : expected.toFixed(0);
+        el('exp-time-top').textContent = expected > 1e9 ? expected.toExponential(2) : expected.toFixed(1);
         if (this.model.params.max_delay <= 0) el('exp-wins-hour').textContent = "--";
-        else el('exp-wins-hour').textContent = timePerCycle > 0.0001 ? ((w / timePerCycle) * 3600).toFixed(1) : "--";
+        else el('exp-wins-hour').textContent = timePerCycle > 0.0001 ? ((w / timePerCycle) * 3600).toFixed(2) : "--";
       } else {
-        if (pCycleTop === 0) { el('exp-time-top').textContent = '∞'; el('exp-wins-hour').textContent = '0'; }
+        if (pCycleTop === 0) { el('exp-time-top').textContent = '∞ (prob ≈ 0)'; el('exp-wins-hour').textContent = '0.00'; }
         else {
            el('exp-time-top').textContent = (c/pCycleTop).toExponential(2);
-           el('exp-wins-hour').textContent = timePerCycle > 0.0001 ? ((w / timePerCycle) * 3600).toFixed(1) : "--";
+           el('exp-wins-hour').textContent = timePerCycle > 0.0001 ? ((w / timePerCycle) * 3600).toFixed(2) : "--";
         }
       }
     }
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* MODULE 4: CHAOS ENGINE (OPTIMIZED RING BUFFER)                            */
+/* -------------------------------------------------------------------------- */
 class ChaosEngine {
   constructor() {
     this.canvas = document.getElementById('chaosCanvas');
@@ -1503,16 +1670,19 @@ class ChaosEngine {
     this.y = 10 + (Math.random() - 0.5) * 2; 
     this.z = 25 + (Math.random() - 0.5) * 2;
 
-    this.MAX_POINTS = 8000;
+    this.MAX_POINTS = 10000;
     this.points = new Array(this.MAX_POINTS).fill(null);
     this.head = 0; 
     this.count = 0; 
     
     this.angle = 0; this.rotSpeed = 0.005; 
-    this.scale = 8; this.fov = 250; this.yOffset = 20;     
+    this.scale = 9; this.fov = 300; this.yOffset = 20;     
     this.multiplier = 1.0; 
+    
+    // Fallback palette
     this.colors = { calm: '#ff9e2c', windy: '#00b7ff', storm: '#ff3333' };
 
+    // Dynamic Params
     this.dt = 0.0025;
     this.intensity = 1.0;
 
@@ -1557,12 +1727,18 @@ class ChaosEngine {
 
   updateWeather(velocity) {
     let rawInput = velocity * 1.333; 
+    
+    // Scale BOTH multiplier AND threshold check by user intensity
     let scaledIntensity = rawInput * this.intensity;
+    
+    // Multiplier logic remains similar but uses scaled value
     this.multiplier = 0.5 + (scaledIntensity * 2.0);
     
     if (this.modEl) this.modEl.textContent = this.multiplier.toFixed(2) + "x";
 
     let statusText = "", statusClass = "", color = "";
+    
+    // Thresholds checked against SCALED intensity
     if(scaledIntensity < 0.17) { 
         statusText = "CALM"; statusClass = "weather-good"; color = this.colors.calm;
     } else if (scaledIntensity < 0.37) { 
@@ -1597,6 +1773,7 @@ class ChaosEngine {
     this.z = 25 + (Math.random() - 0.5) * 2;
   }
 
+
   animate() {
     if (this.canvas.width === 0) return requestAnimationFrame(() => this.animate());
 
@@ -1614,8 +1791,10 @@ class ChaosEngine {
     const cy = this.canvas.height / 2;
     
   if (this.count > 1) {
-    this.ctx.lineWidth = 1.2;
+    this.ctx.lineWidth = 1.5;
+    
     let idx = (this.count < this.MAX_POINTS) ? 0 : this.head;
+    
     let p = this.points[idx];
     let prevProj = this.project(p.x, p.y, p.z, cx, cy);
     let currentColor = this.points[(idx + 1) % this.MAX_POINTS].color;
@@ -1627,7 +1806,9 @@ class ChaosEngine {
     for (let i = 1; i < this.count; i++) {
       idx = (idx + 1) % this.MAX_POINTS;
       p = this.points[idx];
+      
       const proj = this.project(p.x, p.y, p.z, cx, cy);
+      
       if (p.color !== currentColor) {
         this.ctx.stroke(); 
         this.ctx.beginPath();
@@ -1635,16 +1816,36 @@ class ChaosEngine {
         this.ctx.moveTo(prevProj.x, prevProj.y); 
         currentColor = p.color;
       }
+      
       this.ctx.lineTo(proj.x, proj.y);
       prevProj = proj;
     }
     this.ctx.stroke();
   }
+
+  if (this.count > 0) {
+    const lastIdx = (this.head - 1 + this.MAX_POINTS) % this.MAX_POINTS;
+    const lastP = this.points[lastIdx];
+    const lastProj = this.project(lastP.x, lastP.y, lastP.z, cx, cy);
+
+    this.ctx.save();
+    this.ctx.shadowColor = "rgba(255,255,255,0.9)";
+    this.ctx.shadowBlur = 12;
+    this.ctx.fillStyle = "#ffffff";
+    this.ctx.beginPath();
+    this.ctx.arc(lastProj.x, lastProj.y, 3, 0, Math.PI * 2);
+    this.ctx.fill();
+    this.ctx.restore();
+  }
     requestAnimationFrame(() => this.animate());
   }
+  
   getModifier() { return this.multiplier; }
 }
 
+/* -------------------------------------------------------------------------- */
+/* MODULE 5: GAME CONTROLLER                                                 */
+/* -------------------------------------------------------------------------- */
 class GameController {
   constructor() {
     this.model = new SisyphusModel();
@@ -1672,7 +1873,6 @@ class GameController {
     this.bindEvents();
     this.bindKeyboard();
     this.load(); 
-    this.refreshSavedPalettesList();
     
     const savedTheme = localStorage.getItem('sisyphus_theme') || 'default';
     if (savedTheme === 'custom') {
@@ -1734,94 +1934,80 @@ class GameController {
 
     $('theme-select').onchange = (e) => this.setTheme(e.target.value);
     
+    // Palette Bindings
     $('btn-random-palette').onclick = () => this.randomizePalette();
     
-    // FULL 9-Color Mapping
-    const colorMap = {
-        'picker-bg': '--bg', 
-        'picker-text': '--text', 
-        'picker-card-bg': '--card-bg-color',
-        'picker-muted': '--muted',
-        'picker-accent': '--accent', 
-        'picker-accent-2': '--accent-2', 
-        'picker-accent-3': '--accent-3', 
-        'picker-danger': '--danger',
-        'picker-success': '--success'
-    };
-
-    Object.keys(colorMap).forEach(id => {
+    const colorInputs = ['picker-accent','picker-accent-2','picker-accent-3','picker-danger','picker-success','picker-muted'];
+    colorInputs.forEach((id, idx) => {
         const el = $(id);
-        if(el) el.addEventListener('input', (e) => this.updateCustomColor(colorMap[id], e.target.value));
+        if(el) el.addEventListener('input', (e) => this.updateCustomColor(idx, e.target.value));
     });
-
-    $('btn-save-palette').onclick = () => this.savePalette();
-    $('btn-load-palette').onclick = () => this.loadPalette();
-    $('btn-delete-palette').onclick = () => this.deletePalette();
-    $('btn-export-palette').onclick = () => this.exportPalette();
-    $('btn-import-palette').onclick = () => $('file-import-palette').click();
-    $('file-import-palette').onchange = (e) => {
-        if(e.target.files.length > 0) this.importPalette(e.target.files[0]);
-        e.target.value = '';
-    }
   }
 
   setTheme(name) {
       if(name === 'custom') {
-          const cssVars = ['--bg','--text','--card-bg-color','--muted','--accent','--accent-2','--accent-3','--danger','--success'];
-          const colors = {};
-          cssVars.forEach(v => {
-              const el = document.getElementById(v.replace('--', 'picker-').replace('-color',''));
-              if(el) colors[v] = el.value;
+          // If switching to custom, use current picker values
+          const acc = document.getElementById('picker-accent').value;
+          const acc2 = document.getElementById('picker-accent-2').value;
+          const acc3 = document.getElementById('picker-accent-3').value;
+          const dang = document.getElementById('picker-danger').value;
+          const succ = document.getElementById('picker-success').value;
+          const muted = document.getElementById('picker-muted').value;
+          this.applyCustomTheme({ 
+              '--accent': acc, '--accent-2': acc2, '--accent-3': acc3, 
+              '--danger': dang, '--success': succ, '--muted': muted
           });
-          this.applyCustomTheme(colors);
           return;
       }
+
       const theme = THEMES[name] || THEMES.default;
       const root = document.documentElement;
       Object.entries(theme).forEach(([key, val]) => {
         root.style.setProperty(key, val);
       });
       localStorage.setItem('sisyphus_theme', name);
+      
       const sel = document.getElementById('theme-select');
       if(sel) sel.value = name;
-      if(this.chaos) { this.chaos.setPalette(theme); this.chaos.clearTrail(); }
-      this.syncPickersFromTheme(theme);
+      
+      if(this.chaos) {
+          this.chaos.setPalette(theme);
+          this.chaos.clearTrail();
+      }
+      
+      // Update pickers to match preset
+      if(theme['--accent']) document.getElementById('picker-accent').value = theme['--accent'];
+      if(theme['--accent-2']) document.getElementById('picker-accent-2').value = theme['--accent-2'];
+      if(theme['--accent-3']) document.getElementById('picker-accent-3').value = theme['--accent-3'];
+      if(theme['--danger']) document.getElementById('picker-danger').value = theme['--danger'];
+      if(theme['--success']) document.getElementById('picker-success').value = theme['--success'];
+      if(theme['--muted']) document.getElementById('picker-muted').value = theme['--muted'];
+      
+      // Clear any contrast warnings when loading preset
       this.hideContrastWarning();
   }
   
-  syncPickersFromTheme(theme) {
-      const map = {
-          '--bg': 'picker-bg', '--text': 'picker-text', '--card-bg-color': 'picker-card-bg',
-          '--muted': 'picker-muted', '--accent': 'picker-accent', '--accent-2': 'picker-accent-2',
-          '--accent-3': 'picker-accent-3', '--danger': 'picker-danger', '--success': 'picker-success'
-      };
-      Object.keys(map).forEach(key => {
-          if (theme[key]) {
-              const el = document.getElementById(map[key]);
-              if(el) el.value = theme[key];
-          }
-      });
-  }
-
-  updateCustomColor(varName, hex) {
+  updateCustomColor(idx, hex) {
       document.getElementById('theme-select').value = 'custom';
       const root = document.documentElement;
+      
+      // Map indices to CSS variable names: 0=accent, 1=accent-2, 2=accent-3, 3=danger, 4=success, 5=muted
+      const varNames = ['--accent', '--accent-2', '--accent-3', '--danger', '--success', '--muted'];
+      const varName = varNames[idx] || '--accent';
       root.style.setProperty(varName, hex);
       
-      if (['--bg', '--accent', '--accent-2', '--accent-3'].includes(varName)) {
+      // If changing accent colors, regenerate background gradient
+      if (idx <= 2) {
+          const accent2 = getComputedStyle(root).getPropertyValue('--accent-2').trim();
+          const accent3 = getComputedStyle(root).getPropertyValue('--accent-3').trim();
           const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
-          const acc2 = getComputedStyle(root).getPropertyValue('--accent-2').trim();
-          const acc3 = getComputedStyle(root).getPropertyValue('--accent-3').trim();
-          const newBgImage = ColorUtils.generateBgGradient(acc2, acc3, bg);
+          const newBgImage = ColorUtils.generateBgGradient(accent2, accent3, bg);
           root.style.setProperty('--bg-image', newBgImage);
       }
       
-      if (varName === '--card-bg-color') {
-          const rgba = ColorUtils.hexToRgba(hex, 0.75);
-          root.style.setProperty('--card-bg', rgba);
-      }
-      
       this.saveCustomTheme();
+      
+      // Update Chaos palette live
       if(this.chaos) {
           const t = {
               '--accent': getComputedStyle(root).getPropertyValue('--accent').trim(),
@@ -1830,6 +2016,8 @@ class GameController {
           };
           this.chaos.setPalette(t);
       }
+      
+      // Validate and show warning if needed
       this.validateAndWarn();
   }
   
@@ -1858,9 +2046,11 @@ class GameController {
           '--success': style.getPropertyValue('--success').trim()
       };
       const bg = style.getPropertyValue('--bg').trim() || '#080014';
+      
       const validation = ColorUtils.validatePalette(palette, bg);
       if (!validation.valid && validation.issues.length > 0) {
-          this.showContrastWarning(validation.issues[0].message);
+          const firstIssue = validation.issues[0];
+          this.showContrastWarning(firstIssue.message);
       } else {
           this.hideContrastWarning();
       }
@@ -1869,9 +2059,6 @@ class GameController {
   saveCustomTheme() {
       const root = document.documentElement;
       const style = getComputedStyle(root);
-      let cardBgCol = style.getPropertyValue('--card-bg-color').trim();
-      if (!cardBgCol || cardBgCol === '') cardBgCol = '#0c0020';
-
       const custom = {
           '--bg': style.getPropertyValue('--bg').trim(),
           '--text': style.getPropertyValue('--text').trim(),
@@ -1881,11 +2068,8 @@ class GameController {
           '--accent-3': style.getPropertyValue('--accent-3').trim(),
           '--danger': style.getPropertyValue('--danger').trim(),
           '--success': style.getPropertyValue('--success').trim(),
-          '--card-bg-color': cardBgCol,
           '--bg-image': style.getPropertyValue('--bg-image').trim()
       };
-      custom['--card-bg'] = ColorUtils.hexToRgba(custom['--card-bg-color'], 0.75);
-      
       localStorage.setItem('sisyphus_theme', 'custom');
       localStorage.setItem('sisyphus_custom_colors', JSON.stringify(custom));
   }
@@ -1893,12 +2077,26 @@ class GameController {
   applyCustomTheme(colors) {
       const root = document.documentElement;
       const def = THEMES.default;
-      const allVars = ['--bg', '--text', '--muted', '--accent', '--accent-2', '--accent-3', '--danger', '--success', '--card-bg-color', '--card-bg', '--bg-image'];
+      
+      // Apply all color properties
+      const allVars = ['--bg', '--text', '--muted', '--accent', '--accent-2', '--accent-3', '--danger', '--success', '--card-bg', '--card-border', '--bg-image'];
       allVars.forEach(v => {
-          if (colors[v]) { root.style.setProperty(v, colors[v]); } 
-          else if (def[v]) { root.style.setProperty(v, def[v]); }
+          if (colors[v]) {
+              root.style.setProperty(v, colors[v]);
+          } else if (def[v] && !['--accent', '--accent-2', '--accent-3', '--danger', '--success', '--muted'].includes(v)) {
+              // Apply default for non-accent properties if not specified
+              root.style.setProperty(v, def[v]);
+          }
       });
-      this.syncPickersFromTheme(colors);
+      
+      // Update pickers
+      document.getElementById('picker-accent').value = colors['--accent'] || def['--accent'];
+      document.getElementById('picker-accent-2').value = colors['--accent-2'] || def['--accent-2'];
+      document.getElementById('picker-accent-3').value = colors['--accent-3'] || def['--accent-3'];
+      document.getElementById('picker-danger').value = colors['--danger'] || def['--danger'];
+      document.getElementById('picker-success').value = colors['--success'] || def['--success'];
+      document.getElementById('picker-muted').value = colors['--muted'] || def['--muted'];
+      
       document.getElementById('theme-select').value = 'custom';
       if(this.chaos) {
           this.chaos.setPalette({
@@ -1908,106 +2106,28 @@ class GameController {
           });
           this.chaos.clearTrail();
       }
+      
+      // Validate and show warnings
       this.validateAndWarn();
   }
 
   randomizePalette() {
+      // Generate semantically-aware palette with all properties
       const palette = ColorUtils.generateSemanticPalette();
       this.applyCustomTheme(palette);
       this.saveCustomTheme();
   }
 
-  // --- Palette Manager Logic ---
-
-  getSavedPalettes() {
-      try { return JSON.parse(localStorage.getItem('sisyphus_saved_palettes') || '{}'); } catch(e) { return {}; }
-  }
-
-  refreshSavedPalettesList() {
-      const select = document.getElementById('saved-palettes-select');
-      const saved = this.getSavedPalettes();
-      select.innerHTML = '<option value="">-- Select Saved --</option>';
-      Object.keys(saved).sort().forEach(name => {
-          const opt = document.createElement('option');
-          opt.value = name; opt.textContent = name;
-          select.appendChild(opt);
-      });
-  }
-
-  savePalette() {
-      const name = document.getElementById('palette-name-input').value.trim();
-      if (!name) { alert("Name required"); return; }
-      const customRaw = localStorage.getItem('sisyphus_custom_colors');
-      if (!customRaw) { alert("No custom theme active"); return; }
-      const saved = this.getSavedPalettes();
-      if (saved[name] && !confirm(`Overwrite "${name}"?`)) return;
-      saved[name] = JSON.parse(customRaw);
-      localStorage.setItem('sisyphus_saved_palettes', JSON.stringify(saved));
-      this.refreshSavedPalettesList();
-  }
-
-  loadPalette() {
-      const select = document.getElementById('saved-palettes-select');
-      const name = select.value;
-      if (!name) return;
-      const saved = this.getSavedPalettes();
-      if (saved[name]) {
-          this.applyCustomTheme(saved[name]);
-          this.saveCustomTheme();
-      }
-  }
-
-  deletePalette() {
-      const select = document.getElementById('saved-palettes-select');
-      const name = select.value;
-      if (!name) return;
-      if(confirm(`Delete "${name}"?`)) {
-          const saved = this.getSavedPalettes();
-          delete saved[name];
-          localStorage.setItem('sisyphus_saved_palettes', JSON.stringify(saved));
-          this.refreshSavedPalettesList();
-          select.value = "";
-      }
-  }
-
-  exportPalette() {
-      const customRaw = localStorage.getItem('sisyphus_custom_colors');
-      if (!customRaw) { alert("No custom theme to export."); return; }
-      const data = JSON.parse(customRaw);
-      const name = document.getElementById('palette-name-input').value.trim() || 'custom-theme';
-      const exportObj = { name: name, type: 'sisyphus-palette', colors: data };
-      const blob = new Blob([JSON.stringify(exportObj, null, 2)], {type: 'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = `${name}.json`; a.click();
-      URL.revokeObjectURL(url);
-  }
-
-  importPalette(file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-          try {
-              const json = JSON.parse(e.target.result);
-              if (json.type !== 'sisyphus-palette' || !json.colors) { alert("Invalid palette file."); return; }
-              if(confirm(`Apply "${json.name || 'Imported'}"?`)) {
-                  this.applyCustomTheme(json.colors);
-                  this.saveCustomTheme();
-                  document.getElementById('palette-name-input').value = json.name || '';
-              }
-          } catch(err) { console.error(err); alert("Error parsing file."); }
-      };
-      reader.readAsText(file);
-  }
-
-  // --- End Palette Manager Logic ---
-
   setSlotMode(mode) {
     this.slotMode = mode;
     const container = document.getElementById('slot-container');
+    const desc = document.getElementById('slot-mode-desc');
     document.querySelectorAll('.slot-mode-btn').forEach(b => {
       if(b.dataset.mode === mode) b.classList.add('active'); else b.classList.remove('active');
     });
     container.classList.remove('mode-save', 'mode-load');
     container.classList.add('mode-' + mode);
+    desc.textContent = mode === 'save' ? "Click a slot to SAVE current run." : "Click a slot to LOAD a saved game.";
   }
 
   handleSlotAction(slotId) {
@@ -2017,7 +2137,7 @@ class GameController {
       this.saveToSlot(slotId);
     } else {
       if (!localStorage.getItem(key)) return;
-      if ((this.model.state.step > 0 || this.model.cycleId > 1) && !confirm(`Load Slot ${slotId}?`)) return;
+      if ((this.model.state.step > 0 || this.model.cycleId > 1) && !confirm(`Load Slot ${slotId}? Current unsaved progress will be lost.`)) return;
       this.loadFromSlot(slotId);
     }
   }
@@ -2025,7 +2145,7 @@ class GameController {
   saveToSlot(id) {
     localStorage.setItem(`sisyphus_slot_${id}`, JSON.stringify(this.serialize()));
     this.updateSlotUI();
-    this.announcer.announce(`Saved Slot ${id}`);
+    this.announcer.announce(`Saved to Slot ${id}`);
   }
 
   loadFromSlot(id) {
@@ -2037,27 +2157,41 @@ class GameController {
       this.recalcExpectations();
       this.ui.render(this.grids, true);
       this.chaos.reset(); 
+      
+      const lblM = document.getElementById('lbl-M-goal');
+      if(lblM) lblM.textContent = this.model.params.M;
     }
   }
   
   exportSlot() {
-    const slot = prompt("0 = Current, 1-5 = Slot");
+    const slot = prompt("Export which slot?\n0 = Current Run\n1-5 = Saved Slot");
     if (slot === null) return;
     const slotNum = parseInt(slot, 10);
-    let data = null, filename = "";
+    
+    let data = null;
+    let filename = "";
+
     if (slotNum === 0) {
         data = this.serialize();
-        filename = `sisyphus-current-${new Date().toISOString().slice(0,10)}.json`;
+        filename = `sisyphus-ruin-current-${new Date().toISOString().slice(0,10)}.json`;
     } else if (slotNum >= 1 && slotNum <= 5) {
         const raw = localStorage.getItem(`sisyphus_slot_${slotNum}`);
-        if (!raw) return;
+        if (!raw) { alert(`Slot ${slotNum} is empty.`); return; }
         data = JSON.parse(raw);
-        filename = `sisyphus-slot-${slotNum}.json`;
-    } else return;
+        filename = `sisyphus-ruin-slot-${slotNum}.json`;
+    } else {
+        alert("Invalid selection.");
+        return;
+    }
+
     const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
     URL.revokeObjectURL(url);
+    this.announcer.announce("Export complete");
   }
 
   importToSlot(file) {
@@ -2066,17 +2200,29 @@ class GameController {
         try {
             const json = JSON.parse(e.target.result);
             const state = json.main || json;
-            const slot = prompt("0 = Overwrite Current, 1-5 = Save to Slot");
+            
+            const slot = prompt("Import data into which slot?\n0 = Overwrite Current Run (Play Immediately)\n1-5 = Save to Slot");
             if (slot === null) return;
             const slotNum = parseInt(slot, 10);
+
             if (slotNum === 0) {
+                 if ((this.model.state.step > 0) && !confirm("Overwrite current run with imported file?")) return;
                  this.deserialize(state);
                  this.postLoadUpdate();
+                 alert("File imported and loaded.");
             } else if (slotNum >= 1 && slotNum <= 5) {
+                if(localStorage.getItem(`sisyphus_slot_${slotNum}`) && !confirm(`Overwrite Slot ${slotNum}?`)) return;
                 localStorage.setItem(`sisyphus_slot_${slotNum}`, JSON.stringify(state));
                 this.updateSlotUI();
+                alert(`File saved to Slot ${slotNum}. Switch to Load Mode to play it.`);
+            } else {
+                alert("Invalid selection.");
             }
-        } catch(err) { console.error(err); }
+
+        } catch(err) {
+            console.error(err);
+            alert("Error parsing save file. It may be corrupt or from an incompatible version.");
+        }
     };
     reader.readAsText(file);
   }
@@ -2087,6 +2233,8 @@ class GameController {
       this.ui.render(this.grids, true);
       this.updateSlotUI();
       this.chaos.reset();
+      const lblM = document.getElementById('lbl-M-goal');
+      if(lblM) lblM.textContent = this.model.params.M;
   }
   
   syncUIParams() {
@@ -2106,8 +2254,8 @@ class GameController {
         btn.classList.add('has-data'); btn.classList.remove('empty');
         try {
           const d = JSON.parse(raw);
-          infoDiv.textContent = `k:${d.state.k} s:${d.state.step}`;
-        } catch(e) { infoDiv.textContent = "Err"; }
+          infoDiv.textContent = `k:${d.state.k} ℓ:${d.state.l}\nSteps:${d.state.step}`;
+        } catch(e) { infoDiv.textContent = "Error"; }
       } else {
         btn.classList.remove('has-data'); btn.classList.add('empty'); infoDiv.textContent = "Empty";
       }
@@ -2136,12 +2284,16 @@ class GameController {
   stepManually() {
     if (this.controlsLocked) return;
     if(this.isAuto) this.toggleAuto();
+    
     const prevK = this.model.state.k;
     const prevL = this.model.state.l;
+
     const res = this.model.step();
     this.handleStepResult(res); 
     this.save();
+
     const delay = this.getDynamicDelay();
+
     if (res !== 'top' && delay > 50) {
       this.ui.render(this.grids, true, true); 
       this.ui.animateChange(prevK, prevL, this.model.state.k, this.model.state.l, delay, this.model.params);
@@ -2157,7 +2309,8 @@ class GameController {
     const mainSpan = document.getElementById('btn-roll-main');
     btn.disabled = true;
     btn.className = `btn big outcome-${outcome}`; 
-    const verb = { win:'CLIMBING', loss:'FALLING', neu:'STEADY' }[outcome] || 'WAIT';
+    
+    const verb = { win:'ASCENDING', loss:'THE STONE FALLS', neu:'BUILDING POISE' }[outcome] || 'WAITING';
     const endTime = Date.now() + duration;
     
     const timerId = this.bgTimer.setInterval(() => {
@@ -2168,9 +2321,10 @@ class GameController {
         btn.disabled = false;
         btn.className = 'btn big';
         mainSpan.textContent = "ROLL";
+        
         this.ui.render(this.grids); 
       } else {
-        mainSpan.textContent = `${verb} ${(Math.max(0, remaining)/1000).toFixed(1)}s`;
+        mainSpan.textContent = `${verb} · ${(Math.max(0, remaining)/1000).toFixed(1)}s`;
       }
     }, 50);
   }
@@ -2180,7 +2334,7 @@ class GameController {
     if (this.isAuto) {
       if (this.autoTimerId) { this.bgTimer.clear(this.autoTimerId); this.autoTimerId = null; }
       if (this.renderReq) { cancelAnimationFrame(this.renderReq); this.renderReq = null; }
-      this.isAuto = false; btn.textContent = 'Auto';
+      this.isAuto = false; btn.textContent = 'Auto Play';
       this.ui.render(this.grids, true);
     } else {
       this.isAuto = true; btn.textContent = 'Stop';
@@ -2213,19 +2367,24 @@ class GameController {
   }
 
   handleStepResult(res) {
-    if (res === 'top') { this.announcer.announce("Summit reached!"); this.showSummitModal(); }
-    else if (res === 'win') this.announcer.announce(`Ascent! Height ${this.model.state.k}`);
-    else if (res === 'loss') this.announcer.announce("Ruin. Reset.");
-    else if (res === 'neu') this.announcer.announce("Steady.");
+    if (res === 'top') { 
+      this.announcer.announce("Congratulations! Summit reached!"); 
+      this.showSummitModal(); 
+    }
+    else if (res === 'win') this.announcer.announce(`Ascent! Now at Height ${this.model.state.k}`);
+    else if (res === 'loss') this.announcer.announce("Ruin. Reset to Height 1");
+    else if (res === 'neu') this.announcer.announce("Steady. Poise increased");
     if(res && res !== 'top') this.ui.log(`step ${this.model.state.step}: ${this.model.lastRoll.outcome.toUpperCase()}`);
   }
 
   showSummitModal() {
     const modal = document.getElementById('summit-modal');
     const elapsed = Math.max(0, Date.now() - this.model.startTime);
+    
     document.getElementById('summit-duration').textContent = this.ui._formatDuration(elapsed);
     document.getElementById('summit-steps').textContent = this.model.state.step;
     document.getElementById('summit-cycles').textContent = this.model.cycleId;
+    
     modal.classList.add('show');
   }
 
@@ -2234,20 +2393,30 @@ class GameController {
     ['M','L','w_min','w_max','beta','rho','gamma','c_min','c_max','alpha','g_n','s_w','max_delay','chaos_dt','chaos_intensity'].forEach(k => {
       const el = document.getElementById(k); if(el) p[k] = +el.value;
     });
+
+    const lblM = document.getElementById('lbl-M-goal');
+    if(lblM) lblM.textContent = p.M;
+
     SisyphusMath.clearCache();
     this.syncWeatherParams();
+    
+    // Checkbox override logic
     const chk = document.getElementById('chk-reset-on-apply');
-    if (chk) shouldReset = chk.checked;
+    if (chk) {
+        shouldReset = chk.checked;
+    }
     
     if (shouldReset) {
         this.reset();
     } else {
+        // Validate k/l against new M/L
         this.model.state.k = Math.min(this.model.state.k, this.model.params.M);
         this.model.state.l = Math.min(this.model.state.l, this.model.params.L);
+        // Recalc expectations based on new params
         this.recalcExpectations();
         this.ui.render(this.grids, true);
         this.save();
-        this.announcer.announce("Applied");
+        this.announcer.announce("Parameters applied (State kept)");
     }
   }
   
@@ -2261,7 +2430,7 @@ class GameController {
     this.recalcExpectations();
     this.ui.render(this.grids, true);
     this.save();
-    this.announcer.announce("Reset");
+    this.announcer.announce("Game reset");
   }
 
   recalcExpectations() {
@@ -2299,10 +2468,12 @@ class GameController {
 
   load() {
     try {
-      const raw = localStorage.getItem('sisyphus_v9_delay'); 
+      const raw = localStorage.getItem('sisyphus_v9_delay') || localStorage.getItem('sisyphus_v8_optimized'); 
       if(raw) {
         this.deserialize(JSON.parse(raw));
         this.syncUIParams();
+        const lblM = document.getElementById('lbl-M-goal');
+        if(lblM) lblM.textContent = this.model.params.M;
       }
     } catch(e) { console.warn("Load failed", e); }
   }
