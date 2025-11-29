@@ -9,12 +9,15 @@
     /* Default Colors (Cosmic) - These are overridden by JS themes */
     --bg: #080014;
     --text: #fef8ff;
-    --muted: #cdaeff;
-    --accent: #ff9e2c;   /* Gold/Orange - Ascent */
-    --accent-2: #ff00b8; /* Pink - Poise */
-    --accent-3: #00b7ff; /* Blue - Steady */
-    --danger: #ff3333;   /* Red - Ruin */
-    --success: #00ff9d;  /* Green - Summit */
+    
+    /* Semantic Color Names */
+    --ascent: #ff9e2c;   /* Gold/Orange */
+    --summit: #00ff9d;   /* Green */
+    --steady: #00b7ff;   /* Blue */
+    --poise: #ff00b8;    /* Pink */
+    --ruin: #ff3333;     /* Red */
+    
+    --muted: #aeffda;    /* Derived from Summit */
     
     --card-bg: rgba(12, 0, 32, 0.6);
     --card-border: rgba(255,255,255,0.05);
@@ -41,7 +44,7 @@
   
   h1{
     text-align:center; font-size:clamp(18px,3vw,26px); margin:6px 0 6px; letter-spacing:.5px;
-    background:linear-gradient(9deg,var(--accent),var(--accent-2),var(--accent-3));
+    background:linear-gradient(9deg,var(--ascent),var(--poise),var(--steady));
     -webkit-background-clip:text; background-clip:text; color:transparent;
     text-shadow: 0 2px 10px rgba(0,0,0,0.2);
   }
@@ -72,7 +75,7 @@
   }
   .btn:hover{background:rgba(255,255,255,0.1)}
   .btn:active{transform:scale(.97)}
-  .btn:focus{outline:2px solid var(--accent);outline-offset:2px}
+  .btn:focus{outline:2px solid var(--ascent);outline-offset:2px}
   
   .btn:disabled {
     opacity: 0.9; cursor: not-allowed; background: #2a2a2a !important;
@@ -90,34 +93,34 @@
     display: grid; place-content: center; margin: 0;
   }
   .checkbox-wrapper input[type="checkbox"]::before {
-    content: ""; width: 8px; height: 8px; background: var(--accent);
+    content: ""; width: 8px; height: 8px; background: var(--ascent);
     transform: scale(0); transition: 0.1s transform; border-radius: 1px;
   }
   .checkbox-wrapper input[type="checkbox"]:checked::before { transform: scale(1); }
-  .checkbox-wrapper input[type="checkbox"]:checked { border-color: var(--accent); }
+  .checkbox-wrapper input[type="checkbox"]:checked { border-color: var(--ascent); }
   .checkbox-wrapper label { cursor: pointer; color: var(--text); width: auto; font-size: 11px; font-weight: 500; }
 
   .docked-control {
     position: sticky; top: 0; z-index: 1000;
     background: var(--card-bg); backdrop-filter: blur(8px);
     margin: -6px -6px 6px -6px; padding: 6px;
-    border-bottom: 1px solid var(--accent);
+    border-bottom: 1px solid var(--ascent);
     display: flex; justify-content: center;
   }
 
   .btn.big{
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     width:100%; padding:8px; margin-bottom:0; 
-    background: linear-gradient(90deg, var(--accent), var(--accent-3), var(--danger)); 
+    background: linear-gradient(90deg, var(--ascent), var(--steady), var(--ruin)); 
     color: var(--bg); font-weight:800; max-width: 600px; min-height: 48px; 
     line-height: 1.2; transition: background 0.3s ease; border: none;
     text-shadow: 0 0 10px rgba(255,255,255,0.2);
   }
   .btn.big:hover{opacity: 0.9;}
   
-  .btn.big.outcome-win:disabled { background: var(--accent) !important; color: var(--bg) !important; opacity: 1 !important; }
-  .btn.big.outcome-neu:disabled { background: var(--accent-3) !important; color: var(--bg) !important; opacity: 1 !important; }
-  .btn.big.outcome-loss:disabled { background: var(--danger) !important; color: #ffffff !important; opacity: 1 !important; }
+  .btn.big.outcome-win:disabled { background: var(--ascent) !important; color: var(--bg) !important; opacity: 1 !important; }
+  .btn.big.outcome-neu:disabled { background: var(--steady) !important; color: var(--bg) !important; opacity: 1 !important; }
+  .btn.big.outcome-loss:disabled { background: var(--ruin) !important; color: #ffffff !important; opacity: 1 !important; }
   
   .btn-main-text { font-size: 16px; text-transform: uppercase; }
 
@@ -145,9 +148,9 @@
     overflow:hidden; margin:2px 0; border:1px solid rgba(255,255,255,.1);
   }
   .bar>div{height:100%}
-  .bar .win{background:var(--accent)}
-  .bar .neu{background:var(--accent-3)}
-  .bar .loss{background:var(--danger)}
+  .bar .win{background:var(--ascent)}
+  .bar .neu{background:var(--steady)}
+  .bar .loss{background:var(--ruin)}
 
   .kpos-track,.lpos-track{
     height:5px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
@@ -160,9 +163,9 @@
   
   /* UPDATED GRADIENTS */
   /* Ascent -> Summit */
-  .kpos-fill { background: linear-gradient(90deg, var(--accent), var(--success)); }
+  .kpos-fill { background: linear-gradient(90deg, var(--ascent), var(--summit)); }
   /* Poise -> Steady */
-  .lpos-fill { background: linear-gradient(90deg, var(--accent-2), var(--accent-3)); }
+  .lpos-fill { background: linear-gradient(90deg, var(--poise), var(--steady)); }
 
   @keyframes barberpole {
     0% { background-position: 0 0, 0 0; }
@@ -178,26 +181,26 @@
   }
 
   .kpos-fill.active-motion {
-    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent), linear-gradient(90deg, var(--accent), var(--success));
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent), linear-gradient(90deg, var(--ascent), var(--summit));
   }
 
   .lpos-fill.active-motion {
-    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent), linear-gradient(90deg, var(--accent-2), var(--accent-3));
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent), linear-gradient(90deg, var(--poise), var(--steady));
   }
 
   .kpos-fill.reverse-motion, .lpos-fill.reverse-motion {
     animation-direction: reverse; 
-    border-right: 2px solid var(--danger);
-    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent), linear-gradient(90deg, var(--danger), var(--danger)) !important;
+    border-right: 2px solid var(--ruin);
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent), linear-gradient(90deg, var(--ruin), var(--ruin)) !important;
   }
   
   .tiny{font-size:10px;opacity:.65;color:var(--muted)}
   .mono{font-family:monospace;}
   .small{font-size:11px;}
 
-  .recent.win #recent-outcome{color:var(--accent); text-shadow:0 0 12px var(--accent);}
-  .recent.neu #recent-outcome{color:var(--accent-3); text-shadow:0 0 12px var(--accent-3);}
-  .recent.loss #recent-outcome{color:var(--danger); text-shadow:0 0 12px var(--danger);}
+  .recent.win #recent-outcome{color:var(--ascent); text-shadow:0 0 12px var(--ascent);}
+  .recent.neu #recent-outcome{color:var(--steady); text-shadow:0 0 12px var(--steady);}
+  .recent.loss #recent-outcome{color:var(--ruin); text-shadow:0 0 12px var(--ruin);}
   
   .cycle-entry {
     font-family: monospace; font-size: 10px; border-radius: 4px; 
@@ -206,12 +209,12 @@
     white-space: pre-wrap; word-break: break-word;
     display: flex; flex-direction: column; gap: 1px;
   }
-  .cycle-entry.loss { border-color: var(--danger); }
-  .cycle-entry.top { border-color: var(--success); background: rgba(255,255,255,0.1); }
+  .cycle-entry.loss { border-color: var(--ruin); }
+  .cycle-entry.top { border-color: var(--summit); background: rgba(255,255,255,0.1); }
   .cycle-entry.active { border-color: var(--text); background: rgba(255,255,255,0.05); }
 
   .cycle-entry-top-row { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; opacity: 0.9; line-height: 1.2; }
-  .cycle-id { color: var(--accent-3); margin-right: 6px; }
+  .cycle-id { color: var(--steady); margin-right: 6px; }
   .cycle-meta { font-weight: 400; opacity: 0.65; font-size: 9px; }
   .cycle-entry-path { opacity: 0.75; font-size: 9px; line-height: 1.1; letter-spacing: 1px; margin-top: 1px; }
 
@@ -221,7 +224,7 @@
   }
   .stat-box { display: flex; flex-direction: column; align-items: center; }
   .stat-label { font-size: 8px; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.5px; }
-  .stat-val { font-family: monospace; font-size: 10px; font-weight: 600; color: var(--accent-3); }
+  .stat-val { font-family: monospace; font-size: 10px; font-weight: 600; color: var(--steady); }
 
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
   .perf-indicator { position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-family: monospace; opacity: 0.5; pointer-events: none; }
@@ -229,18 +232,18 @@
   /* Modals */
   .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); z-index: 2000; align-items: center; justify-content: center; }
   .modal.show { display: flex; }
-  .modal-content { background: var(--bg); border: 2px solid var(--accent); padding: 24px; border-radius: 10px; max-width: 450px; width: 90%; box-shadow: 0 0 40px rgba(0,0,0,0.8); position: relative; }
-  .modal h3 { margin-top: 0; color: var(--accent); font-size: 20px; letter-spacing: 0.5px; }
+  .modal-content { background: var(--bg); border: 2px solid var(--ascent); padding: 24px; border-radius: 10px; max-width: 450px; width: 90%; box-shadow: 0 0 40px rgba(0,0,0,0.8); position: relative; }
+  .modal h3 { margin-top: 0; color: var(--ascent); font-size: 20px; letter-spacing: 0.5px; }
   .modal kbd { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px; font-family: monospace; border: 1px solid rgba(255,255,255,0.2); }
   
   .welcome-list { margin: 12px 0; padding-left: 0; list-style: none; }
   .welcome-list li { margin-bottom: 12px; line-height: 1.5; font-size: 14px; opacity: 0.9; }
-  .welcome-list strong { color: var(--accent-3); }
+  .welcome-list strong { color: var(--steady); }
 
   .weather-status { font-weight: 800; letter-spacing: 0.5px; }
-  .weather-good { color: var(--accent); text-shadow: 0 0 5px var(--accent); }
-  .weather-ok { color: var(--accent-3); text-shadow: 0 0 5px var(--accent-3); }
-  .weather-bad { color: var(--danger); text-shadow: 0 0 5px var(--danger); }
+  .weather-good { color: var(--ascent); text-shadow: 0 0 5px var(--ascent); }
+  .weather-ok { color: var(--steady); text-shadow: 0 0 5px var(--steady); }
+  .weather-bad { color: var(--ruin); text-shadow: 0 0 5px var(--ruin); }
 
   #weather-card { position: relative; overflow: hidden; min-height: 240px; display: flex; flex-direction: column; justify-content: space-between; }
   #weather-content { position: relative; z-index: 2; }
@@ -250,26 +253,26 @@
   .slot-mode-switch { display: flex; gap: 4px; margin-bottom: 4px; }
   .slot-mode-btn { flex: 1; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px; border: 1px solid transparent; opacity: 0.5; transition: all 0.2s ease; }
   .slot-mode-btn.active { opacity: 1; font-weight: 800; }
-  .mode-save .slot-mode-btn[data-mode="save"] { background: var(--accent); color: var(--bg); box-shadow: 0 0 8px var(--accent); }
-  .mode-load .slot-mode-btn[data-mode="load"] { background: var(--accent-3); color: var(--bg); box-shadow: 0 0 8px var(--accent-3); }
+  .mode-save .slot-mode-btn[data-mode="save"] { background: var(--ascent); color: var(--bg); box-shadow: 0 0 8px var(--ascent); }
+  .mode-load .slot-mode-btn[data-mode="load"] { background: var(--steady); color: var(--bg); box-shadow: 0 0 8px var(--steady); }
 
   .slot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
   .slot-btn { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px; font-family: monospace; font-size: 8px; color: var(--muted); cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 32px; text-align: center; }
   .slot-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
   .slot-btn.has-data { border-color: rgba(255,255,255,0.3); color: var(--text); background: rgba(255,255,255,0.05); }
   .slot-btn.empty { opacity: 0.6; font-style: italic; }
-  .mode-save .slot-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .mode-load .slot-btn:hover { border-color: var(--accent-3); color: var(--accent-3); }
+  .mode-save .slot-btn:hover { border-color: var(--ascent); color: var(--ascent); }
+  .mode-load .slot-btn:hover { border-color: var(--steady); color: var(--steady); }
   .slot-label { font-weight: 800; font-size: 9px; margin-bottom: 0px; }
   .slot-info { font-size: 7px; line-height: 1.1; opacity: 0.8; }
 
   /* Accordion Styling */
   details { margin-bottom: 2px; background: rgba(255,255,255,0.02); border-radius: 4px; overflow: hidden; }
   details summary { cursor: pointer; padding: 3px 6px; user-select: none; outline: none; background: rgba(255,255,255,0.03); font-weight: 600; font-size: 11px; color: var(--muted); }
-  details summary:hover { color: var(--accent); background: rgba(255,255,255,0.06); }
+  details summary:hover { color: var(--ascent); background: rgba(255,255,255,0.06); }
   details > summary { list-style: none; }
   details > summary::-webkit-details-marker { display: none; }
-  details > summary::before { content: '▶'; display: inline-block; margin-right: 6px; font-size: 9px; color: var(--accent); transition: transform 0.2s; }
+  details > summary::before { content: '▶'; display: inline-block; margin-right: 6px; font-size: 9px; color: var(--ascent); transition: transform 0.2s; }
   details[open] > summary::before { transform: rotate(90deg); }
   
   details .details-content { padding: 4px 6px; border-top: 1px solid rgba(255,255,255,0.05); }
@@ -321,8 +324,8 @@
 </div>
 
 <div class="modal" id="summit-modal" role="dialog" aria-labelledby="summit-title">
-  <div class="modal-content" style="border-color: var(--success); box-shadow: 0 0 50px var(--success);">
-    <h3 id="summit-title" style="color:var(--success); text-align:center; font-size:24px; margin-bottom:8px">The Summit</h3>
+  <div class="modal-content" style="border-color: var(--summit); box-shadow: 0 0 50px var(--summit);">
+    <h3 id="summit-title" style="color:var(--summit); text-align:center; font-size:24px; margin-bottom:8px">The Summit</h3>
     <div class="tiny" style="text-align:center; margin-bottom:20px; font-style:italic; opacity:0.8">
       The stone rests. The air is still. For a moment, the struggle ceases.
     </div>
@@ -465,7 +468,7 @@
       <div class="card">
         <h2 style="margin:0 0 6px">The Burden</h2>
         <div class="tiny" style="line-height:1.4; opacity:0.9">
-          The stone is bound for the summit (Height <span id="lbl-M-goal" style="font-weight:bold; color:var(--success)">20</span>).
+          The stone is bound for the summit (Height <span id="lbl-M-goal" style="font-weight:bold; color:var(--summit)">20</span>).
           <br><br>
           Each roll has one of three outcomes:
           <br>
@@ -546,11 +549,11 @@
                             <select id="saved-palettes-list" style="flex:1;">
                                 <option value="">-- Load Saved --</option>
                             </select>
-                            <button id="btn-delete-palette" class="btn" style="color:var(--danger)">Del</button>
+                            <button id="btn-delete-palette" class="btn" style="color:var(--ruin)">Del</button>
                         </div>
                         <div class="row" style="margin-top:4px">
                              <input type="text" id="save-palette-name" placeholder="Name current..." style="flex:1">
-                             <button id="btn-save-palette" class="btn" style="background:var(--accent-3); color:var(--bg)">Save</button>
+                             <button id="btn-save-palette" class="btn" style="background:var(--steady); color:var(--bg)">Save</button>
                         </div>
                     </div>
 
@@ -565,7 +568,7 @@
                           <option value="monochromatic">Monochromatic</option>
                         </select>
                       </div>
-                      <button class="btn" id="btn-random-oklch" style="flex:1; background:var(--accent); color:var(--bg);">
+                      <button class="btn" id="btn-random-oklch" style="flex:1; background:var(--ascent); color:var(--bg);">
                         Randomize (OKLCH)
                       </button>
                     </div>
@@ -573,23 +576,23 @@
                     <div class="tiny" style="opacity:0.7; margin-bottom:4px">Palette Configuration</div>
                     <div class="palette-grid">
                       <div class="palette-item">
-                        <input type="color" id="p-success" data-var="--success">
-                        <span class="palette-label">Summit</span>
-                      </div>
-                      <div class="palette-item">
-                        <input type="color" id="p-accent" data-var="--accent">
+                        <input type="color" id="p-ascent" data-var="--ascent">
                         <span class="palette-label">Ascent</span>
                       </div>
                       <div class="palette-item">
-                        <input type="color" id="p-accent-3" data-var="--accent-3">
+                        <input type="color" id="p-summit" data-var="--summit">
+                        <span class="palette-label">Summit</span>
+                      </div>
+                      <div class="palette-item">
+                        <input type="color" id="p-steady" data-var="--steady">
                         <span class="palette-label">Steady</span>
                       </div>
                       <div class="palette-item">
-                        <input type="color" id="p-accent-2" data-var="--accent-2">
+                        <input type="color" id="p-poise" data-var="--poise">
                         <span class="palette-label">Poise</span>
                       </div>
                       <div class="palette-item">
-                        <input type="color" id="p-danger" data-var="--danger">
+                        <input type="color" id="p-ruin" data-var="--ruin">
                         <span class="palette-label">Ruin</span>
                       </div>
                       
@@ -735,37 +738,37 @@
 
 const THEMES = {
   default: {
-    '--bg': '#080014', '--text': '#fef8ff', '--muted': '#cdaeff',
-    '--accent': '#ff9e2c', '--accent-2': '#ff00b8', '--accent-3': '#00b7ff',
-    '--danger': '#ff3333', '--success': '#00ff9d',
+    '--bg': '#080014', '--text': '#fef8ff', '--muted': '#aeffda',
+    '--ascent': '#ff9e2c', '--poise': '#ff00b8', '--steady': '#00b7ff',
+    '--ruin': '#ff3333', '--summit': '#00ff9d',
     '--card-bg': 'rgba(12, 0, 32, 0.6)', '--card-border': 'rgba(255,255,255,0.05)',
     '--bg-image': 'radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%), radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%), linear-gradient(180deg,#0b0014 0%, #050010 100%)'
   },
   magma: {
-    '--bg': '#1a0500', '--text': '#ffe0d0', '--muted': '#ff9e80',
-    '--accent': '#ffcc00', '--accent-2': '#ff4400', '--accent-3': '#ff8800',
-    '--danger': '#ff0000', '--success': '#ffcc00',
+    '--bg': '#1a0500', '--text': '#ffe0d0', '--muted': '#ffcc00', 
+    '--ascent': '#ffcc00', '--poise': '#ff4400', '--steady': '#ff8800',
+    '--ruin': '#ff0000', '--summit': '#ffcc00',
     '--card-bg': 'rgba(40, 5, 0, 0.7)', '--card-border': 'rgba(255, 100, 0, 0.2)',
     '--bg-image': 'radial-gradient(circle at 50% 0%, rgba(255,200,0,0.2), transparent 60%), linear-gradient(0deg, #1a0500 0%, #3d0c02 100%)'
   },
   terminal: {
-    '--bg': '#000000', '--text': '#00ff00', '--muted': '#008f11',
-    '--accent': '#00ff00', '--accent-2': '#00cc00', '--accent-3': '#008800',
-    '--danger': '#ff3333', '--success': '#00ff00',
+    '--bg': '#000000', '--text': '#00ff00', '--muted': '#00ff00',
+    '--ascent': '#00ff00', '--poise': '#00cc00', '--steady': '#008800',
+    '--ruin': '#ff3333', '--summit': '#00ff00',
     '--card-bg': 'rgba(0, 20, 0, 0.85)', '--card-border': 'rgba(0,255,0,0.3)',
     '--bg-image': 'linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px)'
   },
   paper: {
-    '--bg': '#f0f2f5', '--text': '#1a1a1a', '--muted': '#555555',
-    '--accent': '#d9534f', '--accent-2': '#337ab7', '--accent-3': '#5bc0de',
-    '--danger': '#d9534f', '--success': '#5cb85c',
+    '--bg': '#f0f2f5', '--text': '#1a1a1a', '--muted': '#5cb85c',
+    '--ascent': '#d9534f', '--poise': '#337ab7', '--steady': '#5bc0de',
+    '--ruin': '#d9534f', '--summit': '#5cb85c',
     '--card-bg': 'rgba(255, 255, 255, 0.8)', '--card-border': 'rgba(0,0,0,0.1)',
     '--bg-image': 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
   },
   ocean: {
-    '--bg': '#000814', '--text': '#e0f7ff', '--muted': '#7abaff',
-    '--accent': '#00d9ff', '--accent-2': '#0055ff', '--accent-3': '#0088ff',
-    '--danger': '#ff3333', '--success': '#00ffcc',
+    '--bg': '#000814', '--text': '#e0f7ff', '--muted': '#00ffcc',
+    '--ascent': '#00d9ff', '--poise': '#0055ff', '--steady': '#0088ff',
+    '--ruin': '#ff3333', '--summit': '#00ffcc',
     '--card-bg': 'rgba(0, 10, 30, 0.6)', '--card-border': 'rgba(0,180,255,0.1)',
     '--bg-image': 'radial-gradient(circle at 50% 100%, rgba(0,255,180,0.15), transparent 70%), linear-gradient(180deg, #000814 0%, #001a33 100%)'
   }
@@ -841,14 +844,21 @@ class ColorMath {
       let chroma = settings.chromaBase + linearIterator * settings.chromaContrast + 0.05;
       let lightness = Math.max(0.6, settings.lightnessBase + (Math.random() * 0.2)); 
 
-      colors.push(this.generateColor(lightness, chroma, settings.hueBase + hueOffset));
+      colors.push({
+        hex: this.generateColor(lightness, chroma, settings.hueBase + hueOffset),
+        hue: settings.hueBase + hueOffset
+      });
     }
 
     const bg = this.generateColor(0.05, 0.02, settings.hueBase);
     const cardBg = this.generateColor(0.12, 0.02, settings.hueBase); 
     const cardBorder = this.generateColor(0.2, 0.0, settings.hueBase);
     const text = this.generateColor(0.95, 0.02, settings.hueBase);
-    const muted = this.generateColor(0.65, 0.05, settings.hueBase);
+    
+    // Order: Ascent, Summit, Steady, Poise, Ruin
+    // Muted derived from Summit (colors[1])
+    const summitHue = colors[1].hue;
+    const muted = this.generateColor(0.65, 0.05, summitHue);
 
     return {
       '--bg': bg,
@@ -856,12 +866,12 @@ class ColorMath {
       '--card-border': cardBorder,
       '--text': text,
       '--muted': muted,
-      '--accent': colors[0],
-      '--accent-3': colors[1],
-      '--accent-2': colors[2],
-      '--danger': colors[3],
-      '--success': colors[4],
-      '--bg-image': `radial-gradient(circle at 50% 0%, ${colors[1]}22, transparent 60%), linear-gradient(0deg, ${bg} 0%, ${bg} 100%)`
+      '--ascent': colors[0].hex,
+      '--summit': colors[1].hex,
+      '--steady': colors[2].hex,
+      '--poise': colors[3].hex,
+      '--ruin': colors[4].hex,
+      '--bg-image': `radial-gradient(circle at 50% 0%, ${colors[2].hex}22, transparent 60%), linear-gradient(0deg, ${bg} 0%, ${bg} 100%)`
     };
   }
 }
@@ -1180,19 +1190,16 @@ class SisyphusModel {
     }
   }
 
-setState(k, l) {
-    // 1. Update the internal state as before
+  setState(k, l) {
     this.state.k = Math.max(1, Math.min(this.params.M, k));
     this.state.l = Math.max(0, Math.min(this.params.L, l));
     this.historyK.push(this.state.k);
-
-    // 2. FIX: Synchronize lastRoll so the UI renders the new position immediately
     this.lastRoll = {
-      outcome: null, // No specific outcome (win/loss) for manual set
+      outcome: null,
       k0: this.state.k,
       l0: this.state.l,
-      k1: this.state.k, // k1 is what the UI draws
-      l1: this.state.l  // l1 is what the UI draws
+      k1: this.state.k, 
+      l1: this.state.l
     };
   }
 }
@@ -1413,7 +1420,7 @@ class SisyphusUI {
       wrap.style.cssText = 'display:flex;align-items:flex-end;gap:2px';
       for(let i=(hostId==='hist-l'?0:1); i<data.length; i++){
         const bar = document.createElement('div');
-        bar.style.cssText = `width:3px;border-radius:2px;background:linear-gradient(180deg,var(--accent-3),var(--accent));`;
+        bar.style.cssText = `width:3px;border-radius:2px;background:linear-gradient(180deg,var(--steady),var(--ascent));`;
         bar.style.height = (6 + (max ? 24 * (data[i]||0) / max : 0)) + 'px';
         wrap.appendChild(bar);
       }
@@ -1428,7 +1435,7 @@ class SisyphusUI {
       wrap.style.cssText = 'display:flex;align-items:flex-end;gap:2px';
       dist.cycles.forEach(len => {
         const bar = document.createElement('div');
-        bar.style.cssText = 'width:4px;border-radius:2px;background:linear-gradient(180deg,var(--accent-3),var(--accent));';
+        bar.style.cssText = 'width:4px;border-radius:2px;background:linear-gradient(180deg,var(--steady),var(--ascent));';
         bar.style.height = (8 + (maxCL ? 32 * len / maxCL : 0)) + 'px';
         wrap.appendChild(bar);
       });
@@ -1450,7 +1457,7 @@ class SisyphusUI {
           const c = (klData[k] && klData[k][l]) || 0;
           const cell = document.createElement('div');
           const alpha = c > 0 ? (0.2 + 0.8 * (Math.log(1+c)/logMax)) : 0.05;
-          cell.style.background = `var(--accent)`;
+          cell.style.background = `var(--ascent)`;
           cell.style.opacity = alpha.toFixed(3);
           cell.style.aspectRatio = '1/1'; cell.title = `(${k},${l}): ${c}`;
           grid.appendChild(cell);
@@ -1462,7 +1469,7 @@ class SisyphusUI {
       legend.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-top:4px; font-size:9px; color:var(--muted); opacity:0.8';
       legend.innerHTML = `
         <span>Rare</span>
-        <div style="flex:1; height:4px; margin:0 8px; border-radius:2px; background:linear-gradient(90deg, rgba(255,255,255,0.05), var(--accent));"></div>
+        <div style="flex:1; height:4px; margin:0 8px; border-radius:2px; background:linear-gradient(90deg, rgba(255,255,255,0.05), var(--ascent));"></div>
         <span>Frequent</span>
       `;
       hostHM.appendChild(legend);
@@ -1557,9 +1564,9 @@ class ChaosEngine {
   
   setPalette(theme) {
      this.colors = {
-         calm: theme['--accent'],
-         windy: theme['--accent-3'],
-         storm: theme['--danger']
+         calm: theme['--ascent'],
+         windy: theme['--steady'],
+         storm: theme['--ruin']
      };
   }
   
@@ -1689,7 +1696,7 @@ class ThemeManager {
   constructor() {
     this.pickers = {};
     const ids = ['p-bg','p-card-bg','p-card-border','p-text','p-muted',
-                 'p-accent','p-accent-3','p-accent-2','p-danger','p-success'];
+                 'p-ascent','p-steady','p-poise','p-ruin','p-summit'];
                  
     ids.forEach(id => {
       const el = document.getElementById(id);
