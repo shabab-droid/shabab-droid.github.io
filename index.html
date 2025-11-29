@@ -16,6 +16,7 @@
     --danger: #ff3333;   /* Red - Ruin/Storm */
     --success: #00ff9d;  /* Green - Summit */
     
+    --card-bg-color: #0c0020; /* Split for opacity handling */
     --card-bg: rgba(12, 0, 32, 0.6);
     --card-border: rgba(255,255,255,0.05);
 
@@ -134,6 +135,11 @@
   input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
   input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2); }
   
+  input[type="text"] {
+    background:rgba(0,0,0,0.3); color:var(--text); border:1px solid rgba(255,255,255,0.1); 
+    border-radius:4px; padding:4px; font-size:10px;
+  }
+
   select#speed { width: auto; }
   input#nRolls { width: 45px; }
 
@@ -277,15 +283,15 @@
   details > summary::before { content: '▶'; display: inline-block; margin-right: 6px; font-size: 9px; color: var(--accent); transition: transform 0.2s; }
   details[open] > summary::before { transform: rotate(90deg); }
   
-  /* Nested details for submenus should look distinct or same, here same but indented slightly by default logic */
   details .details-content { padding: 4px 6px; border-top: 1px solid rgba(255,255,255,0.05); }
   
-  /* Top level details within cards might need less margin if stacked */
   .card details { margin-bottom: 2px; }
 
   .palette-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; margin-top: 4px; }
   .palette-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-  .palette-label { font-size: 8px; opacity: 0.7; }
+  .palette-label { font-size: 8px; opacity: 0.7; text-align: center; }
+  
+  .palette-manager { margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; }
 </style>
 <link rel="icon" type="image/svg+xml" href="/sisyphus-icon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -437,7 +443,7 @@
 
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:baseline">
-          <h2>Climb History</h2>
+          <h2>Climb Attempts</h2>
         </div>
         <details open style="margin-bottom:6px">
             <summary class="tiny" style="opacity:0.7">Legend</summary>
@@ -555,6 +561,22 @@
                             </div>
                             <div class="palette-grid">
                                 <div class="palette-item">
+                                    <input type="color" id="picker-bg" value="#080014">
+                                    <span class="palette-label">Backgrnd</span>
+                                </div>
+                                <div class="palette-item">
+                                    <input type="color" id="picker-text" value="#fef8ff">
+                                    <span class="palette-label">Text</span>
+                                </div>
+                                <div class="palette-item">
+                                    <input type="color" id="picker-card-bg" value="#0c0020">
+                                    <span class="palette-label">Card Base</span>
+                                </div>
+                                <div class="palette-item">
+                                    <input type="color" id="picker-muted" value="#cdaeff">
+                                    <span class="palette-label">Muted</span>
+                                </div>
+                                <div class="palette-item">
                                     <input type="color" id="picker-accent" value="#ff9e2c">
                                     <span class="palette-label">Ascent</span>
                                 </div>
@@ -574,10 +596,28 @@
                                     <input type="color" id="picker-success" value="#00ff9d">
                                     <span class="palette-label">Summit</span>
                                 </div>
-                                <div class="palette-item">
-                                    <input type="color" id="picker-muted" value="#cdaeff">
-                                    <span class="palette-label">Muted</span>
-                                </div>
+                            </div>
+                        </div>
+
+                        <div class="palette-manager">
+                            <div class="row" style="justify-content:space-between; margin-bottom:4px;">
+                                <span class="tiny" style="font-weight:bold;">Manage Palettes</span>
+                            </div>
+                            <div class="row">
+                                <select id="saved-palettes-select" style="flex:1;">
+                                    <option value="">-- Select Saved --</option>
+                                </select>
+                                <button class="btn" id="btn-load-palette" style="padding:2px 6px; font-size:9px;">Load</button>
+                                <button class="btn" id="btn-delete-palette" style="padding:2px 6px; font-size:9px; color:var(--danger);">Del</button>
+                            </div>
+                            <div class="row" style="margin-top:4px;">
+                                <input type="text" id="palette-name-input" placeholder="Theme Name" style="flex:1;">
+                                <button class="btn" id="btn-save-palette" style="padding:2px 6px; font-size:9px;">Save</button>
+                            </div>
+                            <div class="row" style="margin-top:4px; border-top:1px solid rgba(255,255,255,0.05); padding-top:4px;">
+                                <button class="btn" id="btn-export-palette" style="flex:1; font-size:9px;">Export JSON</button>
+                                <button class="btn" id="btn-import-palette" style="flex:1; font-size:9px;">Import JSON</button>
+                                <input type="file" id="file-import-palette" style="display:none" accept=".json">
                             </div>
                         </div>
                     </div>
@@ -698,6 +738,7 @@ const THEMES = {
     '--bg': '#080014', '--text': '#fef8ff', '--muted': '#cdaeff',
     '--accent': '#ff9e2c', '--accent-2': '#ff00b8', '--accent-3': '#00b7ff',
     '--danger': '#ff3333', '--success': '#00ff9d',
+    '--card-bg-color': '#0c0020',
     '--card-bg': 'rgba(12, 0, 32, 0.6)', '--card-border': 'rgba(255,255,255,0.05)',
     '--bg-image': 'radial-gradient(900px 700px at 50% -200px, rgba(255,0,200,.15), transparent 70%), radial-gradient(900px 700px at 50% 120%, rgba(0,200,255,.12), transparent 70%), linear-gradient(180deg,#0b0014 0%, #050010 100%)'
   },
@@ -705,6 +746,7 @@ const THEMES = {
     '--bg': '#1a0500', '--text': '#ffe0d0', '--muted': '#ff9e80',
     '--accent': '#ffcc00', '--accent-2': '#ff4400', '--accent-3': '#ff8800',
     '--danger': '#ff0000', '--success': '#ffcc00',
+    '--card-bg-color': '#280500',
     '--card-bg': 'rgba(40, 5, 0, 0.7)', '--card-border': 'rgba(255, 100, 0, 0.2)',
     '--bg-image': 'radial-gradient(circle at 50% 0%, rgba(255,200,0,0.2), transparent 60%), linear-gradient(0deg, #1a0500 0%, #3d0c02 100%)'
   },
@@ -712,6 +754,7 @@ const THEMES = {
     '--bg': '#000000', '--text': '#00ff00', '--muted': '#008f11',
     '--accent': '#00ff00', '--accent-2': '#00cc00', '--accent-3': '#008800',
     '--danger': '#ff3333', '--success': '#00ff00',
+    '--card-bg-color': '#001400',
     '--card-bg': 'rgba(0, 20, 0, 0.85)', '--card-border': 'rgba(0,255,0,0.3)',
     '--bg-image': 'linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px)'
   },
@@ -719,6 +762,7 @@ const THEMES = {
     '--bg': '#f0f2f5', '--text': '#1a1a1a', '--muted': '#555555',
     '--accent': '#d9534f', '--accent-2': '#337ab7', '--accent-3': '#5bc0de',
     '--danger': '#d9534f', '--success': '#5cb85c',
+    '--card-bg-color': '#ffffff',
     '--card-bg': 'rgba(255, 255, 255, 0.8)', '--card-border': 'rgba(0,0,0,0.1)',
     '--bg-image': 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
   },
@@ -726,6 +770,7 @@ const THEMES = {
     '--bg': '#000814', '--text': '#e0f7ff', '--muted': '#7abaff',
     '--accent': '#00d9ff', '--accent-2': '#0055ff', '--accent-3': '#0088ff',
     '--danger': '#ff3333', '--success': '#00ffcc',
+    '--card-bg-color': '#000a1e',
     '--card-bg': 'rgba(0, 10, 30, 0.6)', '--card-border': 'rgba(0,180,255,0.1)',
     '--bg-image': 'radial-gradient(circle at 50% 100%, rgba(0,255,180,0.15), transparent 70%), linear-gradient(180deg, #000814 0%, #001a33 100%)'
   }
@@ -771,6 +816,12 @@ class ColorUtils {
             g: parseInt(result[2], 16),
             b: parseInt(result[3], 16)
         } : null;
+    }
+    
+    static hexToRgba(hex, alpha) {
+        const rgb = this.hexToRgb(hex);
+        if(!rgb) return hex;
+        return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
     }
     
     // Calculate relative luminance for WCAG contrast
@@ -1004,11 +1055,13 @@ class ColorUtils {
         // Background gradient using theme colors
         const bgImage = this.generateBgGradient(accent2, accent3, bg);
         
-        // Card background
+        // Card background (calculate derived color for storage)
         const bgRgb = this.hexToRgb(bg);
-        const cardBg = bgRgb 
-            ? `rgba(${Math.min(255, bgRgb.r + 8)}, ${Math.min(255, bgRgb.g + 8)}, ${Math.min(255, bgRgb.b + 8)}, 0.55)` 
-            : 'rgba(12, 0, 32, 0.6)';
+        const cardBgColor = bgRgb 
+            ? this.rgbToHex(Math.min(255, bgRgb.r + 8), Math.min(255, bgRgb.g + 8), Math.min(255, bgRgb.b + 8))
+            : '#0c0020';
+        
+        const cardBg = ColorUtils.hexToRgba(cardBgColor, 0.55);
         
         return {
             '--bg': bg,
@@ -1019,6 +1072,7 @@ class ColorUtils {
             '--accent-3': accent3,
             '--danger': finalDanger,
             '--success': success,
+            '--card-bg-color': cardBgColor,
             '--card-bg': cardBg,
             '--card-border': 'rgba(255,255,255,0.05)',
             '--bg-image': bgImage
@@ -1873,6 +1927,7 @@ class GameController {
     this.bindEvents();
     this.bindKeyboard();
     this.load(); 
+    this.refreshSavedPalettesList();
     
     const savedTheme = localStorage.getItem('sisyphus_theme') || 'default';
     if (savedTheme === 'custom') {
@@ -1937,26 +1992,46 @@ class GameController {
     // Palette Bindings
     $('btn-random-palette').onclick = () => this.randomizePalette();
     
-    const colorInputs = ['picker-accent','picker-accent-2','picker-accent-3','picker-danger','picker-success','picker-muted'];
-    colorInputs.forEach((id, idx) => {
+    // Color inputs mapping
+    const colorMap = {
+        'picker-bg': '--bg',
+        'picker-text': '--text',
+        'picker-card-bg': '--card-bg-color',
+        'picker-muted': '--muted',
+        'picker-accent': '--accent',
+        'picker-accent-2': '--accent-2',
+        'picker-accent-3': '--accent-3',
+        'picker-danger': '--danger',
+        'picker-success': '--success'
+    };
+
+    Object.keys(colorMap).forEach(id => {
         const el = $(id);
-        if(el) el.addEventListener('input', (e) => this.updateCustomColor(idx, e.target.value));
+        if(el) el.addEventListener('input', (e) => this.updateCustomColor(colorMap[id], e.target.value));
     });
+
+    // Palette Manager
+    $('btn-save-palette').onclick = () => this.savePalette();
+    $('btn-load-palette').onclick = () => this.loadPalette();
+    $('btn-delete-palette').onclick = () => this.deletePalette();
+    $('btn-export-palette').onclick = () => this.exportPalette();
+    $('btn-import-palette').onclick = () => $('file-import-palette').click();
+    $('file-import-palette').onchange = (e) => {
+        if(e.target.files.length > 0) this.importPalette(e.target.files[0]);
+        e.target.value = '';
+    }
   }
 
   setTheme(name) {
       if(name === 'custom') {
           // If switching to custom, use current picker values
-          const acc = document.getElementById('picker-accent').value;
-          const acc2 = document.getElementById('picker-accent-2').value;
-          const acc3 = document.getElementById('picker-accent-3').value;
-          const dang = document.getElementById('picker-danger').value;
-          const succ = document.getElementById('picker-success').value;
-          const muted = document.getElementById('picker-muted').value;
-          this.applyCustomTheme({ 
-              '--accent': acc, '--accent-2': acc2, '--accent-3': acc3, 
-              '--danger': dang, '--success': succ, '--muted': muted
+          const cssVars = ['--bg','--text','--card-bg-color','--muted','--accent','--accent-2','--accent-3','--danger','--success'];
+          const colors = {};
+          cssVars.forEach(v => {
+              const el = document.getElementById(v.replace('--', 'picker-').replace('-color',''));
+              if(el) colors[v] = el.value;
           });
+          this.applyCustomTheme(colors);
           return;
       }
 
@@ -1976,33 +2051,50 @@ class GameController {
       }
       
       // Update pickers to match preset
-      if(theme['--accent']) document.getElementById('picker-accent').value = theme['--accent'];
-      if(theme['--accent-2']) document.getElementById('picker-accent-2').value = theme['--accent-2'];
-      if(theme['--accent-3']) document.getElementById('picker-accent-3').value = theme['--accent-3'];
-      if(theme['--danger']) document.getElementById('picker-danger').value = theme['--danger'];
-      if(theme['--success']) document.getElementById('picker-success').value = theme['--success'];
-      if(theme['--muted']) document.getElementById('picker-muted').value = theme['--muted'];
+      this.syncPickersFromTheme(theme);
       
       // Clear any contrast warnings when loading preset
       this.hideContrastWarning();
   }
   
-  updateCustomColor(idx, hex) {
+  syncPickersFromTheme(theme) {
+      const map = {
+          '--bg': 'picker-bg',
+          '--text': 'picker-text',
+          '--card-bg-color': 'picker-card-bg',
+          '--muted': 'picker-muted',
+          '--accent': 'picker-accent',
+          '--accent-2': 'picker-accent-2',
+          '--accent-3': 'picker-accent-3',
+          '--danger': 'picker-danger',
+          '--success': 'picker-success'
+      };
+      
+      Object.keys(map).forEach(key => {
+          if (theme[key]) {
+              const el = document.getElementById(map[key]);
+              if(el) el.value = theme[key];
+          }
+      });
+  }
+
+  updateCustomColor(varName, hex) {
       document.getElementById('theme-select').value = 'custom';
       const root = document.documentElement;
-      
-      // Map indices to CSS variable names: 0=accent, 1=accent-2, 2=accent-3, 3=danger, 4=success, 5=muted
-      const varNames = ['--accent', '--accent-2', '--accent-3', '--danger', '--success', '--muted'];
-      const varName = varNames[idx] || '--accent';
       root.style.setProperty(varName, hex);
       
-      // If changing accent colors, regenerate background gradient
-      if (idx <= 2) {
-          const accent2 = getComputedStyle(root).getPropertyValue('--accent-2').trim();
-          const accent3 = getComputedStyle(root).getPropertyValue('--accent-3').trim();
+      // Special logic for backgrounds
+      if (['--bg', '--accent-2', '--accent-3'].includes(varName)) {
           const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
-          const newBgImage = ColorUtils.generateBgGradient(accent2, accent3, bg);
+          const acc2 = getComputedStyle(root).getPropertyValue('--accent-2').trim();
+          const acc3 = getComputedStyle(root).getPropertyValue('--accent-3').trim();
+          const newBgImage = ColorUtils.generateBgGradient(acc2, acc3, bg);
           root.style.setProperty('--bg-image', newBgImage);
+      }
+      
+      if (varName === '--card-bg-color') {
+          const rgba = ColorUtils.hexToRgba(hex, 0.55);
+          root.style.setProperty('--card-bg', rgba);
       }
       
       this.saveCustomTheme();
@@ -2017,7 +2109,6 @@ class GameController {
           this.chaos.setPalette(t);
       }
       
-      // Validate and show warning if needed
       this.validateAndWarn();
   }
   
@@ -2059,6 +2150,11 @@ class GameController {
   saveCustomTheme() {
       const root = document.documentElement;
       const style = getComputedStyle(root);
+      
+      // Ensure card-bg-color is set
+      let cardBgCol = style.getPropertyValue('--card-bg-color').trim();
+      if (!cardBgCol || cardBgCol === '') cardBgCol = '#0c0020';
+
       const custom = {
           '--bg': style.getPropertyValue('--bg').trim(),
           '--text': style.getPropertyValue('--text').trim(),
@@ -2068,8 +2164,12 @@ class GameController {
           '--accent-3': style.getPropertyValue('--accent-3').trim(),
           '--danger': style.getPropertyValue('--danger').trim(),
           '--success': style.getPropertyValue('--success').trim(),
+          '--card-bg-color': cardBgCol,
           '--bg-image': style.getPropertyValue('--bg-image').trim()
       };
+      // Derived for CSS but stored for consistency
+      custom['--card-bg'] = ColorUtils.hexToRgba(custom['--card-bg-color'], 0.55);
+      
       localStorage.setItem('sisyphus_theme', 'custom');
       localStorage.setItem('sisyphus_custom_colors', JSON.stringify(custom));
   }
@@ -2079,23 +2179,16 @@ class GameController {
       const def = THEMES.default;
       
       // Apply all color properties
-      const allVars = ['--bg', '--text', '--muted', '--accent', '--accent-2', '--accent-3', '--danger', '--success', '--card-bg', '--card-border', '--bg-image'];
+      const allVars = ['--bg', '--text', '--muted', '--accent', '--accent-2', '--accent-3', '--danger', '--success', '--card-bg-color', '--card-bg', '--bg-image'];
       allVars.forEach(v => {
           if (colors[v]) {
               root.style.setProperty(v, colors[v]);
-          } else if (def[v] && !['--accent', '--accent-2', '--accent-3', '--danger', '--success', '--muted'].includes(v)) {
-              // Apply default for non-accent properties if not specified
+          } else if (def[v]) {
               root.style.setProperty(v, def[v]);
           }
       });
       
-      // Update pickers
-      document.getElementById('picker-accent').value = colors['--accent'] || def['--accent'];
-      document.getElementById('picker-accent-2').value = colors['--accent-2'] || def['--accent-2'];
-      document.getElementById('picker-accent-3').value = colors['--accent-3'] || def['--accent-3'];
-      document.getElementById('picker-danger').value = colors['--danger'] || def['--danger'];
-      document.getElementById('picker-success').value = colors['--success'] || def['--success'];
-      document.getElementById('picker-muted').value = colors['--muted'] || def['--muted'];
+      this.syncPickersFromTheme(colors);
       
       document.getElementById('theme-select').value = 'custom';
       if(this.chaos) {
@@ -2107,16 +2200,119 @@ class GameController {
           this.chaos.clearTrail();
       }
       
-      // Validate and show warnings
       this.validateAndWarn();
   }
 
   randomizePalette() {
-      // Generate semantically-aware palette with all properties
       const palette = ColorUtils.generateSemanticPalette();
       this.applyCustomTheme(palette);
       this.saveCustomTheme();
   }
+
+  // --- Palette Manager Logic ---
+
+  getSavedPalettes() {
+      try {
+          return JSON.parse(localStorage.getItem('sisyphus_saved_palettes') || '{}');
+      } catch(e) { return {}; }
+  }
+
+  refreshSavedPalettesList() {
+      const select = document.getElementById('saved-palettes-select');
+      const saved = this.getSavedPalettes();
+      select.innerHTML = '<option value="">-- Select Saved --</option>';
+      Object.keys(saved).sort().forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+      });
+  }
+
+  savePalette() {
+      const name = document.getElementById('palette-name-input').value.trim();
+      if (!name) { alert("Please enter a name for your theme."); return; }
+      
+      const customRaw = localStorage.getItem('sisyphus_custom_colors');
+      if (!customRaw) { alert("No custom theme active to save."); return; }
+      
+      const saved = this.getSavedPalettes();
+      if (saved[name] && !confirm(`Overwrite existing palette "${name}"?`)) return;
+      
+      saved[name] = JSON.parse(customRaw);
+      localStorage.setItem('sisyphus_saved_palettes', JSON.stringify(saved));
+      this.refreshSavedPalettesList();
+      alert(`Palette "${name}" saved.`);
+  }
+
+  loadPalette() {
+      const select = document.getElementById('saved-palettes-select');
+      const name = select.value;
+      if (!name) return;
+      
+      const saved = this.getSavedPalettes();
+      if (saved[name]) {
+          this.applyCustomTheme(saved[name]);
+          this.saveCustomTheme(); // Make it the active custom
+      }
+  }
+
+  deletePalette() {
+      const select = document.getElementById('saved-palettes-select');
+      const name = select.value;
+      if (!name) return;
+      
+      if(confirm(`Delete palette "${name}"?`)) {
+          const saved = this.getSavedPalettes();
+          delete saved[name];
+          localStorage.setItem('sisyphus_saved_palettes', JSON.stringify(saved));
+          this.refreshSavedPalettesList();
+          select.value = "";
+      }
+  }
+
+  exportPalette() {
+      const customRaw = localStorage.getItem('sisyphus_custom_colors');
+      if (!customRaw) { alert("No custom theme active to export."); return; }
+      
+      const data = JSON.parse(customRaw);
+      const name = document.getElementById('palette-name-input').value.trim() || 'custom-theme';
+      
+      const exportObj = { name: name, type: 'sisyphus-palette', colors: data };
+      
+      const blob = new Blob([JSON.stringify(exportObj, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${name}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+  }
+
+  importPalette(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          try {
+              const json = JSON.parse(e.target.result);
+              if (json.type !== 'sisyphus-palette' || !json.colors) {
+                  alert("Invalid palette file format.");
+                  return;
+              }
+              
+              if(confirm(`Apply imported palette "${json.name || 'Imported'}"?`)) {
+                  this.applyCustomTheme(json.colors);
+                  this.saveCustomTheme();
+                  document.getElementById('palette-name-input').value = json.name || '';
+              }
+          } catch(err) {
+              console.error(err);
+              alert("Error parsing palette file.");
+          }
+      };
+      reader.readAsText(file);
+  }
+
+  // --- End Palette Manager Logic ---
 
   setSlotMode(mode) {
     this.slotMode = mode;
