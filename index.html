@@ -10,10 +10,10 @@
     --bg: #080014;
     --text: #fef8ff;
     --muted: #cdaeff;
-    --accent: #ff9e2c;   /* Gold/Orange - Ascent/Win */
-    --accent-2: #ff00b8; /* Pink - Height bar accent */
-    --accent-3: #00b7ff; /* Blue - Steady/Poise */
-    --danger: #ff3333;   /* Red - Ruin/Storm */
+    --accent: #ff9e2c;   /* Gold/Orange - Ascent */
+    --accent-2: #ff00b8; /* Pink - Poise */
+    --accent-3: #00b7ff; /* Blue - Steady */
+    --danger: #ff3333;   /* Red - Ruin */
     --success: #00ff9d;  /* Green - Summit */
     
     --card-bg: rgba(12, 0, 32, 0.6);
@@ -108,7 +108,6 @@
   .btn.big{
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     width:100%; padding:8px; margin-bottom:0; 
-    /* Changed fixed red (#ff2400) to variable */
     background: linear-gradient(90deg, var(--accent), var(--accent-3), var(--danger)); 
     color: var(--bg); font-weight:800; max-width: 600px; min-height: 48px; 
     line-height: 1.2; transition: background 0.3s ease; border: none;
@@ -124,12 +123,14 @@
 
   label{width:100px;font-size:10px;color:var(--muted); line-height: 1.1;}
   
-  input[type="number"],select{
+  input[type="number"],select, input[type="text"]{
     background:rgba(0,0,0,0.3); color:var(--text); border:none; border-radius:4px;
     padding:3px 5px; width: 45px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1); font-size: 10px;
   }
+  input[type="text"] { width: 100%; }
+
   input[type="color"] {
-    -webkit-appearance: none; border: none; width: 20px; height: 20px; padding: 0; overflow: hidden; border-radius: 3px; background: none; cursor: pointer;
+    -webkit-appearance: none; border: none; width: 100%; height: 24px; padding: 0; overflow: hidden; border-radius: 3px; background: none; cursor: pointer;
   }
   input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
   input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2); }
@@ -154,14 +155,14 @@
   }
   
   .kpos-fill, .lpos-fill {
-    height: 100%;
-    width: 0%; /* Default */
-    transition: width 0s linear; 
-    will-change: width, background-position;
+    height: 100%; width: 0%; transition: width 0s linear; will-change: width, background-position;
   }
-  /* Base colors (Static) */
-  .kpos-fill { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
-  .lpos-fill { background: linear-gradient(90deg, var(--accent-3), var(--success)); }
+  
+  /* UPDATED GRADIENTS */
+  /* Ascent -> Summit */
+  .kpos-fill { background: linear-gradient(90deg, var(--accent), var(--success)); }
+  /* Poise -> Steady */
+  .lpos-fill { background: linear-gradient(90deg, var(--accent-2), var(--accent-3)); }
 
   @keyframes barberpole {
     0% { background-position: 0 0, 0 0; }
@@ -177,23 +178,17 @@
   }
 
   .kpos-fill.active-motion {
-    background-image: 
-      linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
-      linear-gradient(90deg, var(--accent), var(--accent-2));
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent), linear-gradient(90deg, var(--accent), var(--success));
   }
 
   .lpos-fill.active-motion {
-    background-image: 
-      linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
-      linear-gradient(90deg, var(--accent-3), var(--success));
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent), linear-gradient(90deg, var(--accent-2), var(--accent-3));
   }
 
   .kpos-fill.reverse-motion, .lpos-fill.reverse-motion {
     animation-direction: reverse; 
     border-right: 2px solid var(--danger);
-    background-image: 
-      linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent),
-      linear-gradient(90deg, var(--danger), var(--danger)) !important;
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0.2) 75%, transparent 75%, transparent), linear-gradient(90deg, var(--danger), var(--danger)) !important;
   }
   
   .tiny{font-size:10px;opacity:.65;color:var(--muted)}
@@ -212,7 +207,7 @@
     display: flex; flex-direction: column; gap: 1px;
   }
   .cycle-entry.loss { border-color: var(--danger); }
-  .cycle-entry.top { border-color: var(--accent); background: rgba(255,255,255,0.1); }
+  .cycle-entry.top { border-color: var(--success); background: rgba(255,255,255,0.1); }
   .cycle-entry.active { border-color: var(--text); background: rgba(255,255,255,0.05); }
 
   .cycle-entry-top-row { display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; opacity: 0.9; line-height: 1.2; }
@@ -247,9 +242,9 @@
   .weather-ok { color: var(--accent-3); text-shadow: 0 0 5px var(--accent-3); }
   .weather-bad { color: var(--danger); text-shadow: 0 0 5px var(--danger); }
 
-  #weather-card { position: relative; overflow: hidden; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
+  #weather-card { position: relative; overflow: hidden; min-height: 240px; display: flex; flex-direction: column; justify-content: space-between; }
   #weather-content { position: relative; z-index: 2; }
-  #chaosCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.4; pointer-events: none; }
+  #chaosCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0.5; pointer-events: none; }
 
   .save-slots-container { margin: 6px 0; padding: 4px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
   .slot-mode-switch { display: flex; gap: 4px; margin-bottom: 4px; }
@@ -277,13 +272,10 @@
   details > summary::before { content: '▶'; display: inline-block; margin-right: 6px; font-size: 9px; color: var(--accent); transition: transform 0.2s; }
   details[open] > summary::before { transform: rotate(90deg); }
   
-  /* Nested details for submenus should look distinct or same, here same but indented slightly by default logic */
   details .details-content { padding: 4px 6px; border-top: 1px solid rgba(255,255,255,0.05); }
-  
-  /* Top level details within cards might need less margin if stacked */
   .card details { margin-bottom: 2px; }
 
-  .palette-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; margin-top: 4px; }
+  .palette-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px;}
   .palette-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
   .palette-label { font-size: 8px; opacity: 0.7; }
 </style>
@@ -473,7 +465,7 @@
       <div class="card">
         <h2 style="margin:0 0 6px">The Burden</h2>
         <div class="tiny" style="line-height:1.4; opacity:0.9">
-          The stone is bound for the summit (Height <span id="lbl-M-goal" style="font-weight:bold; color:var(--accent)">20</span>).
+          The stone is bound for the summit (Height <span id="lbl-M-goal" style="font-weight:bold; color:var(--success)">20</span>).
           <br><br>
           Each roll has one of three outcomes:
           <br>
@@ -531,56 +523,104 @@
                 </details>
 
                 <details id="submenu-theme">
-                    <summary>Visual Theme</summary>
-                    <div class="details-content">
-                        <div class="row" style="margin-bottom: 6px;">
-                            <label for="theme-select" style="color:var(--accent-3); width:auto; margin-right:8px;">Preset:</label>
-                            <select id="theme-select" style="flex:1">
-                                <option value="default">Cosmic (Default)</option>
-                                <option value="magma">Sisyphus (Magma)</option>
-                                <option value="terminal">Terminal (Matrix)</option>
-                                <option value="paper">Academic (Light)</option>
-                                <option value="ocean">Abyss (Deep Blue)</option>
-                                <option value="custom">Custom (Below)</option>
+                  <summary>Visual Theme</summary>
+                  <div class="details-content">
+                    
+                    <div class="row" style="margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                      <div style="flex:1">
+                        <label class="tiny" style="display:block; margin-bottom:2px;">Preset</label>
+                        <select id="theme-select" style="width:100%">
+                          <option value="default">Cosmic (Default)</option>
+                          <option value="magma">Sisyphus (Magma)</option>
+                          <option value="terminal">Terminal (Matrix)</option>
+                          <option value="paper">Academic (Light)</option>
+                          <option value="ocean">Abyss (Deep Blue)</option>
+                          <option value="custom">Custom / Unsaved</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div style="background:rgba(255,255,255,0.03); padding:6px; border-radius:4px; margin-bottom:8px">
+                        <div class="tiny" style="opacity:0.7; margin-bottom:4px">Saved Palettes</div>
+                        <div class="row">
+                            <select id="saved-palettes-list" style="flex:1;">
+                                <option value="">-- Load Saved --</option>
                             </select>
+                            <button id="btn-delete-palette" class="btn" style="color:var(--danger)">Del</button>
                         </div>
-                        
-                        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top:6px; margin-top:6px;">
-                            <div class="row" style="justify-content:space-between; margin-bottom:3px">
-                                <span class="tiny" style="font-weight:bold; color:var(--accent)">Palette Tool</span>
-                                <button class="btn" id="btn-random-palette" style="padding:2px 6px; font-size:9px;">Random OKLCH</button>
-                            </div>
-                            <div id="contrast-warning" style="display:none; background:rgba(255,100,0,0.2); border:1px solid var(--danger); border-radius:4px; padding:4px 6px; margin-bottom:4px; font-size:9px; color:var(--danger);">
-                                ⚠️ <span id="contrast-warning-text">Low contrast detected</span>
-                            </div>
-                            <div class="palette-grid">
-                                <div class="palette-item">
-                                    <input type="color" id="picker-accent" value="#ff9e2c">
-                                    <span class="palette-label">Ascent</span>
-                                </div>
-                                <div class="palette-item">
-                                    <input type="color" id="picker-accent-2" value="#ff00b8">
-                                    <span class="palette-label">Height</span>
-                                </div>
-                                <div class="palette-item">
-                                    <input type="color" id="picker-accent-3" value="#00b7ff">
-                                    <span class="palette-label">Steady</span>
-                                </div>
-                                <div class="palette-item">
-                                    <input type="color" id="picker-danger" value="#ff3333">
-                                    <span class="palette-label">Ruin</span>
-                                </div>
-                                <div class="palette-item">
-                                    <input type="color" id="picker-success" value="#00ff9d">
-                                    <span class="palette-label">Summit</span>
-                                </div>
-                                <div class="palette-item">
-                                    <input type="color" id="picker-muted" value="#cdaeff">
-                                    <span class="palette-label">Muted</span>
-                                </div>
-                            </div>
+                        <div class="row" style="margin-top:4px">
+                             <input type="text" id="save-palette-name" placeholder="Name current..." style="flex:1">
+                             <button id="btn-save-palette" class="btn" style="background:var(--accent-3); color:var(--bg)">Save</button>
                         </div>
                     </div>
+
+                    <div class="row" style="align-items:flex-end; gap:4px; margin-bottom:8px;">
+                      <div style="flex:1">
+                        <label class="tiny" style="display:block; margin-bottom:2px;">Harmony Mode</label>
+                        <select id="gen-mode" style="width:100%">
+                          <option value="tetradic">Tetradic (4-Tone)</option>
+                          <option value="triadic">Triadic (3-Tone)</option>
+                          <option value="complementary">Complementary</option>
+                          <option value="analogous">Analogous</option>
+                          <option value="monochromatic">Monochromatic</option>
+                        </select>
+                      </div>
+                      <button class="btn" id="btn-random-oklch" style="flex:1; background:var(--accent); color:var(--bg);">
+                        Randomize (OKLCH)
+                      </button>
+                    </div>
+
+                    <div class="tiny" style="opacity:0.7; margin-bottom:4px">Palette Configuration</div>
+                    <div class="palette-grid">
+                      <div class="palette-item">
+                        <input type="color" id="p-success" data-var="--success">
+                        <span class="palette-label">Summit</span>
+                      </div>
+                      <div class="palette-item">
+                        <input type="color" id="p-accent" data-var="--accent">
+                        <span class="palette-label">Ascent</span>
+                      </div>
+                      <div class="palette-item">
+                        <input type="color" id="p-accent-3" data-var="--accent-3">
+                        <span class="palette-label">Steady</span>
+                      </div>
+                      <div class="palette-item">
+                        <input type="color" id="p-accent-2" data-var="--accent-2">
+                        <span class="palette-label">Poise</span>
+                      </div>
+                      <div class="palette-item">
+                        <input type="color" id="p-danger" data-var="--danger">
+                        <span class="palette-label">Ruin</span>
+                      </div>
+                      
+                      <div class="palette-item">
+                        <input type="color" id="p-bg" data-var="--bg">
+                        <span class="palette-label">Main BG</span>
+                      </div>
+                      <div class="palette-item">
+                        <input type="color" id="p-card-bg" data-var="--card-bg">
+                        <span class="palette-label">Card BG</span>
+                      </div>
+                      <div class="palette-item">
+                        <input type="color" id="p-card-border" data-var="--card-border">
+                        <span class="palette-label">Border</span>
+                      </div>
+                      <div class="palette-item">
+                        <input type="color" id="p-text" data-var="--text">
+                        <span class="palette-label">Text</span>
+                      </div>
+                      <div class="palette-item">
+                        <input type="color" id="p-muted" data-var="--muted">
+                        <span class="palette-label">Muted</span>
+                      </div>
+                    </div>
+
+                    <div class="row" style="margin-top:12px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">
+                      <button class="btn" id="btn-theme-export" style="flex:1; font-size:10px;">Export JSON</button>
+                      <button class="btn" id="btn-theme-import" style="flex:1; font-size:10px;">Import JSON</button>
+                      <input type="file" id="file-theme-import" style="display:none" accept=".json">
+                    </div>
+                  </div>
                 </details>
                 
                 <div class="row" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1); justify-content: flex-end;">
@@ -732,298 +772,98 @@ const THEMES = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* MODULE 0: UTILITIES & HELPERS                                             */
+/* MODULE 0: UTILITIES & COLOR MATH                                           */
 /* -------------------------------------------------------------------------- */
 
-class ColorUtils {
-    static Lerp(min, max, t) { return min + (max - min) * t; }
+class ColorMath {
+  static lerp(min, max, t) { return min + (max - min) * t; }
 
-    static oklab_to_linear_srgb(L, a, b) {
-      let l_ = L + 0.3963377774 * a + 0.2158037573 * b;
-      let m_ = L - 0.1055613458 * a - 0.0638541728 * b;
-      let s_ = L - 0.0894841775 * a - 1.2914855480 * b;
-      let l = l_ * l_ * l_;
-      let m = m_ * m_ * m_;
-      let s = s_ * s_ * s_;
-      return [
-        (+4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
-        (-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
-        (-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s),
-      ];
-    }
-    
-    static oklch_to_oklab(L, c, h) {
-      return [(L), (c * Math.cos(h)), (c * Math.sin(h))];
-    }
+  static oklab_to_linear_srgb(L, a, b) {
+    let l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+    let m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+    let s_ = L - 0.0894841775 * a - 1.2914855480 * b;
 
-    static rgbToHex(r, g, b) {
-        const toHex = (n) => {
-            const hex = Math.max(0, Math.min(255, Math.round(n))).toString(16);
-            return hex.length === 1 ? '0' + hex : hex;
-        };
-        return '#' + toHex(r) + toHex(g) + toHex(b);
-    }
-    
-    static hexToRgb(hex) {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : null;
-    }
-    
-    // Calculate relative luminance for WCAG contrast
-    static getRelativeLuminance(hex) {
-        const rgb = this.hexToRgb(hex);
-        if (!rgb) return 0;
-        const [rs, gs, bs] = [rgb.r/255, rgb.g/255, rgb.b/255].map(c => 
-            c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-        );
-        return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
-    }
-    
-    // WCAG contrast ratio between two colors
-    static getContrastRatio(hex1, hex2) {
-        const l1 = this.getRelativeLuminance(hex1);
-        const l2 = this.getRelativeLuminance(hex2);
-        const lighter = Math.max(l1, l2);
-        const darker = Math.min(l1, l2);
-        return (lighter + 0.05) / (darker + 0.05);
-    }
-    
-    // Check if palette has accessibility issues
-    static validatePalette(palette, bgColor = '#080014') {
-        const issues = [];
-        const minContrast = 3.0; // WCAG AA for large text / UI components
-        
-        // Check each accent against background
-        const accentKeys = ['--accent', '--accent-2', '--accent-3', '--danger', '--success'];
-        for (const key of accentKeys) {
-            if (palette[key]) {
-                const contrast = this.getContrastRatio(palette[key], bgColor);
-                if (contrast < minContrast) {
-                    issues.push({
-                        color: key,
-                        value: palette[key],
-                        contrast: contrast.toFixed(2),
-                        message: `${key} (${palette[key]}) has low contrast (${contrast.toFixed(2)}:1) against background`
-                    });
-                }
-            }
-        }
-        
-        // Check that danger looks "dangerous" (warm hue)
-        if (palette['--danger']) {
-            const rgb = this.hexToRgb(palette['--danger']);
-            if (rgb && rgb.b > rgb.r && rgb.b > rgb.g) {
-                issues.push({
-                    color: '--danger',
-                    value: palette['--danger'],
-                    message: '--danger color appears cool/blue - may not read as warning'
-                });
-            }
-        }
-        
-        // Check accent vs accent-3 differentiation (win vs steady)
-        if (palette['--accent'] && palette['--accent-3']) {
-            const l1 = this.getRelativeLuminance(palette['--accent']);
-            const l2 = this.getRelativeLuminance(palette['--accent-3']);
-            if (Math.abs(l1 - l2) < 0.1) {
-                issues.push({
-                    color: '--accent/--accent-3',
-                    message: 'Accent and Accent-3 have similar luminance - may be hard to distinguish'
-                });
-            }
-        }
-        
-        return {
-            valid: issues.length === 0,
-            issues: issues
-        };
-    }
-    
-    // Generate OKLCH color with constraints
-    static generateOklchColor(lightness, chroma, hue) {
-        const lab = this.oklch_to_oklab(lightness, chroma, hue);
-        const rgb = this.oklab_to_linear_srgb(lab[0], lab[1], lab[2]);
-        const r = Math.pow(Math.max(0, Math.min(rgb[0], 1)), 1/2.2) * 255;
-        const g = Math.pow(Math.max(0, Math.min(rgb[1], 1)), 1/2.2) * 255;
-        const b = Math.pow(Math.max(0, Math.min(rgb[2], 1)), 1/2.2) * 255;
-        return this.rgbToHex(r, g, b);
-    }
-    
-    // Generate muted color from accent
-    static generateMutedColor(accentHex, bgHex) {
-        const accent = this.hexToRgb(accentHex);
-        const bg = this.hexToRgb(bgHex);
-        if (!accent || !bg) return '#888888';
-        
-        // Blend toward background and reduce saturation
-        const r = Math.round(accent.r * 0.5 + bg.r * 0.3 + 128 * 0.2);
-        const g = Math.round(accent.g * 0.5 + bg.g * 0.3 + 128 * 0.2);
-        const b = Math.round(accent.b * 0.5 + bg.b * 0.3 + 128 * 0.2);
-        return this.rgbToHex(r, g, b);
-    }
-    
-    // Generate background gradient from palette colors
-    static generateBgGradient(accent1, accent2, bgBase) {
-        const rgb1 = this.hexToRgb(accent1);
-        const rgb2 = this.hexToRgb(accent2);
-        const rgbBg = this.hexToRgb(bgBase);
-        if (!rgb1 || !rgb2 || !rgbBg) return 'linear-gradient(180deg, #0b0014 0%, #050010 100%)';
-        
-        // Create subtle radial gradients using palette colors at low opacity
-        const glow1 = `rgba(${rgb1.r},${rgb1.g},${rgb1.b},.12)`;
-        const glow2 = `rgba(${rgb2.r},${rgb2.g},${rgb2.b},.10)`;
-        const bgDark = this.rgbToHex(
-            Math.max(0, rgbBg.r - 10),
-            Math.max(0, rgbBg.g - 10),
-            Math.max(0, rgbBg.b - 10)
-        );
-        
-        return `radial-gradient(900px 700px at 50% -200px, ${glow1}, transparent 70%), ` +
-               `radial-gradient(900px 700px at 50% 120%, ${glow2}, transparent 70%), ` +
-               `linear-gradient(180deg, ${bgBase} 0%, ${bgDark} 100%)`;
-    }
-    
-    // Color harmony schemes for aesthetically pleasing palettes
-    static HARMONY_SCHEMES = {
-        complementary: (base) => [base, base + Math.PI],
-        triadic: (base) => [base, base + (2*Math.PI/3), base + (4*Math.PI/3)],
-        splitComplementary: (base) => [base, base + Math.PI - 0.52, base + Math.PI + 0.52],
-        analogous: (base) => [base, base + 0.52, base - 0.52],
-        tetradic: (base) => [base, base + Math.PI/2, base + Math.PI, base + 3*Math.PI/2],
+    let l = l_ * l_ * l_;
+    let m = m_ * m_ * m_;
+    let s = s_ * s_ * s_;
+
+    return [
+      (+4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+      (-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+      (-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s),
+    ];
+  }
+
+  static oklch_to_oklab(L, c, h) {
+    return [(L), (c * Math.cos(h)), (c * Math.sin(h))];
+  }
+
+  static rgbToHex(r, g, b) {
+    const toHex = (n) => {
+      const hex = Math.max(0, Math.min(255, Math.round(n))).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
     };
-    
-    // Normalize hue to 0-2π range
-    static normalizeHue(h) {
-        while (h < 0) h += 2 * Math.PI;
-        while (h >= 2 * Math.PI) h -= 2 * Math.PI;
-        return h;
+    return '#' + toHex(r) + toHex(g) + toHex(b);
+  }
+
+  static generateColor(L, C, H) {
+    let lab = this.oklch_to_oklab(L, C, H);
+    let rgb = this.oklab_to_linear_srgb(lab[0], lab[1], lab[2]);
+    const gamma = (v) => Math.pow(Math.max(0, Math.min(1, v)), 1/2.2) * 255;
+    return this.rgbToHex(gamma(rgb[0]), gamma(rgb[1]), gamma(rgb[2]));
+  }
+
+  static generatePalette(mode) {
+    const settings = {
+      hueBase: Math.random() * 2 * Math.PI, 
+      hueContrast: this.lerp(0.33, 1.0, Math.random()),
+      chromaBase: this.lerp(0.01, 0.1, Math.random()),
+      chromaContrast: this.lerp(0.075, 0.125, Math.random()),
+      lightnessBase: this.lerp(0.3, 0.6, Math.random()),
+      fixed: Math.random()
+    };
+
+    const colors = [];
+    const count = 5; 
+
+    for (let i = 0; i < count; ++i) {
+      let linearIterator = i / (count - 1);
+      let hueOffset = linearIterator * settings.hueContrast * 2 * Math.PI + (Math.PI / 4);
+      
+      if (mode === "monochromatic") hueOffset *= 0.0;
+      if (mode === "analogous") hueOffset *= 0.25;
+      if (mode === "complementary") hueOffset *= 0.33;
+      if (mode === "triadic") hueOffset *= 0.66;
+      if (mode === "tetradic") hueOffset *= 0.75;
+
+      if (mode !== "monochromatic") hueOffset += (Math.random() * 2 - 1) * 0.01;
+
+      let chroma = settings.chromaBase + linearIterator * settings.chromaContrast + 0.05;
+      let lightness = Math.max(0.6, settings.lightnessBase + (Math.random() * 0.2)); 
+
+      colors.push(this.generateColor(lightness, chroma, settings.hueBase + hueOffset));
     }
-    
-    // Get perceptual distance between two hues
-    static hueDistance(h1, h2) {
-        const d = Math.abs(this.normalizeHue(h1) - this.normalizeHue(h2));
-        return Math.min(d, 2 * Math.PI - d);
-    }
-    
-    // Ensure color has sufficient contrast against background
-    static ensureContrast(lightness, chroma, hue, bgLightness, minContrast = 0.35) {
-        let L = lightness;
-        const diff = Math.abs(L - bgLightness);
-        if (diff < minContrast) {
-            // Push lightness away from background
-            L = bgLightness < 0.5 ? Math.min(0.95, bgLightness + minContrast + 0.1) 
-                                   : Math.max(0.2, bgLightness - minContrast - 0.1);
-        }
-        return this.generateOklchColor(L, chroma, hue);
-    }
-    
-    // Improved palette generation using color harmony theory
-    static generateSemanticPalette() {
-        // Pick a random harmony scheme
-        const schemes = Object.keys(this.HARMONY_SCHEMES);
-        const schemeName = schemes[Math.floor(Math.random() * schemes.length)];
-        const scheme = this.HARMONY_SCHEMES[schemeName];
-        
-        // Base hue - random starting point
-        const hueBase = Math.random() * 2 * Math.PI;
-        const harmonyHues = scheme(hueBase).map(h => this.normalizeHue(h));
-        
-        // Theme mood: affects lightness/chroma ranges
-        const mood = Math.random();
-        let lightnessRange, chromaRange;
-        
-        if (mood < 0.33) {
-            // Vibrant/energetic: high chroma, medium-high lightness
-            chromaRange = { min: 0.18, max: 0.28 };
-            lightnessRange = { min: 0.60, max: 0.85 };
-        } else if (mood < 0.66) {
-            // Elegant/muted: medium chroma, varied lightness
-            chromaRange = { min: 0.10, max: 0.20 };
-            lightnessRange = { min: 0.50, max: 0.80 };
-        } else {
-            // Bold/dramatic: high chroma, high contrast
-            chromaRange = { min: 0.20, max: 0.30 };
-            lightnessRange = { min: 0.65, max: 0.92 };
-        }
-        
-        const chromaBase = this.Lerp(chromaRange.min, chromaRange.max, Math.random());
-        const lightnessBase = this.Lerp(lightnessRange.min, lightnessRange.max, Math.random());
-        
-        // Background: dark with subtle tint from base hue
-        const bgLightness = this.Lerp(0.03, 0.12, Math.random());
-        const bgChroma = this.Lerp(0.01, 0.04, Math.random());
-        const bg = this.generateOklchColor(bgLightness, bgChroma, hueBase);
-        
-        // Main accent: from harmony scheme
-        const accent = this.ensureContrast(lightnessBase, chromaBase, harmonyHues[0], bgLightness);
-        
-        // Accent-2: second harmony color, slight lightness variation
-        const light2 = this.Lerp(lightnessBase - 0.1, lightnessBase + 0.1, Math.random());
-        const hue2 = harmonyHues[1] || (hueBase + Math.PI * 0.6);
-        const accent2 = this.ensureContrast(Math.max(0.4, Math.min(0.9, light2)), chromaBase, hue2, bgLightness);
-        
-        // Accent-3: third harmony color or derived, different lightness for distinction
-        const light3Direction = Math.random() > 0.5 ? 1 : -1;
-        const light3 = Math.max(0.4, Math.min(0.9, lightnessBase + light3Direction * this.Lerp(0.1, 0.25, Math.random())));
-        const hue3 = harmonyHues[2] || (hueBase + Math.PI * 1.2);
-        const accent3 = this.ensureContrast(light3, chromaBase * 0.9, hue3, bgLightness);
-        
-        // Danger: Always warm (red-orange range), high visibility
-        // Constrain to 0-60° in radians (0 to π/3) with some orange allowed
-        const dangerHue = this.Lerp(0, Math.PI * 0.35, Math.random());
-        const dangerChroma = Math.max(chromaBase, 0.20); // Ensure danger is saturated
-        const dangerLightness = Math.max(lightnessBase, 0.60); // Ensure danger is visible
-        const danger = this.ensureContrast(dangerLightness, dangerChroma, dangerHue, bgLightness);
-        
-        // Success: Always cool-green (green-cyan range), fresh feeling
-        // Constrain to 120°-180° in radians (2π/3 to π)
-        const successHue = this.Lerp(Math.PI * 0.55, Math.PI * 0.85, Math.random());
-        const successChroma = Math.max(chromaBase, 0.18);
-        const successLightness = Math.max(lightnessBase, 0.65);
-        const success = this.ensureContrast(successLightness, successChroma, successHue, bgLightness);
-        
-        // Verify danger and success are perceptually distinct from accents
-        // If danger is too close to accent, shift it more toward pure red
-        const dangerDistToAccent = this.hueDistance(dangerHue, harmonyHues[0]);
-        let finalDanger = danger;
-        if (dangerDistToAccent < 0.5) {
-            finalDanger = this.ensureContrast(dangerLightness, dangerChroma, 0.1, bgLightness);
-        }
-        
-        // Text: high contrast against background
-        const textLightness = bgLightness < 0.5 ? 0.94 : 0.06;
-        const text = this.generateOklchColor(textLightness, 0.015, hueBase);
-        
-        // Muted: derived from accent, pulled toward neutral
-        const muted = this.generateMutedColor(accent, bg);
-        
-        // Background gradient using theme colors
-        const bgImage = this.generateBgGradient(accent2, accent3, bg);
-        
-        // Card background
-        const bgRgb = this.hexToRgb(bg);
-        const cardBg = bgRgb 
-            ? `rgba(${Math.min(255, bgRgb.r + 8)}, ${Math.min(255, bgRgb.g + 8)}, ${Math.min(255, bgRgb.b + 8)}, 0.55)` 
-            : 'rgba(12, 0, 32, 0.6)';
-        
-        return {
-            '--bg': bg,
-            '--text': text,
-            '--muted': muted,
-            '--accent': accent,
-            '--accent-2': accent2,
-            '--accent-3': accent3,
-            '--danger': finalDanger,
-            '--success': success,
-            '--card-bg': cardBg,
-            '--card-border': 'rgba(255,255,255,0.05)',
-            '--bg-image': bgImage
-        };
-    }
+
+    const bg = this.generateColor(0.05, 0.02, settings.hueBase);
+    const cardBg = this.generateColor(0.12, 0.02, settings.hueBase); 
+    const cardBorder = this.generateColor(0.2, 0.0, settings.hueBase);
+    const text = this.generateColor(0.95, 0.02, settings.hueBase);
+    const muted = this.generateColor(0.65, 0.05, settings.hueBase);
+
+    return {
+      '--bg': bg,
+      '--card-bg': cardBg, 
+      '--card-border': cardBorder,
+      '--text': text,
+      '--muted': muted,
+      '--accent': colors[0],
+      '--accent-3': colors[1],
+      '--accent-2': colors[2],
+      '--danger': colors[3],
+      '--success': colors[4],
+      '--bg-image': `radial-gradient(circle at 50% 0%, ${colors[1]}22, transparent 60%), linear-gradient(0deg, ${bg} 0%, ${bg} 100%)`
+    };
+  }
 }
 
 class BackgroundTimer {
@@ -1340,10 +1180,20 @@ class SisyphusModel {
     }
   }
 
-  setState(k, l) {
+setState(k, l) {
+    // 1. Update the internal state as before
     this.state.k = Math.max(1, Math.min(this.params.M, k));
     this.state.l = Math.max(0, Math.min(this.params.L, l));
     this.historyK.push(this.state.k);
+
+    // 2. FIX: Synchronize lastRoll so the UI renders the new position immediately
+    this.lastRoll = {
+      outcome: null, // No specific outcome (win/loss) for manual set
+      k0: this.state.k,
+      l0: this.state.l,
+      k1: this.state.k, // k1 is what the UI draws
+      l1: this.state.l  // l1 is what the UI draws
+    };
   }
 }
 
@@ -1563,7 +1413,6 @@ class SisyphusUI {
       wrap.style.cssText = 'display:flex;align-items:flex-end;gap:2px';
       for(let i=(hostId==='hist-l'?0:1); i<data.length; i++){
         const bar = document.createElement('div');
-        // MODIFIED: Use accent gradient
         bar.style.cssText = `width:3px;border-radius:2px;background:linear-gradient(180deg,var(--accent-3),var(--accent));`;
         bar.style.height = (6 + (max ? 24 * (data[i]||0) / max : 0)) + 'px';
         wrap.appendChild(bar);
@@ -1579,7 +1428,6 @@ class SisyphusUI {
       wrap.style.cssText = 'display:flex;align-items:flex-end;gap:2px';
       dist.cycles.forEach(len => {
         const bar = document.createElement('div');
-        // MODIFIED: Use accent gradient
         bar.style.cssText = 'width:4px;border-radius:2px;background:linear-gradient(180deg,var(--accent-3),var(--accent));';
         bar.style.height = (8 + (maxCL ? 32 * len / maxCL : 0)) + 'px';
         wrap.appendChild(bar);
@@ -1601,7 +1449,6 @@ class SisyphusUI {
         for(let k=1; k<=M; k++) {
           const c = (klData[k] && klData[k][l]) || 0;
           const cell = document.createElement('div');
-          // MODIFIED: Use CSS var --accent and opacity
           const alpha = c > 0 ? (0.2 + 0.8 * (Math.log(1+c)/logMax)) : 0.05;
           cell.style.background = `var(--accent)`;
           cell.style.opacity = alpha.toFixed(3);
@@ -1611,7 +1458,6 @@ class SisyphusUI {
       }
       hostHM.appendChild(grid);
 
-      // MODIFIED: Add Legend
       const legend = document.createElement('div');
       legend.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-top:4px; font-size:9px; color:var(--muted); opacity:0.8';
       legend.innerHTML = `
@@ -1655,7 +1501,7 @@ class SisyphusUI {
 }
 
 /* -------------------------------------------------------------------------- */
-/* MODULE 4: CHAOS ENGINE (OPTIMIZED RING BUFFER)                            */
+/* MODULE 4: CHAOS ENGINE                                                    */
 /* -------------------------------------------------------------------------- */
 class ChaosEngine {
   constructor() {
@@ -1679,10 +1525,8 @@ class ChaosEngine {
     this.scale = 9; this.fov = 300; this.yOffset = 20;     
     this.multiplier = 1.0; 
     
-    // Fallback palette
     this.colors = { calm: '#ff9e2c', windy: '#00b7ff', storm: '#ff3333' };
 
-    // Dynamic Params
     this.dt = 0.0025;
     this.intensity = 1.0;
 
@@ -1727,18 +1571,13 @@ class ChaosEngine {
 
   updateWeather(velocity) {
     let rawInput = velocity * 1.333; 
-    
-    // Scale BOTH multiplier AND threshold check by user intensity
     let scaledIntensity = rawInput * this.intensity;
-    
-    // Multiplier logic remains similar but uses scaled value
     this.multiplier = 0.5 + (scaledIntensity * 2.0);
     
     if (this.modEl) this.modEl.textContent = this.multiplier.toFixed(2) + "x";
 
     let statusText = "", statusClass = "", color = "";
     
-    // Thresholds checked against SCALED intensity
     if(scaledIntensity < 0.17) { 
         statusText = "CALM"; statusClass = "weather-good"; color = this.colors.calm;
     } else if (scaledIntensity < 0.37) { 
@@ -1844,13 +1683,175 @@ class ChaosEngine {
 }
 
 /* -------------------------------------------------------------------------- */
-/* MODULE 5: GAME CONTROLLER                                                 */
+/* MODULE 5: THEME MANAGER                                                   */
+/* -------------------------------------------------------------------------- */
+class ThemeManager {
+  constructor() {
+    this.pickers = {};
+    const ids = ['p-bg','p-card-bg','p-card-border','p-text','p-muted',
+                 'p-accent','p-accent-3','p-accent-2','p-danger','p-success'];
+                 
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if(el) {
+        this.pickers[el.dataset.var] = el;
+        el.addEventListener('input', (e) => this.updateSingleColor(e.target.dataset.var, e.target.value));
+      }
+    });
+
+    document.getElementById('btn-random-oklch').onclick = () => this.generateRandom();
+    document.getElementById('btn-theme-export').onclick = () => this.exportTheme();
+    document.getElementById('btn-theme-import').onclick = () => document.getElementById('file-theme-import').click();
+    document.getElementById('file-theme-import').onchange = (e) => this.importTheme(e);
+    
+    // Saved Palettes Bindings
+    this.savedPalettes = JSON.parse(localStorage.getItem('sisyphus_saved_palettes') || '{}');
+    this.updateSavedList();
+    
+    document.getElementById('btn-save-palette').onclick = () => this.saveCurrentPalette();
+    document.getElementById('btn-delete-palette').onclick = () => this.deleteSelectedPalette();
+    document.getElementById('saved-palettes-list').onchange = (e) => this.loadSavedPalette(e.target.value);
+  }
+
+  updateSingleColor(variable, value) {
+    document.documentElement.style.setProperty(variable, value);
+    document.getElementById('theme-select').value = 'custom';
+    if(window.game && window.game.chaos) {
+      window.game.chaos.setPalette(this.getCurrentPalette());
+    }
+  }
+
+  getCurrentPalette() {
+    const p = {};
+    Object.keys(this.pickers).forEach(k => {
+      p[k] = getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+    });
+    p['--bg-image'] = getComputedStyle(document.documentElement).getPropertyValue('--bg-image').trim();
+    return p;
+  }
+  
+  syncFromRoot() {
+      setTimeout(() => {
+        const p = this.getCurrentPalette();
+        Object.keys(p).forEach(k => {
+            if(this.pickers[k]) {
+                let val = p[k];
+                if(val.startsWith('rgb')) {
+                    const rgb = val.match(/\d+/g).map(Number);
+                    this.pickers[k].value = ColorMath.rgbToHex(rgb[0], rgb[1], rgb[2]);
+                } else if (val.startsWith('#')) {
+                    this.pickers[k].value = val;
+                }
+            }
+        });
+        if(window.game && window.game.chaos) {
+            window.game.chaos.setPalette(p);
+            window.game.chaos.clearTrail();
+        }
+    }, 50);
+  }
+
+  generateRandom() {
+    const mode = document.getElementById('gen-mode').value;
+    const palette = ColorMath.generatePalette(mode);
+    this.applyPalette(palette);
+    document.getElementById('theme-select').value = 'custom';
+  }
+
+  applyPalette(palette) {
+    const root = document.documentElement;
+    Object.entries(palette).forEach(([key, val]) => {
+      root.style.setProperty(key, val);
+      if(this.pickers[key]) this.pickers[key].value = val; 
+    });
+    
+    if(window.game && window.game.chaos) {
+      window.game.chaos.setPalette(palette);
+      window.game.chaos.clearTrail();
+    }
+  }
+  
+  // Custom Palette Logic
+  saveCurrentPalette() {
+      const name = document.getElementById('save-palette-name').value.trim();
+      if(!name) { alert("Please enter a name for the palette."); return; }
+      
+      const palette = this.getCurrentPalette();
+      this.savedPalettes[name] = palette;
+      localStorage.setItem('sisyphus_saved_palettes', JSON.stringify(this.savedPalettes));
+      this.updateSavedList();
+      document.getElementById('saved-palettes-list').value = name;
+      alert(`Palette "${name}" saved.`);
+  }
+  
+  updateSavedList() {
+      const select = document.getElementById('saved-palettes-list');
+      select.innerHTML = '<option value="">-- Load Saved --</option>';
+      Object.keys(this.savedPalettes).forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+      });
+  }
+  
+  loadSavedPalette(name) {
+      if(!name || !this.savedPalettes[name]) return;
+      this.applyPalette(this.savedPalettes[name]);
+      document.getElementById('save-palette-name').value = name;
+      document.getElementById('theme-select').value = 'custom';
+  }
+  
+  deleteSelectedPalette() {
+      const select = document.getElementById('saved-palettes-list');
+      const name = select.value;
+      if(!name) return;
+      if(confirm(`Delete saved palette "${name}"?`)) {
+          delete this.savedPalettes[name];
+          localStorage.setItem('sisyphus_saved_palettes', JSON.stringify(this.savedPalettes));
+          this.updateSavedList();
+          document.getElementById('save-palette-name').value = "";
+      }
+  }
+
+  exportTheme() {
+    const palette = this.getCurrentPalette();
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(palette));
+    const dlAnchorElem = document.createElement('a');
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute("download", "sisyphus_theme.json");
+    dlAnchorElem.click();
+  }
+
+  importTheme(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const palette = JSON.parse(event.target.result);
+        this.applyPalette(palette);
+        document.getElementById('theme-select').value = 'custom';
+        alert("Theme loaded successfully.");
+      } catch(err) {
+        alert("Invalid theme file.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; 
+  }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* MODULE 6: GAME CONTROLLER                                                 */
 /* -------------------------------------------------------------------------- */
 class GameController {
   constructor() {
     this.model = new SisyphusModel();
     this.ui = new SisyphusUI(this.model);
     this.chaos = new ChaosEngine();
+    this.themeManager = new ThemeManager();
     
     this.autoTimerId = null;
     this.bgTimer = new BackgroundTimer(); 
@@ -1877,7 +1878,7 @@ class GameController {
     const savedTheme = localStorage.getItem('sisyphus_theme') || 'default';
     if (savedTheme === 'custom') {
         const customColors = JSON.parse(localStorage.getItem('sisyphus_custom_colors') || '{}');
-        this.applyCustomTheme(customColors);
+        this.themeManager.applyPalette(customColors);
     } else {
         this.setTheme(savedTheme);
     }
@@ -1933,32 +1934,10 @@ class GameController {
     };
 
     $('theme-select').onchange = (e) => this.setTheme(e.target.value);
-    
-    // Palette Bindings
-    $('btn-random-palette').onclick = () => this.randomizePalette();
-    
-    const colorInputs = ['picker-accent','picker-accent-2','picker-accent-3','picker-danger','picker-success','picker-muted'];
-    colorInputs.forEach((id, idx) => {
-        const el = $(id);
-        if(el) el.addEventListener('input', (e) => this.updateCustomColor(idx, e.target.value));
-    });
   }
 
   setTheme(name) {
-      if(name === 'custom') {
-          // If switching to custom, use current picker values
-          const acc = document.getElementById('picker-accent').value;
-          const acc2 = document.getElementById('picker-accent-2').value;
-          const acc3 = document.getElementById('picker-accent-3').value;
-          const dang = document.getElementById('picker-danger').value;
-          const succ = document.getElementById('picker-success').value;
-          const muted = document.getElementById('picker-muted').value;
-          this.applyCustomTheme({ 
-              '--accent': acc, '--accent-2': acc2, '--accent-3': acc3, 
-              '--danger': dang, '--success': succ, '--muted': muted
-          });
-          return;
-      }
+      if(name === 'custom') return; 
 
       const theme = THEMES[name] || THEMES.default;
       const root = document.documentElement;
@@ -1970,152 +1949,13 @@ class GameController {
       const sel = document.getElementById('theme-select');
       if(sel) sel.value = name;
       
-      if(this.chaos) {
-          this.chaos.setPalette(theme);
-          this.chaos.clearTrail();
-      }
-      
-      // Update pickers to match preset
-      if(theme['--accent']) document.getElementById('picker-accent').value = theme['--accent'];
-      if(theme['--accent-2']) document.getElementById('picker-accent-2').value = theme['--accent-2'];
-      if(theme['--accent-3']) document.getElementById('picker-accent-3').value = theme['--accent-3'];
-      if(theme['--danger']) document.getElementById('picker-danger').value = theme['--danger'];
-      if(theme['--success']) document.getElementById('picker-success').value = theme['--success'];
-      if(theme['--muted']) document.getElementById('picker-muted').value = theme['--muted'];
-      
-      // Clear any contrast warnings when loading preset
-      this.hideContrastWarning();
+      this.themeManager.syncFromRoot();
   }
   
-  updateCustomColor(idx, hex) {
-      document.getElementById('theme-select').value = 'custom';
-      const root = document.documentElement;
-      
-      // Map indices to CSS variable names: 0=accent, 1=accent-2, 2=accent-3, 3=danger, 4=success, 5=muted
-      const varNames = ['--accent', '--accent-2', '--accent-3', '--danger', '--success', '--muted'];
-      const varName = varNames[idx] || '--accent';
-      root.style.setProperty(varName, hex);
-      
-      // If changing accent colors, regenerate background gradient
-      if (idx <= 2) {
-          const accent2 = getComputedStyle(root).getPropertyValue('--accent-2').trim();
-          const accent3 = getComputedStyle(root).getPropertyValue('--accent-3').trim();
-          const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
-          const newBgImage = ColorUtils.generateBgGradient(accent2, accent3, bg);
-          root.style.setProperty('--bg-image', newBgImage);
-      }
-      
-      this.saveCustomTheme();
-      
-      // Update Chaos palette live
-      if(this.chaos) {
-          const t = {
-              '--accent': getComputedStyle(root).getPropertyValue('--accent').trim(),
-              '--accent-3': getComputedStyle(root).getPropertyValue('--accent-3').trim(),
-              '--danger': getComputedStyle(root).getPropertyValue('--danger').trim()
-          };
-          this.chaos.setPalette(t);
-      }
-      
-      // Validate and show warning if needed
-      this.validateAndWarn();
-  }
-  
-  hideContrastWarning() {
-      const warning = document.getElementById('contrast-warning');
-      if (warning) warning.style.display = 'none';
-  }
-  
-  showContrastWarning(message) {
-      const warning = document.getElementById('contrast-warning');
-      const text = document.getElementById('contrast-warning-text');
-      if (warning && text) {
-          text.textContent = message;
-          warning.style.display = 'block';
-      }
-  }
-  
-  validateAndWarn() {
-      const root = document.documentElement;
-      const style = getComputedStyle(root);
-      const palette = {
-          '--accent': style.getPropertyValue('--accent').trim(),
-          '--accent-2': style.getPropertyValue('--accent-2').trim(),
-          '--accent-3': style.getPropertyValue('--accent-3').trim(),
-          '--danger': style.getPropertyValue('--danger').trim(),
-          '--success': style.getPropertyValue('--success').trim()
-      };
-      const bg = style.getPropertyValue('--bg').trim() || '#080014';
-      
-      const validation = ColorUtils.validatePalette(palette, bg);
-      if (!validation.valid && validation.issues.length > 0) {
-          const firstIssue = validation.issues[0];
-          this.showContrastWarning(firstIssue.message);
-      } else {
-          this.hideContrastWarning();
-      }
-  }
-
   saveCustomTheme() {
-      const root = document.documentElement;
-      const style = getComputedStyle(root);
-      const custom = {
-          '--bg': style.getPropertyValue('--bg').trim(),
-          '--text': style.getPropertyValue('--text').trim(),
-          '--muted': style.getPropertyValue('--muted').trim(),
-          '--accent': style.getPropertyValue('--accent').trim(),
-          '--accent-2': style.getPropertyValue('--accent-2').trim(),
-          '--accent-3': style.getPropertyValue('--accent-3').trim(),
-          '--danger': style.getPropertyValue('--danger').trim(),
-          '--success': style.getPropertyValue('--success').trim(),
-          '--bg-image': style.getPropertyValue('--bg-image').trim()
-      };
+      const custom = this.themeManager.getCurrentPalette();
       localStorage.setItem('sisyphus_theme', 'custom');
       localStorage.setItem('sisyphus_custom_colors', JSON.stringify(custom));
-  }
-  
-  applyCustomTheme(colors) {
-      const root = document.documentElement;
-      const def = THEMES.default;
-      
-      // Apply all color properties
-      const allVars = ['--bg', '--text', '--muted', '--accent', '--accent-2', '--accent-3', '--danger', '--success', '--card-bg', '--card-border', '--bg-image'];
-      allVars.forEach(v => {
-          if (colors[v]) {
-              root.style.setProperty(v, colors[v]);
-          } else if (def[v] && !['--accent', '--accent-2', '--accent-3', '--danger', '--success', '--muted'].includes(v)) {
-              // Apply default for non-accent properties if not specified
-              root.style.setProperty(v, def[v]);
-          }
-      });
-      
-      // Update pickers
-      document.getElementById('picker-accent').value = colors['--accent'] || def['--accent'];
-      document.getElementById('picker-accent-2').value = colors['--accent-2'] || def['--accent-2'];
-      document.getElementById('picker-accent-3').value = colors['--accent-3'] || def['--accent-3'];
-      document.getElementById('picker-danger').value = colors['--danger'] || def['--danger'];
-      document.getElementById('picker-success').value = colors['--success'] || def['--success'];
-      document.getElementById('picker-muted').value = colors['--muted'] || def['--muted'];
-      
-      document.getElementById('theme-select').value = 'custom';
-      if(this.chaos) {
-          this.chaos.setPalette({
-              '--accent': colors['--accent'] || def['--accent'],
-              '--accent-3': colors['--accent-3'] || def['--accent-3'],
-              '--danger': colors['--danger'] || def['--danger']
-          });
-          this.chaos.clearTrail();
-      }
-      
-      // Validate and show warnings
-      this.validateAndWarn();
-  }
-
-  randomizePalette() {
-      // Generate semantically-aware palette with all properties
-      const palette = ColorUtils.generateSemanticPalette();
-      this.applyCustomTheme(palette);
-      this.saveCustomTheme();
   }
 
   setSlotMode(mode) {
@@ -2400,7 +2240,6 @@ class GameController {
     SisyphusMath.clearCache();
     this.syncWeatherParams();
     
-    // Checkbox override logic
     const chk = document.getElementById('chk-reset-on-apply');
     if (chk) {
         shouldReset = chk.checked;
@@ -2409,10 +2248,8 @@ class GameController {
     if (shouldReset) {
         this.reset();
     } else {
-        // Validate k/l against new M/L
         this.model.state.k = Math.min(this.model.state.k, this.model.params.M);
         this.model.state.l = Math.min(this.model.state.l, this.model.params.L);
-        // Recalc expectations based on new params
         this.recalcExpectations();
         this.ui.render(this.grids, true);
         this.save();
@@ -2464,6 +2301,10 @@ class GameController {
 
   save() {
     localStorage.setItem('sisyphus_v9_delay', JSON.stringify(this.serialize()));
+    // Persist custom theme if that's active
+    if (document.getElementById('theme-select').value === 'custom') {
+        this.saveCustomTheme();
+    }
   }
 
   load() {
