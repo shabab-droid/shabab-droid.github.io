@@ -111,7 +111,8 @@
   .btn.big{
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     width:100%; padding:8px; margin-bottom:0; 
-    background: linear-gradient(90deg, var(--ascent), var(--steady), var(--ruin)); 
+    /* UPDATED: Gradient reversed to match Ruin (Left) -> Ascent (Right) */
+    background: linear-gradient(90deg, var(--ruin), var(--steady), var(--ascent)); 
     color: var(--bg); font-weight:800; max-width: 600px; min-height: 48px; 
     line-height: 1.2; transition: background 0.3s ease; border: none;
     text-shadow: 0 0 10px rgba(255,255,255,0.2);
@@ -410,14 +411,14 @@
         <div class="recent-bars" style="margin-top:8px;">
           <div id="rng-marker" class="rng-marker"></div>
           <div class="bar" style="display:flex; height:12px; overflow:hidden; margin-bottom:4px" role="progressbar">
-            <div id="rbar-win" class="win" style="width:0%"></div>
-            <div id="rbar-neu" class="neu" style="width:0%"></div>
             <div id="rbar-loss" class="loss" style="width:0%"></div>
+            <div id="rbar-neu" class="neu" style="width:0%"></div>
+            <div id="rbar-win" class="win" style="width:0%"></div>
           </div>
           <div class="row" style="justify-content:space-between; font-size:11px; opacity:0.8">
-            <div>Ascent: <span class="mono" id="rpct-win">0.0%</span></div>
-            <div>Steady: <span class="mono" id="rpct-neu">0.0%</span></div>
             <div>Ruin: <span class="mono" id="rpct-loss">0.0%</span></div>
+            <div>Steady: <span class="mono" id="rpct-neu">0.0%</span></div>
+            <div>Ascent: <span class="mono" id="rpct-win">0.0%</span></div>
           </div>
         </div>
 
@@ -463,7 +464,7 @@
         <summary class="tiny" style="opacity:0.7">Legend</summary>
         <div class="tiny" style="border-left:2px solid rgba(255,255,255,0.1); padding-left:8px; margin-top:4px; line-height:1.4">
         An <b>Attempt</b> ends in <b>Ruin</b> or <b>Summit</b>.<br>
-    	<span class="mono" style="opacity:0.8">(+)Ascent  (.)Steady  (X)Ruin</span>
+        <span class="mono" style="opacity:0.8">(X)Ruin  (.)Steady  (+)Ascent</span>
         </div>
         </details>
       </div>
@@ -471,14 +472,14 @@
       <div class="card"><h2>Run Stats</h2>
         <div style="margin-bottom:4px; font-size:10px; opacity:0.8">steps: <span class="mono" id="run-steps">0</span></div>
         <div class="bar" style="display:flex; height:12px; overflow:hidden" role="progressbar" aria-label="Run Distribution">
-          <div class="win" id="bar-win" style="width:0%"></div>
-          <div class="neu" id="bar-neu" style="width:0%"></div>
           <div class="loss" id="bar-loss" style="width:0%"></div>
+          <div class="neu" id="bar-neu" style="width:0%"></div>
+          <div class="win" id="bar-win" style="width:0%"></div>
         </div>
         <div class="row" style="justify-content:space-between; font-size:10px; opacity:0.8">
-          <div>Ascent: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
-          <div>Steady: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
           <div>Ruin: <span class="mono" id="c-loss">0</span> (<span class="mono" id="r-loss">0.0%</span>)</div>
+          <div>Steady: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
+          <div>Ascent: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
         </div>
         <div class="row tiny" style="margin-top:4px;justify-content:space-between">
           <div>run time: <span class="mono" id="run-time">0s</span></div>
@@ -1413,7 +1414,10 @@ visualizeRoll(rng, duration) {
       // 0.85, 0   => Very slow start (lingers in Ascent)
       // 0.15, 1   => Very slow end (lingers before Ruin)
       m.style.transition = `left ${duration}ms cubic-bezier(0.85, 0, 0.15, 1)`; 
-      m.style.left = (rng * 100).toFixed(2) + '%';
+      
+      // UPDATED: Invert calculation (1 - rng) because Win (low RNG) is now on Right (high %)
+      // Low RNG (Win) -> High % (Right). High RNG (Loss) -> Low % (Left).
+      m.style.left = ((1 - rng) * 100).toFixed(2) + '%';
       
       setTimeout(() => {
           m.classList.remove('tension');
