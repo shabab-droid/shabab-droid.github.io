@@ -1811,7 +1811,8 @@ class ThemeManager {
     return p;
   }
   
-  syncFromRoot() {
+  // FIX APPLIED: Added externalChaos argument to handle initialization timing
+  syncFromRoot(externalChaos) {
       setTimeout(() => {
         const p = this.getCurrentPalette();
         Object.keys(p).forEach(k => {
@@ -1825,9 +1826,12 @@ class ThemeManager {
                 }
             }
         });
-        if(window.game && window.game.chaos) {
-            window.game.chaos.setPalette(p);
-            window.game.chaos.clearTrail();
+        
+        // Use passed instance OR global instance
+        const chaos = externalChaos || (window.game && window.game.chaos);
+        if(chaos) {
+            chaos.setPalette(p);
+            chaos.clearTrail();
         }
     }, 50);
   }
@@ -1839,16 +1843,18 @@ class ThemeManager {
     document.getElementById('theme-select').value = 'custom';
   }
 
-  applyPalette(palette) {
+  // FIX APPLIED: Added externalChaos argument
+  applyPalette(palette, externalChaos) {
     const root = document.documentElement;
     Object.entries(palette).forEach(([key, val]) => {
       root.style.setProperty(key, val);
       if(this.pickers[key]) this.pickers[key].value = val; 
     });
     
-    if(window.game && window.game.chaos) {
-      window.game.chaos.setPalette(palette);
-      window.game.chaos.clearTrail();
+    const chaos = externalChaos || (window.game && window.game.chaos);
+    if(chaos) {
+      chaos.setPalette(palette);
+      chaos.clearTrail();
     }
   }
   
@@ -1959,7 +1965,8 @@ class GameController {
     const savedTheme = localStorage.getItem('sisyphus_theme') || 'default';
     if (savedTheme === 'custom') {
         const customColors = JSON.parse(localStorage.getItem('sisyphus_custom_colors') || '{}');
-        this.themeManager.applyPalette(customColors);
+        // FIX APPLIED: Pass this.chaos explicitly
+        this.themeManager.applyPalette(customColors, this.chaos);
     } else {
         this.setTheme(savedTheme);
     }
@@ -2030,7 +2037,8 @@ class GameController {
       const sel = document.getElementById('theme-select');
       if(sel) sel.value = name;
       
-      this.themeManager.syncFromRoot();
+      // FIX APPLIED: Pass this.chaos explicitly
+      this.themeManager.syncFromRoot(this.chaos);
   }
   
   saveCustomTheme() {
@@ -2419,7 +2427,7 @@ class GameController {
     }
   }
 
-  load() {
+load() {
     try {
       const raw = localStorage.getItem('sisyphus_v9_delay') || localStorage.getItem('sisyphus_v8_optimized'); 
       if(raw) {
