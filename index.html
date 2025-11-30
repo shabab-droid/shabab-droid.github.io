@@ -1396,22 +1396,27 @@ class SisyphusUI {
     }, duration);
   }
   
-  visualizeRoll(rng, duration) {
+visualizeRoll(rng, duration) {
     return new Promise(resolve => {
       const m = this.els['rng-marker'];
       if(!m) { resolve(); return; }
 
-      m.classList.remove('visible');
+      m.classList.remove('visible', 'tension');
       m.style.transition = 'none';
       m.style.left = '0%';
       
       void m.offsetWidth; // Force reflow
 
-      m.classList.add('visible');
-      m.style.transition = `left ${duration}ms cubic-bezier(0.2, 0.9, 0.3, 1)`; 
+      m.classList.add('visible', 'tension');
+      
+      // DRAMATIC EASE-IN-OUT
+      // 0.85, 0   => Very slow start (lingers in Ascent)
+      // 0.15, 1   => Very slow end (lingers before Ruin)
+      m.style.transition = `left ${duration}ms cubic-bezier(0.85, 0, 0.15, 1)`; 
       m.style.left = (rng * 100).toFixed(2) + '%';
       
       setTimeout(() => {
+          m.classList.remove('tension');
           resolve();
       }, duration);
     });
@@ -2217,7 +2222,7 @@ class GameController {
     const res = this.model.step();
     const rng = this.model.lastRoll.rng;
     
-    this.ui.visualizeRoll(rng, 1500).then(() => {
+    this.ui.visualizeRoll(rng, 3000).then(() => {
         this.handleStepResult(res); 
         this.save();
     
