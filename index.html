@@ -1399,6 +1399,16 @@ class SisyphusUI {
   
 visualizeRoll(rng, duration) {
     return new Promise(resolve => {
+      // 1. Reset Outcome Text to Null State
+      if (this.els['recent-outcome']) {
+          this.els['recent-outcome'].textContent = 'Awaiting Fate...';
+      }
+
+      // 2. Reset Card Styling (remove previous win/loss/neu colors)
+      if (this.els['recent-card']) {
+          this.els['recent-card'].className = 'card recent';
+      }
+
       const m = this.els['rng-marker'];
       if(!m) { resolve(); return; }
 
@@ -1415,7 +1425,6 @@ visualizeRoll(rng, duration) {
       // 0.15, 1   => Very slow end (lingers before Ruin)
       m.style.transition = `left ${duration}ms cubic-bezier(0.85, 0, 0.15, 1)`; 
       
-      // UPDATED: Invert calculation (1 - rng) because Win (low RNG) is now on Right (high %)
       // Low RNG (Win) -> High % (Right). High RNG (Loss) -> Low % (Left).
       m.style.left = ((1 - rng) * 100).toFixed(2) + '%';
       
@@ -2221,9 +2230,9 @@ class GameController {
     const btn = document.getElementById('roll1_big');
     const mainSpan = document.getElementById('btn-roll-main'); 
     
-    // 1. Disable and set "AWAITING FATE" immediately
+    // 1. Disable and set "PUSHING THE BOULDER..." immediately
     btn.disabled = true;
-    if(mainSpan) mainSpan.textContent = "AWAITING FATE...";
+    if(mainSpan) mainSpan.textContent = "PUSHING THE BOULDER...";
 
     // 2. Freeze the atmosphere text
     this.chaos.setFrozen(true);
