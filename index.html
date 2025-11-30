@@ -2316,7 +2316,7 @@ lockControls(duration, outcome) {
         }
     } else if (outcome === 'neu') {
         // Edge Case: Steady when Poise is already maxed
-        if (lr.l1 >= L) {
+        if (lr.l0 >= L) {
             verb = 'KEEPING FOOTING';
         } else {
             verb = 'BUILDING POISE';
