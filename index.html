@@ -2270,17 +2270,39 @@ class GameController {
     });
   }
 
-  lockControls(duration, outcome) {
+lockControls(duration, outcome) {
     this.controlsLocked = true;
     const btn = document.getElementById('roll1_big');
     const mainSpan = document.getElementById('btn-roll-main');
     btn.disabled = true;
     btn.className = `btn big outcome-${outcome}`; 
     
-    // Ensure chaos is frozen during delay (should be already, but safety check)
+    // Ensure chaos is frozen during delay
     this.chaos.setFrozen(true);
     
-    const verb = { win:'ASCENDING', loss:'THE STONE FALLS', neu:'BUILDING POISE' }[outcome] || 'WAITING';
+    // Determine the verb based on context (Edge cases for UI)
+    let verb = 'WAITING';
+    const lr = this.model.lastRoll;
+    const L = this.model.params.L;
+
+    if (outcome === 'win') {
+        verb = 'ASCENDING';
+    } else if (outcome === 'loss') {
+        // Edge Case: Ruin when already at the absolute bottom
+        if (lr.k0 === 1 && lr.l0 === 0) {
+            verb = 'THE STONE WAITS';
+        } else {
+            verb = 'THE STONE FALLS';
+        }
+    } else if (outcome === 'neu') {
+        // Edge Case: Steady when Poise is already maxed
+        if (lr.l1 >= L) {
+            verb = 'KEEPING FOOTING';
+        } else {
+            verb = 'BUILDING POISE';
+        }
+    }
+
     const endTime = Date.now() + duration;
     
     const timerId = this.bgTimer.setInterval(() => {
