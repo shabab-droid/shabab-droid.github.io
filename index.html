@@ -1637,10 +1637,12 @@ class ChaosEngine {
   updateWeather(velocity) {
     let rawInput = velocity * 1.333; 
     let scaledIntensity = rawInput * this.intensity;
-    this.multiplier = 0.5 + (scaledIntensity * 2.0);
+
     
     // Only update DOM if NOT frozen
     if (!this.frozen) {
+	this.multiplier = 0.5 + (scaledIntensity * 2.0);
+
         if (this.modEl) this.modEl.textContent = this.multiplier.toFixed(2) + "x";
 
         let statusText = "", statusClass = "", color = "";
