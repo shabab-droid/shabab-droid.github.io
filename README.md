@@ -194,9 +194,3 @@ The game is unwinnable in any permanent sense. You may reach the Summit, but the
 Camus argued that we must imagine Sisyphus happy—not despite the futility, but because of it. The absurd hero finds meaning in the struggle itself, in the moment of conscious descent, in the decision to push again.
 
 This is a game about that decision.
-
----
-
-## License
-
-MIT
