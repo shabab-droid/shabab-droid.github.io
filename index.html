@@ -155,27 +155,34 @@
 
   .recent-bars { position: relative; margin-top: 14px !important; }
   
-  /* UPDATED RNG MARKER */
+/* UPDATED RNG MARKER */
   .rng-marker {
     position: absolute;
-    /* Move to top (above the bar) */
     top: -9px; 
-    /* Center the circle on the exact percentage point */
     transform: translateX(-50%);
-    /* Make it a circle */
     width: 12px; height: 12px;
     border-radius: 50%;
     
-    background: var(--text);
-    border: 2px solid var(--bg); /* Thicker border for better contrast */
+    /* Start White by default */
+    background-color: #ffffff; 
+    border: 2px solid var(--bg);
     box-shadow: 0 0 6px rgba(0,0,0,0.8);
     z-index: 10;
     pointer-events: none;
     left: 0%;
     opacity: 0;
+    
+    /* Add background-color to transitions */
+    transition: left 0.5s, opacity 0.2s, background-color 0.5s ease;
+    will-change: left, background-color;
   }
   .rng-marker.visible { opacity: 1; }
 
+  /* New Outcome States for the Marker */
+  .rng-marker.mark-win { background-color: var(--ascent) !important; border-color: #fff; transform: translateX(-50%) scale(1.2); }
+  .rng-marker.mark-neu { background-color: var(--steady) !important; border-color: #fff; transform: translateX(-50%) scale(1.2); }
+  .rng-marker.mark-loss { background-color: var(--ruin) !important; border-color: #fff; transform: translateX(-50%) scale(1.2); }
+  .rng-marker.mark-top { background-color: var(--summit) !important; border-color: #fff; transform: translateX(-50%) scale(1.5); box-shadow: 0 0 15px var(--summit); }
   .kpos-track,.lpos-track{
     height:5px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
     border-radius:4px; overflow:hidden;
@@ -1417,14 +1424,14 @@ class SisyphusUI {
     }, duration);
   }
   
-visualizeRoll(rng, duration) {
+visualizeRoll(rng, duration, outcome) {
     return new Promise(resolve => {
       // 1. Reset Outcome Text to Null State
       if (this.els['recent-outcome']) {
           this.els['recent-outcome'].textContent = 'Awaiting Fate...';
       }
 
-      // 2. Reset Card Styling (remove previous win/loss/neu colors)
+      // 2. Reset Card Styling
       if (this.els['recent-card']) {
           this.els['recent-card'].className = 'card recent';
       }
@@ -1432,24 +1439,32 @@ visualizeRoll(rng, duration) {
       const m = this.els['rng-marker'];
       if(!m) { resolve(); return; }
 
-      m.classList.remove('visible', 'tension');
+      // 3. Reset Marker State (White, hidden, no transition)
+      m.classList.remove('visible', 'tension', 'mark-win', 'mark-neu', 'mark-loss', 'mark-top');
       m.style.transition = 'none';
       m.style.left = '0%';
       
       void m.offsetWidth; // Force reflow
 
+      // 4. Start Animation (White circle moves)
       m.classList.add('visible', 'tension');
       
       // DRAMATIC EASE-IN-OUT
-      // 0.85, 0   => Very slow start (lingers in Ascent)
-      // 0.15, 1   => Very slow end (lingers before Ruin)
-      m.style.transition = `left ${duration}ms cubic-bezier(0.85, 0, 0.15, 1)`; 
+      m.style.transition = `left ${duration}ms cubic-bezier(0.85, 0, 0.15, 1), background-color 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)`; 
       
-      // Low RNG (Win) -> High % (Right). High RNG (Loss) -> Low % (Left).
+      // Position based on RNG (Left=100%, Right=0% visually due to logic, or vice versa depending on your math)
+      // Based on previous code: Low RNG (Win) -> High % (Right). High RNG (Loss) -> Low % (Left).
       m.style.left = ((1 - rng) * 100).toFixed(2) + '%';
       
       setTimeout(() => {
           m.classList.remove('tension');
+          
+          // 5. Apply Final Color based on outcome
+          if (outcome === 'win') m.classList.add('mark-win');
+          else if (outcome === 'neu') m.classList.add('mark-neu');
+          else if (outcome === 'loss') m.classList.add('mark-loss');
+          else if (outcome === 'top') m.classList.add('mark-top');
+          
           resolve();
       }, duration);
     });
@@ -2263,7 +2278,8 @@ class GameController {
     const res = this.model.step();
     const rng = this.model.lastRoll.rng;
     
-    this.ui.visualizeRoll(rng, 3000).then(() => {
+// Passing 'res' so the UI knows which color to turn at the end
+this.ui.visualizeRoll(rng, 3000, res).then(() => {
         this.handleStepResult(res); 
         this.save();
     
