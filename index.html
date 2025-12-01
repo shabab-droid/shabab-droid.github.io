@@ -472,18 +472,11 @@
           <h2>Climb History</h2>
         </div>
         <div id="cycle-box" class="tiny"></div>
-		<details open style="margin-bottom:6px">
-        <summary class="tiny" style="opacity:0.7">Legend</summary>
-        <div class="tiny" style="border-left:2px solid rgba(255,255,255,0.1); padding-left:8px; margin-top:4px; line-height:1.4">
-        An <b>Attempt</b> ends in <b>Ruin</b> or <b>Summit</b>.<br>
-        <span class="mono" style="opacity:0.8">(X)Ruin  (.)Steady  (+)Ascent</span>
-        </div>
-        </details>
       </div>
 
       <div class="card"><h2>Run Stats</h2>
         <div style="margin-bottom:4px; font-size:10px; opacity:0.8">steps: <span class="mono" id="run-steps">0</span></div>
-        <div class="bar" style="display:flex; height:12px; overflow:hidden" role="progressbar" aria-label="Run Distribution">
+        <div class="bar" style="display:flex; height:5px; overflow:hidden; border-radius:4px" role="progressbar" aria-label="Run Distribution">
           <div class="loss" id="bar-loss" style="width:0%"></div>
           <div class="neu" id="bar-neu" style="width:0%"></div>
           <div class="win" id="bar-win" style="width:0%"></div>
@@ -495,7 +488,7 @@
         </div>
         
         <div style="margin-top:8px; font-size:10px; opacity:0.8">weather on press:</div>
-        <div class="bar" style="display:flex; height:12px; overflow:hidden; margin-top:2px" role="progressbar" aria-label="Weather Distribution">
+        <div class="bar" style="display:flex; height:5px; overflow:hidden; margin-top:2px; border-radius:4px" role="progressbar" aria-label="Weather Distribution">
           <div id="bar-storm" style="width:0%; background:var(--ruin)"></div>
           <div id="bar-windy" style="width:0%; background:var(--steady)"></div>
           <div id="bar-calm" style="width:0%; background:var(--ascent)"></div>
@@ -517,243 +510,74 @@
       
       <div class="card">
         <h2 style="margin:0 0 6px">The Burden</h2>
-        <div class="tiny" style="line-height:1.4; opacity:0.9">
+        <div class="tiny" style="line-height:1.5; opacity:0.9; margin-bottom:8px">
           The stone is bound for the summit (Height <span id="lbl-M-goal" style="font-weight:bold; color:var(--summit)">20</span>).
           <br><br>
-          Each roll has one of three outcomes:
-          <br>
-          <ul style="padding-left: 12px; margin: 4px 0;">
-              <li><strong>Steady:</strong> The stone holds fast. Poise accumulates.</li>
-              <li><strong>Ascent:</strong> The stone rises. Poise is shattered by the effort.</li>
-              <li><strong>Ruin:</strong> Gravity wins. Height resets.</li>
-          </ul>
-          <br>
-          <strong>Poise Mechanics:</strong> <br>
-          Poise represents stability. As Poise increases, the probability of <strong>Ascent</strong> rises and the probability of <strong>Ruin</strong> falls. However, every Ascent consumes a significant amount of Poise, making subsequent rolls perilous.
+          In the myth, Sisyphus was condemned to roll a boulder up a mountain for eternity, only to watch it roll back down each time he neared the top. Camus saw in this an image of the human condition: we search for meaning in a universe that offers none. Yet the struggle itself can become a source of purpose. One must imagine Sisyphus happy.
           <br><br>
-          <strong>Weather Mechanics:</strong> <br>
-          The chaotic atmosphere affects the passage of time. <strong>Stormy</strong> conditions dilate time, increasing the cooldown between moves. <strong>Calm</strong> weather allows for rapid progression. The weather does not affect the outcome of the roll, only the time it takes to recover.
+          Here, you push the stone. The mountain resists. Time stretches and contracts around you. There is no winning—only the climb, and the climbing again.
         </div>
-      </div>
-
-      <div class="card" id="params-container">
-        <details>
-            <summary><h2 style="display:inline; font-size:16px; margin:0">Parameters</h2></summary>
-            
-            <div class="details-content">
-                <details id="submenu-system">
-                  <summary>Main System</summary>
-                  <div class="details-content">
-                    <div class="row"><label for="M">M (Max Height)</label><input id="M" type="number" value="20"></div>
-                    <div class="desc">Max steps to win (k).</div>
-                    <div class="row"><label for="L">L (Max Poise)</label><input id="L" type="number" value="20"></div>
-                    <div class="desc">Poise scale (ℓ).</div>
-                    <div class="row"><label>w_min → w_max</label><input id="w_min" type="number" step="0.01" value="0.10"><input id="w_max" type="number" step="0.01" value="0.90"></div>
-                    <div class="desc">Win probability scaling.</div>
-                    <div class="row"><label for="beta">β (Height ramp)</label><input id="beta" type="number" step="0.1" value="1.5"></div>
-                    <div class="desc">β > 1 makes late ascent easier.</div>
-                    <div class="row"><label>ρ, γ (Poise boost)</label><input id="rho" type="number" step="0.05" value="0.6"><input id="gamma" type="number" step="0.1" value="1.5"></div>
-                    <div class="desc">Effect of Poise on win rate.</div>
-                    <div class="row"><label>c_min → c_max</label><input id="c_min" type="number" step="0.01" value="0.03"><input id="c_max" type="number" step="0.01" value="0.10"></div>
-                    <div class="desc">Loss probability range.</div>
-                    <div class="row"><label for="alpha">α (Loss decay)</label><input id="alpha" type="number" step="0.1" value="0.3"></div>
-                    <div class="desc">How fast Poise reduces loss chance.</div>
-                    <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1"><input id="s_w" type="number" value="20"></div>
-                    <div class="desc">Poise gain (Steady) vs spend (Ascent).</div>
-                  </div>
-                </details>
-
-                <details id="submenu-weather">
-                    <summary>Weather System</summary>
-                    <div class="details-content">
-                        <div class="row"><label for="chaos_dt">Dt (Chaos Step)</label><input id="chaos_dt" type="number" step="0.001" value="0.0025"></div>
-                        <div class="desc">Simulation speed (Time Step).</div>
-                        <div class="row"><label for="chaos_intensity">Intensity</label><input id="chaos_intensity" type="number" step="0.1" value="1.0"></div>
-                        <div class="desc">Magnitude of time dilation.</div>
-                        <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="45.0"></div>
-                        <div class="desc">Base cooldown time.</div>
-                    </div>
-                </details>
-
-                <details id="submenu-theme">
-                  <summary>Visual Theme</summary>
-                  <div class="details-content">
-                    
-                    <div class="row" style="margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
-                      <div style="flex:1">
-                        <label class="tiny" style="display:block; margin-bottom:2px;">Preset</label>
-                        <select id="theme-select" style="width:100%">
-                          <option value="default">Cosmic (Default)</option>
-                          <option value="magma">Sisyphus (Magma)</option>
-                          <option value="terminal">Terminal (Matrix)</option>
-                          <option value="paper">Academic (Light)</option>
-                          <option value="ocean">Abyss (Deep Blue)</option>
-                          <option value="custom">Custom / Unsaved</option>
-                        </select>
-                      </div>
-                    </div>
-                    
-                    <div style="background:rgba(255,255,255,0.03); padding:6px; border-radius:4px; margin-bottom:8px">
-                        <div class="tiny" style="opacity:0.7; margin-bottom:4px">Saved Palettes</div>
-                        <div class="row">
-                            <select id="saved-palettes-list" style="flex:1;">
-                                <option value="">-- Load Saved --</option>
-                            </select>
-                            <button id="btn-delete-palette" class="btn" style="color:var(--ruin)">Del</button>
-                        </div>
-                        <div class="row" style="margin-top:4px">
-                             <input type="text" id="save-palette-name" placeholder="Name current..." style="flex:1">
-                             <button id="btn-save-palette" class="btn" style="background:var(--steady); color:var(--bg)">Save</button>
-                        </div>
-                    </div>
-
-                    <div class="row" style="align-items:flex-end; gap:4px; margin-bottom:8px;">
-                      <div style="flex:1">
-                        <label class="tiny" style="display:block; margin-bottom:2px;">Harmony Mode</label>
-                        <select id="gen-mode" style="width:100%">
-                          <option value="tetradic">Tetradic (4-Tone)</option>
-                          <option value="triadic">Triadic (3-Tone)</option>
-                          <option value="complementary">Complementary</option>
-                          <option value="analogous">Analogous</option>
-                          <option value="monochromatic">Monochromatic</option>
-                        </select>
-                      </div>
-                      <button class="btn" id="btn-random-oklch" style="flex:1; background:var(--ascent); color:var(--bg);">
-                        Randomize (OKLCH)
-                      </button>
-                    </div>
-
-                    <div class="tiny" style="opacity:0.7; margin-bottom:4px">Palette Configuration</div>
-                    <div class="palette-grid">
-                      <div class="palette-item">
-                        <input type="color" id="p-ascent" data-var="--ascent">
-                        <span class="palette-label">Ascent</span>
-                      </div>
-                      <div class="palette-item">
-                        <input type="color" id="p-summit" data-var="--summit">
-                        <span class="palette-label">Summit</span>
-                      </div>
-                      <div class="palette-item">
-                        <input type="color" id="p-steady" data-var="--steady">
-                        <span class="palette-label">Steady</span>
-                      </div>
-                      <div class="palette-item">
-                        <input type="color" id="p-poise" data-var="--poise">
-                        <span class="palette-label">Poise</span>
-                      </div>
-                      <div class="palette-item">
-                        <input type="color" id="p-ruin" data-var="--ruin">
-                        <span class="palette-label">Ruin</span>
-                      </div>
-                      
-                      <div class="palette-item">
-                        <input type="color" id="p-bg" data-var="--bg">
-                        <span class="palette-label">Main BG</span>
-                      </div>
-                      <div class="palette-item">
-                        <input type="color" id="p-card-bg" data-var="--card-bg">
-                        <span class="palette-label">Card BG</span>
-                      </div>
-                      <div class="palette-item">
-                        <input type="color" id="p-card-border" data-var="--card-border">
-                        <span class="palette-label">Border</span>
-                      </div>
-                      <div class="palette-item">
-                        <input type="color" id="p-text" data-var="--text">
-                        <span class="palette-label">Text</span>
-                      </div>
-                      <div class="palette-item">
-                        <input type="color" id="p-muted" data-var="--muted">
-                        <span class="palette-label">Muted</span>
-                      </div>
-                    </div>
-
-                    <div class="row" style="margin-top:12px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">
-                      <button class="btn" id="btn-theme-export" style="flex:1; font-size:10px;">Export JSON</button>
-                      <button class="btn" id="btn-theme-import" style="flex:1; font-size:10px;">Import JSON</button>
-                      <input type="file" id="file-theme-import" style="display:none" accept=".json">
-                    </div>
-                  </div>
-                </details>
-                
-                <div class="row" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1); justify-content: flex-end;">
-                    <label class="checkbox-wrapper" style="margin-right:auto;">
-                        <input type="checkbox" id="chk-reset-on-apply" checked>
-                        <span>Reset on Apply</span>
-                    </label>
-                    <button class="btn" id="apply" style="flex:1; font-size:11px; padding:6px">Apply Params</button>
-                    <button class="btn" id="resetState" aria-keyshortcuts="R" style="flex:1; opacity:0.8; font-size:11px; padding:6px; background:#440000; color:#ffcccc">Reset Run</button>
-                </div>
-            </div>
-        </details>
-      </div>
-
-      <div class="card">
-        <details>
-          <summary><h2 style="display:inline; font-size:16px; margin:0">Play Controls</h2></summary>
-          <div class="details-content">
-            <div class="row" style="align-items: center; gap: 4px;">
-              <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1; font-size:11px; padding:6px">Auto Play</button>
-              <label class="checkbox-wrapper" for="use-delay">
-                <input type="checkbox" id="use-delay">
-                <span>Delay</span>
-              </label>
-              <select id="speed" aria-label="Auto-play speed">
-                <option value="1000">Slow</option>
-                <option value="100" selected>Normal</option>
-                <option value="10">Fast</option>
-              </select>
-            </div>
-            <div class="row" style="margin-top:4px">
-              <input id="nRolls" type="number" value="20" aria-label="Number of rolls or cycles" style="width:40px">
-              <button class="btn" id="rollN" style="flex:1; font-size:10px; padding:6px">Roll N Steps</button>
-              <button class="btn" id="rollNCycles" style="flex:1; font-size:10px; padding:6px">Roll N Attempts</button>
-            </div>
-            <div class="row" style="margin-top:4px">
-              <span class="tiny" style="min-width:70px">Set H/P:</span>
-              <input id="set-k" type="number" min="1" value="1" aria-label="Set k value" style="width:40px">
-              <input id="set-l" type="number" min="0" value="0" aria-label="Set l value" style="width:40px">
-              <button class="btn" id="setStateBtn" style="padding:4px 8px; font-size:10px; flex:1">Set</button>
-            </div>
-
-            <div class="save-slots-container mode-load" id="slot-container" style="margin-top:6px">
-               <div class="slot-mode-switch">
-                 <button class="btn slot-mode-btn" data-mode="save">Save Mode</button>
-                 <button class="btn slot-mode-btn active" data-mode="load">Load Mode</button>
-               </div>
-               <div class="slot-grid">
-                 <button class="slot-btn empty" data-slot="1"><div class="slot-label">1</div><div class="slot-info">Empty</div></button>
-                 <button class="slot-btn empty" data-slot="2"><div class="slot-label">2</div><div class="slot-info">Empty</div></button>
-                 <button class="slot-btn empty" data-slot="3"><div class="slot-label">3</div><div class="slot-info">Empty</div></button>
-                 <button class="slot-btn empty" data-slot="4"><div class="slot-label">4</div><div class="slot-info">Empty</div></button>
-                 <button class="slot-btn empty" data-slot="5"><div class="slot-label">5</div><div class="slot-info">Empty</div></button>
-               </div>
-               <div class="desc" style="margin-top:3px; text-align:center;">
-                 <span id="slot-mode-desc">Click to LOAD a saved game.</span>
-               </div>
-            </div>
-
-            <div class="row" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1)">
-                <button class="btn" id="btn-export" style="flex:1; font-size:10px; padding:4px">Export Slot</button>
-                <button class="btn" id="btn-import" style="flex:1; font-size:10px; padding:4px">Import Slot</button>
-                <input type="file" id="file-import" style="display:none" accept=".json">
-            </div>
-
+        
+        <details style="margin-top:6px">
+          <summary>Roll</summary>
+          <div class="details-content tiny" style="line-height:1.4">
+            Each roll resolves to one of three outcomes based on your current Height and Poise:
+            <ul style="padding-left: 14px; margin: 4px 0;">
+              <li><strong style="color:var(--ascent)">Ascent:</strong> The stone rises one step. Your Poise shatters from the effort.</li>
+              <li><strong style="color:var(--steady)">Steady:</strong> The stone holds. Poise accumulates, improving future odds.</li>
+              <li><strong style="color:var(--ruin)">Ruin:</strong> Gravity wins. You return to the bottom.</li>
+            </ul>
+            At the final Height, Ascent becomes <strong style="color:var(--summit)">Summit</strong>—a momentary victory before the cycle begins anew.
           </div>
         </details>
-      </div>
-
-      <div class="card">
+        
         <details>
-          <summary><h2 style="display:inline; font-size:16px; margin:0">Expectations</h2></summary>
-          <div class="details-content">
-            <div class="row tiny" style="flex-direction:column;align-items:flex-start;gap:2px">
-              <div>Ascent rate (per roll): <span class="mono" id="exp-win-rate">—</span></div>
-              <div>Ruin rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
-              <div>p(Ascent | !Steady): <span id="recent-p-cond" class="mono">—</span></div>
-              <div>p(Summit | current): <span id="recent-p-top" class="mono">—</span></div>
-              <div style="margin-top:4px">avg steps/attempt: <span class="mono" id="exp-cycle-len">—</span></div>
-              <div>E[first Summit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
+          <summary>Poise</summary>
+          <div class="details-content tiny" style="line-height:1.4">
+            Poise represents stability and readiness. As Poise increases:
+            <ul style="padding-left: 14px; margin: 4px 0;">
+              <li>The probability of <strong style="color:var(--ascent)">Ascent</strong> rises</li>
+              <li>The probability of <strong style="color:var(--ruin)">Ruin</strong> falls</li>
+            </ul>
+            However, every Ascent consumes a significant amount of Poise, making subsequent rolls more perilous. The wise climber builds Poise through Steady outcomes before attempting to rise.
+          </div>
+        </details>
+        
+        <details>
+          <summary>Weather</summary>
+          <div class="details-content tiny" style="line-height:1.4">
+            The chaotic atmosphere affects the passage of time between moves. A Lorenz attractor drives the weather system, creating unpredictable but deterministic patterns:
+            <ul style="padding-left: 14px; margin: 4px 0;">
+              <li><strong style="color:var(--ascent)">Calm:</strong> Time flows quickly. Rapid progression is possible.</li>
+              <li><strong style="color:var(--steady)">Windy:</strong> Moderate delay between actions.</li>
+              <li><strong style="color:var(--ruin)">Stormy:</strong> Time dilates significantly. Patience is required.</li>
+            </ul>
+            The weather does not affect roll outcomes—only the time between them. Higher positions on the mountain experience shorter delays.
+          </div>
+        </details>
+        
+        <details>
+          <summary>Climb History Legend</summary>
+          <div class="details-content tiny" style="line-height:1.4">
+            An <strong>Attempt</strong> is a complete journey from Height 1 until <strong style="color:var(--ruin)">Ruin</strong> or <strong style="color:var(--summit)">Summit</strong>.
+            <br><br>
+            <span class="mono" style="opacity:0.9; letter-spacing:1px">(X) Ruin&nbsp;&nbsp;(.) Steady&nbsp;&nbsp;(+) Ascent&nbsp;&nbsp;(★) Summit</span>
+            <br><br>
+            The path shows each roll's outcome in sequence. Longer attempts indicate sustained progress before fate intervenes.
+          </div>
+        </details>
+        
+        <details>
+          <summary>Expectations</summary>
+          <div class="details-content tiny" style="line-height:1.4">
+            These values are computed from the current parameters using Markov chain analysis. They represent the theoretical long-run behavior of the system:
+            <div style="margin-top:6px; padding:4px; background:rgba(0,0,0,0.2); border-radius:4px">
+              <div style="margin-bottom:2px">Ascent rate (per roll): <span class="mono" id="exp-win-rate">—</span></div>
+              <div style="margin-bottom:2px">Ruin rate (per roll): <span class="mono" id="exp-loss-rate">—</span></div>
+              <div style="margin-bottom:2px">p(Ascent | !Steady): <span id="recent-p-cond" class="mono">—</span></div>
+              <div style="margin-bottom:2px">p(Summit | current): <span id="recent-p-top" class="mono">—</span></div>
+              <div style="margin-top:6px; margin-bottom:2px">Avg steps/attempt: <span class="mono" id="exp-cycle-len">—</span></div>
+              <div style="margin-bottom:2px">E[first Summit]: <span class="mono" id="exp-time-top">—</span> rolls</div>
               <div>Optimal Ascents/Hour: <span class="mono" id="exp-wins-hour">—</span></div>
             </div>
           </div>
@@ -789,6 +613,243 @@
         <div class="tiny" style="margin-top:6px">Last 40 Attempts:</div>
         <div id="hist-cycle-len" class="tiny" style="margin-top:2px"></div>
       </div>
+
+      <div class="card" id="settings-saves-card">
+        <details>
+          <summary><h2 style="display:inline; font-size:16px; margin:0">Settings &amp; Saves</h2></summary>
+          <div class="details-content">
+            
+            <details id="submenu-theme">
+              <summary>Visual Theme</summary>
+              <div class="details-content">
+                
+                <div class="row" style="margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                  <div style="flex:1">
+                    <label class="tiny" style="display:block; margin-bottom:2px;">Preset</label>
+                    <select id="theme-select" style="width:100%">
+                      <option value="default">Cosmic (Default)</option>
+                      <option value="magma">Sisyphus (Magma)</option>
+                      <option value="terminal">Terminal (Matrix)</option>
+                      <option value="paper">Academic (Light)</option>
+                      <option value="ocean">Abyss (Deep Blue)</option>
+                      <option value="custom">Custom / Unsaved</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div style="background:rgba(255,255,255,0.03); padding:6px; border-radius:4px; margin-bottom:8px">
+                    <div class="tiny" style="opacity:0.7; margin-bottom:4px">Saved Palettes</div>
+                    <div class="row">
+                        <select id="saved-palettes-list" style="flex:1;">
+                            <option value="">-- Load Saved --</option>
+                        </select>
+                        <button id="btn-delete-palette" class="btn" style="color:var(--ruin)">Del</button>
+                    </div>
+                    <div class="row" style="margin-top:4px">
+                         <input type="text" id="save-palette-name" placeholder="Name current..." style="flex:1">
+                         <button id="btn-save-palette" class="btn" style="background:var(--steady); color:var(--bg)">Save</button>
+                    </div>
+                </div>
+
+                <div class="row" style="align-items:flex-end; gap:4px; margin-bottom:8px;">
+                  <div style="flex:1">
+                    <label class="tiny" style="display:block; margin-bottom:2px;">Harmony Mode</label>
+                    <select id="gen-mode" style="width:100%">
+                      <option value="tetradic">Tetradic (4-Tone)</option>
+                      <option value="triadic">Triadic (3-Tone)</option>
+                      <option value="complementary">Complementary</option>
+                      <option value="analogous">Analogous</option>
+                      <option value="monochromatic">Monochromatic</option>
+                    </select>
+                  </div>
+                  <button class="btn" id="btn-random-oklch" style="flex:1; background:var(--ascent); color:var(--bg);">
+                    Randomize (OKLCH)
+                  </button>
+                </div>
+
+                <div class="tiny" style="opacity:0.7; margin-bottom:4px">Palette Configuration</div>
+                <div class="palette-grid">
+                  <div class="palette-item">
+                    <input type="color" id="p-ascent" data-var="--ascent">
+                    <span class="palette-label">Ascent</span>
+                  </div>
+                  <div class="palette-item">
+                    <input type="color" id="p-summit" data-var="--summit">
+                    <span class="palette-label">Summit</span>
+                  </div>
+                  <div class="palette-item">
+                    <input type="color" id="p-steady" data-var="--steady">
+                    <span class="palette-label">Steady</span>
+                  </div>
+                  <div class="palette-item">
+                    <input type="color" id="p-poise" data-var="--poise">
+                    <span class="palette-label">Poise</span>
+                  </div>
+                  <div class="palette-item">
+                    <input type="color" id="p-ruin" data-var="--ruin">
+                    <span class="palette-label">Ruin</span>
+                  </div>
+                  
+                  <div class="palette-item">
+                    <input type="color" id="p-bg" data-var="--bg">
+                    <span class="palette-label">Main BG</span>
+                  </div>
+                  <div class="palette-item">
+                    <input type="color" id="p-card-bg" data-var="--card-bg">
+                    <span class="palette-label">Card BG</span>
+                  </div>
+                  <div class="palette-item">
+                    <input type="color" id="p-card-border" data-var="--card-border">
+                    <span class="palette-label">Border</span>
+                  </div>
+                  <div class="palette-item">
+                    <input type="color" id="p-text" data-var="--text">
+                    <span class="palette-label">Text</span>
+                  </div>
+                  <div class="palette-item">
+                    <input type="color" id="p-muted" data-var="--muted">
+                    <span class="palette-label">Muted</span>
+                  </div>
+                </div>
+
+                <div class="row" style="margin-top:12px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px;">
+                  <button class="btn" id="btn-theme-export" style="flex:1; font-size:10px;">Export JSON</button>
+                  <button class="btn" id="btn-theme-import" style="flex:1; font-size:10px;">Import JSON</button>
+                  <input type="file" id="file-theme-import" style="display:none" accept=".json">
+                </div>
+              </div>
+            </details>
+
+            <details id="submenu-saves">
+              <summary>Save / Load</summary>
+              <div class="details-content">
+                <div class="save-slots-container mode-load" id="slot-container">
+                   <div class="slot-mode-switch">
+                     <button class="btn slot-mode-btn" data-mode="save">Save Mode</button>
+                     <button class="btn slot-mode-btn active" data-mode="load">Load Mode</button>
+                   </div>
+                   <div class="slot-grid">
+                     <button class="slot-btn empty" data-slot="1"><div class="slot-label">1</div><div class="slot-info">Empty</div></button>
+                     <button class="slot-btn empty" data-slot="2"><div class="slot-label">2</div><div class="slot-info">Empty</div></button>
+                     <button class="slot-btn empty" data-slot="3"><div class="slot-label">3</div><div class="slot-info">Empty</div></button>
+                     <button class="slot-btn empty" data-slot="4"><div class="slot-label">4</div><div class="slot-info">Empty</div></button>
+                     <button class="slot-btn empty" data-slot="5"><div class="slot-label">5</div><div class="slot-info">Empty</div></button>
+                   </div>
+                   <div class="desc" style="margin-top:3px; text-align:center;">
+                     <span id="slot-mode-desc">Click to LOAD a saved game.</span>
+                   </div>
+                </div>
+
+                <div class="row" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1)">
+                    <button class="btn" id="btn-export" style="flex:1; font-size:10px; padding:4px">Export Slot</button>
+                    <button class="btn" id="btn-import" style="flex:1; font-size:10px; padding:4px">Import Slot</button>
+                    <input type="file" id="file-import" style="display:none" accept=".json">
+                </div>
+              </div>
+            </details>
+            
+          </div>
+        </details>
+      </div>
+
+      <div class="card" id="advanced-card">
+        <details>
+          <summary><h2 style="display:inline; font-size:16px; margin:0">Advanced</h2></summary>
+          <div class="details-content">
+            
+            <div style="background:rgba(255,100,100,0.1); border:1px solid rgba(255,100,100,0.3); border-radius:4px; padding:6px; margin-bottom:8px;" id="sim-mode-container">
+              <label class="checkbox-wrapper" style="height:auto; padding:0; margin-bottom:4px">
+                <input type="checkbox" id="chk-sim-mode">
+                <span style="font-weight:600; color:var(--ruin)">Simulation Mode</span>
+              </label>
+              <div class="desc" style="margin:0; opacity:0.8">Enabling simulation mode will mark this run.</div>
+              <div id="sim-mode-badge" style="display:none; margin-top:4px; padding:2px 6px; background:var(--ruin); color:var(--bg); border-radius:3px; font-size:9px; font-weight:800; text-align:center; letter-spacing:0.5px">
+                ⚠ SIMULATION RUN
+              </div>
+            </div>
+            
+            <details id="submenu-auto-controls">
+              <summary>Auto Controls</summary>
+              <div class="details-content">
+                <div class="row" style="align-items: center; gap: 4px;">
+                  <button class="btn" id="auto" aria-keyshortcuts="A" style="flex:1; font-size:11px; padding:6px" disabled>Auto Play</button>
+                  <label class="checkbox-wrapper" for="use-delay">
+                    <input type="checkbox" id="use-delay">
+                    <span>Delay</span>
+                  </label>
+                  <select id="speed" aria-label="Auto-play speed">
+                    <option value="1000">Slow</option>
+                    <option value="100" selected>Normal</option>
+                    <option value="10">Fast</option>
+                  </select>
+                </div>
+                <div class="row" style="margin-top:4px">
+                  <input id="nRolls" type="number" value="20" aria-label="Number of rolls or cycles" style="width:40px">
+                  <button class="btn" id="rollN" style="flex:1; font-size:10px; padding:6px" disabled>Roll N Steps</button>
+                  <button class="btn" id="rollNCycles" style="flex:1; font-size:10px; padding:6px" disabled>Roll N Attempts</button>
+                </div>
+              </div>
+            </details>
+            
+            <details id="submenu-set-state">
+              <summary>Set Height / Poise</summary>
+              <div class="details-content">
+                <div class="row">
+                  <span class="tiny" style="min-width:70px">Set H/P:</span>
+                  <input id="set-k" type="number" min="1" value="1" aria-label="Set k value" style="width:40px" disabled>
+                  <input id="set-l" type="number" min="0" value="0" aria-label="Set l value" style="width:40px" disabled>
+                  <button class="btn" id="setStateBtn" style="padding:4px 8px; font-size:10px; flex:1" disabled>Set</button>
+                </div>
+              </div>
+            </details>
+
+            <details id="submenu-system">
+              <summary>Main System Parameters</summary>
+              <div class="details-content">
+                <div class="row"><label for="M">M (Max Height)</label><input id="M" type="number" value="20"></div>
+                <div class="desc">Max steps to win (k).</div>
+                <div class="row"><label for="L">L (Max Poise)</label><input id="L" type="number" value="20"></div>
+                <div class="desc">Poise scale (ℓ).</div>
+                <div class="row"><label>w_min → w_max</label><input id="w_min" type="number" step="0.01" value="0.10"><input id="w_max" type="number" step="0.01" value="0.90"></div>
+                <div class="desc">Win probability scaling.</div>
+                <div class="row"><label for="beta">β (Height ramp)</label><input id="beta" type="number" step="0.1" value="1.5"></div>
+                <div class="desc">β > 1 makes late ascent easier.</div>
+                <div class="row"><label>ρ, γ (Poise boost)</label><input id="rho" type="number" step="0.05" value="0.6"><input id="gamma" type="number" step="0.1" value="1.5"></div>
+                <div class="desc">Effect of Poise on win rate.</div>
+                <div class="row"><label>c_min → c_max</label><input id="c_min" type="number" step="0.01" value="0.03"><input id="c_max" type="number" step="0.01" value="0.10"></div>
+                <div class="desc">Loss probability range.</div>
+                <div class="row"><label for="alpha">α (Loss decay)</label><input id="alpha" type="number" step="0.1" value="0.3"></div>
+                <div class="desc">How fast Poise reduces loss chance.</div>
+                <div class="row"><label>g_n, s_w</label><input id="g_n" type="number" value="1"><input id="s_w" type="number" value="20"></div>
+                <div class="desc">Poise gain (Steady) vs spend (Ascent).</div>
+              </div>
+            </details>
+
+            <details id="submenu-weather">
+                <summary>Weather System</summary>
+                <div class="details-content">
+                    <div class="row"><label for="chaos_dt">Dt (Chaos Step)</label><input id="chaos_dt" type="number" step="0.001" value="0.0025"></div>
+                    <div class="desc">Simulation speed (Time Step).</div>
+                    <div class="row"><label for="chaos_intensity">Intensity</label><input id="chaos_intensity" type="number" step="0.1" value="1.0"></div>
+                    <div class="desc">Magnitude of time dilation.</div>
+                    <div class="row"><label for="max_delay">Max Delay (s)</label><input id="max_delay" type="number" step="0.1" value="45.0"></div>
+                    <div class="desc">Base cooldown time.</div>
+                </div>
+            </details>
+            
+            <div class="row" style="margin-top:6px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.1); justify-content: flex-end;">
+                <label class="checkbox-wrapper" style="margin-right:auto;">
+                    <input type="checkbox" id="chk-reset-on-apply" checked>
+                    <span>Reset on Apply</span>
+                </label>
+                <button class="btn" id="apply" style="flex:1; font-size:11px; padding:6px" disabled>Apply Params</button>
+                <button class="btn" id="resetState" aria-keyshortcuts="R" style="flex:1; opacity:0.8; font-size:11px; padding:6px; background:#440000; color:#ffcccc">Reset Run</button>
+            </div>
+
+          </div>
+        </details>
+      </div>
+
     </div>
   </div>
 </div>
@@ -1178,7 +1239,7 @@ class SisyphusModel {
   }
 
   reset() {
-    this.state = { k:1, l:0, step:0, topHit:false, cycleSteps:0 };
+    this.state = { k:1, l:0, step:0, topHit:false, cycleSteps:0, isSimulation:false };
     this.stats = { wins:0, neus:0, loss:0, maxK:1, longestCycle:0 };
     this.historyK = [];
     this.cycleId = 1;
@@ -2095,6 +2156,7 @@ class GameController {
     this.recalcExpectations();
     this.ui.render(this.grids, true); 
     this.updateSlotUI();
+    this.updateSimModeUI();
     this.syncWeatherParams();
     
     if (!localStorage.getItem('sisyphus_welcome_seen')) {
@@ -2106,21 +2168,32 @@ class GameController {
     const $ = id => document.getElementById(id);
     $('roll1_big').onclick = () => this.stepManually();
     $('rollN').onclick = () => {
+      if (!this.isSimMode()) return;
       const n = +$('nRolls').value || 20;
       for(let i=0; i<n; i++) { if(this.model.step() === 'top') break; }
       this.ui.render(this.grids); this.save();
     };
     $('rollNCycles').onclick = () => {
+      if (!this.isSimMode()) return;
       const target = this.model.cycleId + (+$('nRolls').value || 1);
       let safety = 0;
       while(this.model.cycleId < target && safety++ < 2000000) { if(this.model.step() === 'top') break; }
       this.ui.render(this.grids); this.save();
     };
-    $('auto').onclick = () => this.toggleAuto();
-    $('apply').onclick = () => this.applyParams();
+    $('auto').onclick = () => {
+      if (!this.isSimMode()) return;
+      this.toggleAuto();
+    };
+    $('apply').onclick = () => {
+      if (!this.isSimMode()) return;
+      this.applyParams();
+    };
     $('resetState').onclick = () => this.reset();
     $('setStateBtn').onclick = () => {
+      if (!this.isSimMode()) return;
       this.model.setState(+$('set-k').value||1, +$('set-l').value||0);
+      this.model.state.isSimulation = true;
+      this.updateSimModeUI();
       this.ui.render(this.grids);
     }
     
@@ -2143,6 +2216,46 @@ class GameController {
     };
 
     $('theme-select').onchange = (e) => this.setTheme(e.target.value);
+    
+    // Simulation mode toggle
+    $('chk-sim-mode').onchange = (e) => {
+      if (e.target.checked) {
+        if (confirm('Enabling simulation mode will mark this run. Continue?')) {
+          this.model.state.isSimulation = true;
+          this.updateSimModeUI();
+          this.save();
+        } else {
+          e.target.checked = false;
+        }
+      } else {
+        // Cannot disable once enabled for this run
+        e.target.checked = true;
+        this.announcer.announce('Simulation mode cannot be disabled for this run');
+      }
+    };
+  }
+  
+  isSimMode() {
+    return document.getElementById('chk-sim-mode').checked;
+  }
+  
+  updateSimModeUI() {
+    const isSimulation = this.model.state.isSimulation;
+    const checkbox = document.getElementById('chk-sim-mode');
+    const badge = document.getElementById('sim-mode-badge');
+    
+    // Update checkbox state
+    checkbox.checked = isSimulation;
+    
+    // Show/hide badge
+    badge.style.display = isSimulation ? 'block' : 'none';
+    
+    // Enable/disable sim-only controls
+    const simControls = ['auto', 'rollN', 'rollNCycles', 'setStateBtn', 'set-k', 'set-l', 'apply'];
+    simControls.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = !isSimulation;
+    });
   }
 
   setTheme(name) {
@@ -2206,6 +2319,7 @@ class GameController {
       this.syncUIParams();
       this.recalcExpectations();
       this.ui.render(this.grids, true);
+      this.updateSimModeUI();
       this.chaos.reset(); 
       
       const lblM = document.getElementById('lbl-M-goal');
@@ -2282,6 +2396,7 @@ class GameController {
       this.recalcExpectations();
       this.ui.render(this.grids, true);
       this.updateSlotUI();
+      this.updateSimModeUI();
       this.chaos.reset();
       const lblM = document.getElementById('lbl-M-goal');
       if(lblM) lblM.textContent = this.model.params.M;
@@ -2535,6 +2650,7 @@ lockControls(duration, outcome) {
     this.chaos.reset(); 
     this.recalcExpectations();
     this.ui.render(this.grids, true);
+    this.updateSimModeUI();
     this.save();
     this.announcer.announce("Game reset");
   }
@@ -2557,6 +2673,10 @@ lockControls(duration, outcome) {
     deserialize(data) {
     Object.assign(this.model.params, data.params); Object.assign(this.model.state, data.state);
     Object.assign(this.model.stats, data.stats);
+    // Backward compatibility: add isSimulation if missing
+    if (this.model.state.isSimulation === undefined) {
+      this.model.state.isSimulation = false;
+    }
     if(data.historyK) this.model.historyK = data.historyK;
     if(data.cycleSummaries) this.model.cycleSummaries = data.cycleSummaries;
     if(data.distributions) {
