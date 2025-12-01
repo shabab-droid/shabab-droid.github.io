@@ -493,6 +493,19 @@
           <div>Steady: <span class="mono" id="c-neu">0</span> (<span class="mono" id="r-neu">0.0%</span>)</div>
           <div>Ascent: <span class="mono" id="c-win">0</span> (<span class="mono" id="r-win">0.0%</span>)</div>
         </div>
+        
+        <div style="margin-top:8px; font-size:10px; opacity:0.8">weather on press:</div>
+        <div class="bar" style="display:flex; height:12px; overflow:hidden; margin-top:2px" role="progressbar" aria-label="Weather Distribution">
+          <div id="bar-storm" style="width:0%; background:var(--ruin)"></div>
+          <div id="bar-windy" style="width:0%; background:var(--steady)"></div>
+          <div id="bar-calm" style="width:0%; background:var(--ascent)"></div>
+        </div>
+        <div class="row" style="justify-content:space-between; font-size:10px; opacity:0.8">
+          <div>Storm: <span class="mono" id="c-storm">0</span> (<span class="mono" id="r-storm">0.0%</span>)</div>
+          <div>Windy: <span class="mono" id="c-windy">0</span> (<span class="mono" id="r-windy">0.0%</span>)</div>
+          <div>Calm: <span class="mono" id="c-calm">0</span> (<span class="mono" id="r-calm">0.0%</span>)</div>
+        </div>
+        
         <div class="row tiny" style="margin-top:4px;justify-content:space-between">
           <div>run time: <span class="mono" id="run-time">0s</span></div>
           <div>Max Height: <span class="mono" id="max-k">1</span></div>
@@ -762,6 +775,15 @@
           <div class="stat-box"><div class="stat-label">Med</div><div class="stat-val" id="gs-50">—</div></div>
           <div class="stat-box"><div class="stat-label">75%</div><div class="stat-val" id="gs-75">—</div></div>
           <div class="stat-box"><div class="stat-label">Max</div><div class="stat-val" id="gs-max">—</div></div>
+        </div>
+
+        <div class="tiny" style="margin-top:8px; font-weight:600; color:var(--muted)">Time Dilation on Press (N=<span id="dilation-n">0</span>)</div>
+        <div class="stats-grid" id="dilation-stats">
+          <div class="stat-box"><div class="stat-label">Min</div><div class="stat-val" id="ds-min">—</div></div>
+          <div class="stat-box"><div class="stat-label">25%</div><div class="stat-val" id="ds-25">—</div></div>
+          <div class="stat-box"><div class="stat-label">Med</div><div class="stat-val" id="ds-50">—</div></div>
+          <div class="stat-box"><div class="stat-label">75%</div><div class="stat-val" id="ds-75">—</div></div>
+          <div class="stat-box"><div class="stat-label">Max</div><div class="stat-val" id="ds-max">—</div></div>
         </div>
 
         <div class="tiny" style="margin-top:6px">Last 40 Attempts:</div>
@@ -1169,7 +1191,9 @@ class SisyphusModel {
     this.distributions = { 
       k: Array(M+1).fill(0), l: Array(L+1).fill(0), 
       kl: Array.from({length: M+1}, () => Array(L+1).fill(0)),
-      cycles: []
+      cycles: [],
+      weatherOnPress: { calm: 0, windy: 0, storm: 0 },
+      dilationOnPress: []
     };
     this.lastRoll = null; 
   }
@@ -1219,6 +1243,14 @@ class SisyphusModel {
     if (d.k[k] !== undefined) d.k[k]++;
     if (d.l[l] !== undefined) d.l[l]++;
     if (d.kl[k] && d.kl[k][l] !== undefined) d.kl[k][l]++;
+  }
+
+  recordWeatherOnPress(condition, dilation) {
+    const d = this.distributions;
+    if (d.weatherOnPress[condition] !== undefined) {
+      d.weatherOnPress[condition]++;
+    }
+    d.dilationOnPress.push(dilation);
   }
 
   _updateCycle(outcome, k1) {
@@ -1272,8 +1304,11 @@ class SisyphusUI {
      'recent-outcome','recent-kl','recent-card',
      'bar-win','bar-neu','bar-loss','c-win','c-neu','c-loss',
      'r-win','r-neu','r-loss','run-steps','run-time','max-k',
+     'bar-calm','bar-windy','bar-storm','c-calm','c-windy','c-storm',
+     'r-calm','r-windy','r-storm',
      'cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
      'global-n','gs-min','gs-25','gs-50','gs-75','gs-max',
+     'dilation-n','ds-min','ds-25','ds-50','ds-75','ds-max',
      'exp-win-rate', 'exp-loss-rate', 'exp-cycle-len', 'exp-time-top', 'exp-wins-hour',
      'btn-roll-main', 'rng-marker'
     ].forEach(id => this.els[id] = document.getElementById(id));
@@ -1369,6 +1404,19 @@ class SisyphusUI {
     this.batchUpdate('bar-win', 'style.width', tot ? (100*st.wins/tot)+'%' : '0%');
     this.batchUpdate('bar-neu', 'style.width', tot ? (100*st.neus/tot)+'%' : '0%');
     this.batchUpdate('bar-loss', 'style.width', tot ? (100*st.loss/tot)+'%' : '0%');
+    
+    // Weather on press stats
+    const wop = m.distributions.weatherOnPress;
+    const wtot = wop.calm + wop.windy + wop.storm;
+    this.batchUpdate('c-calm', 'textContent', wop.calm);
+    this.batchUpdate('c-windy', 'textContent', wop.windy);
+    this.batchUpdate('c-storm', 'textContent', wop.storm);
+    this.batchUpdate('r-calm', 'textContent', wtot ? (100*wop.calm/wtot).toFixed(1)+'%' : '0.0%');
+    this.batchUpdate('r-windy', 'textContent', wtot ? (100*wop.windy/wtot).toFixed(1)+'%' : '0.0%');
+    this.batchUpdate('r-storm', 'textContent', wtot ? (100*wop.storm/wtot).toFixed(1)+'%' : '0.0%');
+    this.batchUpdate('bar-calm', 'style.width', wtot ? (100*wop.calm/wtot)+'%' : '0%');
+    this.batchUpdate('bar-windy', 'style.width', wtot ? (100*wop.windy/wtot)+'%' : '0%');
+    this.batchUpdate('bar-storm', 'style.width', wtot ? (100*wop.storm/wtot)+'%' : '0%');
     
     this.batchUpdate('run-time', 'textContent', this._formatDuration(Math.max(0, Date.now() - m.startTime)));
     this.batchUpdate('max-k', 'textContent', st.maxK);
@@ -1513,6 +1561,20 @@ visualizeRoll(rng, duration, outcome) {
       this.els['gs-max'].textContent = stats.max;
     } else {
       ['gs-min','gs-25','gs-50','gs-75','gs-max'].forEach(id => this.els[id].textContent = '—');
+    }
+    
+    // Dilation stats
+    const dop = this.model.distributions.dilationOnPress;
+    this.els['dilation-n'].textContent = dop.length;
+    const dstats = SisyphusMath.getQuantiles(dop);
+    if (dstats) {
+      this.els['ds-min'].textContent = dstats.min.toFixed(2) + 'x';
+      this.els['ds-25'].textContent = dstats.q25.toFixed(2) + 'x';
+      this.els['ds-50'].textContent = dstats.med.toFixed(2) + 'x';
+      this.els['ds-75'].textContent = dstats.q75.toFixed(2) + 'x';
+      this.els['ds-max'].textContent = dstats.max.toFixed(2) + 'x';
+    } else {
+      ['ds-min','ds-25','ds-50','ds-75','ds-max'].forEach(id => this.els[id].textContent = '—');
     }
   }
 
@@ -1809,6 +1871,17 @@ class ChaosEngine {
   }
   
   getModifier() { return this.multiplier; }
+  
+  getCondition() {
+    // Calculate scaledIntensity the same way updateWeather does
+    // We need to get the current velocity - which is derived from the last step
+    // Since we don't store velocity, we calculate based on the multiplier
+    // multiplier = 0.5 + (scaledIntensity * 2.0), so scaledIntensity = (multiplier - 0.5) / 2.0
+    const scaledIntensity = (this.multiplier - 0.5) / 2.0;
+    if (scaledIntensity < 0.17) return 'calm';
+    if (scaledIntensity < 0.37) return 'windy';
+    return 'storm';
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2265,6 +2338,11 @@ class GameController {
     const btn = document.getElementById('roll1_big');
     const mainSpan = document.getElementById('btn-roll-main'); 
     
+    // Capture weather condition and dilation at button press
+    const weatherCondition = this.chaos.getCondition();
+    const dilationValue = this.chaos.getModifier();
+    this.model.recordWeatherOnPress(weatherCondition, dilationValue);
+    
     // 1. Disable and set "PUSHING THE BOULDER..." immediately
     btn.disabled = true;
     if(mainSpan) mainSpan.textContent = "PUSHING THE BOULDER...";
@@ -2481,7 +2559,16 @@ lockControls(duration, outcome) {
     Object.assign(this.model.stats, data.stats);
     if(data.historyK) this.model.historyK = data.historyK;
     if(data.cycleSummaries) this.model.cycleSummaries = data.cycleSummaries;
-    if(data.distributions) this.model.distributions = data.distributions;
+    if(data.distributions) {
+      this.model.distributions = data.distributions;
+      // Backward compatibility: add weatherOnPress and dilationOnPress if missing
+      if (!this.model.distributions.weatherOnPress) {
+        this.model.distributions.weatherOnPress = { calm: 0, windy: 0, storm: 0 };
+      }
+      if (!this.model.distributions.dilationOnPress) {
+        this.model.distributions.dilationOnPress = [];
+      }
+    }
     if(data.allCycles) this.model.allCycles = data.allCycles;
     if(data.lastRoll) this.model.lastRoll = data.lastRoll;
     if(data.cycleId) this.model.cycleId = data.cycleId;
