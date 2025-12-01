@@ -471,7 +471,7 @@
         <div style="display:flex; justify-content:space-between; align-items:baseline">
           <h2>Climb History</h2>
         </div>
-        <div id="cycle-box" class="tiny"></div>
+        <div id="cycle-box" class="tiny" style="max-height:160px; overflow-y:auto;"></div>
       </div>
 
       <div class="card"><h2>Run Stats</h2>
@@ -539,7 +539,7 @@
               <li>The probability of <strong style="color:var(--ascent)">Ascent</strong> rises</li>
               <li>The probability of <strong style="color:var(--ruin)">Ruin</strong> falls</li>
             </ul>
-            However, every Ascent consumes a significant amount of Poise, making subsequent rolls more perilous.
+            However, every Ascent consumes a significant amount of Poise, making subsequent rolls more perilous. The wise climber builds Poise through Steady outcomes before attempting to rise.
           </div>
         </details>
         
@@ -609,9 +609,6 @@
           <div class="stat-box"><div class="stat-label">75%</div><div class="stat-val" id="ds-75">—</div></div>
           <div class="stat-box"><div class="stat-label">Max</div><div class="stat-val" id="ds-max">—</div></div>
         </div>
-
-        <div class="tiny" style="margin-top:6px">Last 40 Attempts:</div>
-        <div id="hist-cycle-len" class="tiny" style="margin-top:2px"></div>
       </div>
 
       <div class="card" id="settings-saves-card">
@@ -1329,7 +1326,7 @@ class SisyphusModel {
       if (this.distributions.cycles.length > 40) this.distributions.cycles.shift();
       const summary = { ...this.currentCycle, outcome };
       this.cycleSummaries.unshift(summary);
-      if (this.cycleSummaries.length > 7) this.cycleSummaries.pop();
+      if (this.cycleSummaries.length > 100) this.cycleSummaries.pop();
       this.cycleId++;
       this.currentCycle = this._newCycle();
     }
@@ -1367,7 +1364,7 @@ class SisyphusUI {
      'r-win','r-neu','r-loss','run-steps','run-time','max-k',
      'bar-calm','bar-windy','bar-storm','c-calm','c-windy','c-storm',
      'r-calm','r-windy','r-storm',
-     'cycle-box','hist-k','hist-l','hist-kl','hist-cycle-len',
+     'cycle-box','hist-k','hist-l','hist-kl',
      'global-n','gs-min','gs-25','gs-50','gs-75','gs-max',
      'dilation-n','ds-min','ds-25','ds-50','ds-75','ds-max',
      'exp-win-rate', 'exp-loss-rate', 'exp-cycle-len', 'exp-time-top', 'exp-wins-hour',
@@ -1656,20 +1653,6 @@ visualizeRoll(rng, duration, outcome) {
       host.appendChild(wrap);
     };
     renderBar('hist-k', dist.k); renderBar('hist-l', dist.l);
-
-    const hostCl = this.els['hist-cycle-len']; hostCl.innerHTML = '';
-    if(dist.cycles.length) {
-      const maxCL = Math.max(...dist.cycles);
-      const wrap = document.createElement('div');
-      wrap.style.cssText = 'display:flex;align-items:flex-end;gap:2px';
-      dist.cycles.forEach(len => {
-        const bar = document.createElement('div');
-        bar.style.cssText = 'width:4px;border-radius:2px;background:linear-gradient(180deg,var(--steady),var(--ascent));';
-        bar.style.height = (8 + (maxCL ? 32 * len / maxCL : 0)) + 'px';
-        wrap.appendChild(bar);
-      });
-      hostCl.appendChild(wrap);
-    } else hostCl.textContent = '—';
 
     const hostHM = this.els['hist-kl']; hostHM.innerHTML = '';
     const klData = dist.kl;
