@@ -2663,6 +2663,7 @@ lockControls(duration, outcome) {
   }
 
   toggleAuto() {
+    if (!this.isSimMode()) return;
     const btn = document.getElementById('auto');
     if (this.isAuto) {
       if (this.autoTimerId) { this.bgTimer.clear(this.autoTimerId); this.autoTimerId = null; }
