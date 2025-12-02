@@ -1220,6 +1220,45 @@ class SisyphusMath {
     };
     return { min: sorted[0], q25: q(0.25), med: q(0.50), q75: q(0.75), max: sorted[sorted.length - 1] };
   }
+	static getQuantilesFromHistogram(hist) {
+  if (!hist || !hist.freq) return null;
+
+  // Convert freq object → sorted [{value, count}, ...]
+  const entries = Object.entries(hist.freq)
+    .map(([k, v]) => ({ value: parseFloat(k), count: v | 0 }))
+    .filter(e => !Number.isNaN(e.value) && e.count > 0)
+    .sort((a, b) => a.value - b.value);
+
+  if (!entries.length) return null;
+
+  let total = hist.total || 0;
+  if (!total) {
+    total = entries.reduce((sum, e) => sum + e.count, 0);
+    if (!total) return null;
+  }
+
+  const min = entries[0].value;
+  const max = entries[entries.length - 1].value;
+
+  const valueAt = (p) => {
+    const target = p * total;
+    let cum = 0;
+    for (const e of entries) {
+      cum += e.count;
+      if (cum >= target) return e.value;
+    }
+    return max;
+  };
+
+  return {
+    min,
+    q25: valueAt(0.25),
+    med: valueAt(0.5),
+    q75: valueAt(0.75),
+    max
+  };
+}
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1235,26 +1274,40 @@ class SisyphusModel {
     this.reset();
   }
 
-  reset() {
-    this.state = { k:1, l:0, step:0, topHit:false, cycleSteps:0, isSimulation:false };
-    this.stats = { wins:0, neus:0, loss:0, maxK:1, longestCycle:0 };
-    this.historyK = [];
-    this.cycleId = 1;
-    this.currentCycle = this._newCycle();
-    this.cycleSummaries = []; 
-    this.allCycles = []; 
-    this.startTime = Date.now();
-    const M = Math.max(1, this.params.M);
-    const L = Math.max(0, this.params.L);
-    this.distributions = { 
-      k: Array(M+1).fill(0), l: Array(L+1).fill(0), 
-      kl: Array.from({length: M+1}, () => Array(L+1).fill(0)),
-      cycles: [],
-      weatherOnPress: { calm: 0, windy: 0, storm: 0 },
-      dilationOnPress: []
-    };
-    this.lastRoll = null; 
-  }
+reset() {
+  this.state = { k:1, l:0, step:0, topHit:false, cycleSteps:0, isSimulation:false };
+  this.stats = { wins:0, neus:0, loss:0, maxK:1, longestCycle:0 };
+  this.historyK = [];
+  this.cycleId = 1;
+  this.currentCycle = this._newCycle();
+  this.cycleSummaries = []; 
+
+  // Attempt durations as histogram: length -> count
+  this.allCycles = {
+    freq: {},   // { length: count }
+    total: 0    // total number of completed cycles
+  };
+
+  this.startTime = Date.now();
+  const M = Math.max(1, this.params.M);
+  const L = Math.max(0, this.params.L);
+  this.distributions = { 
+    k: Array(M+1).fill(0), 
+    l: Array(L+1).fill(0), 
+    kl: Array.from({length: M+1}, () => Array(L+1).fill(0)),
+    cycles: [], // still keep the last ~40 raw lengths for the sparkline / hist UI
+    weatherOnPress: { calm: 0, windy: 0, storm: 0 },
+
+    // Time dilation on press as histogram, bucketed to nearest 0.01% (0.0001 in factor)
+    // freq keys are strings like "0.9999", "1.0000", "1.0001"
+    dilationOnPress: {
+      freq: {},
+      total: 0
+    }
+  };
+  this.lastRoll = null; 
+}
+
 
   _newCycle() { return { id: this.cycleId, length:0, wins:0, neus:0, maxK:this.state.k, path:'' }; }
 
@@ -1304,33 +1357,56 @@ class SisyphusModel {
   }
 
   recordWeatherOnPress(condition, dilation) {
-    const d = this.distributions;
-    if (d.weatherOnPress[condition] !== undefined) {
-      d.weatherOnPress[condition]++;
-    }
-    d.dilationOnPress.push(dilation);
+  const d = this.distributions;
+
+  // Count condition
+  if (d.weatherOnPress[condition] !== undefined) {
+    d.weatherOnPress[condition]++;
   }
 
-  _updateCycle(outcome, k1) {
-    const sym = { win:'+', neu:'.', loss:'X', top:'★' }[outcome];
-    if (sym) {
-      this.currentCycle.length++;
-      if (outcome === 'win') this.currentCycle.wins++;
-      if (outcome === 'neu') this.currentCycle.neus++;
-      this.currentCycle.maxK = Math.max(this.currentCycle.maxK, k1);
-      this.currentCycle.path += sym;
-    }
-    if (outcome === 'loss' || outcome === 'top') {
-      this.allCycles.push(this.currentCycle.length);
-      this.distributions.cycles.push(this.currentCycle.length);
-      if (this.distributions.cycles.length > 40) this.distributions.cycles.shift();
-      const summary = { ...this.currentCycle, outcome };
-      this.cycleSummaries.unshift(summary);
-      if (this.cycleSummaries.length > 100) this.cycleSummaries.pop();
-      this.cycleId++;
-      this.currentCycle = this._newCycle();
-    }
+  // Bucket dilation to nearest 0.01% ≈ 0.0001 in multiplicative factor
+  // Example: 1.000037 → 1.0000, 1.00006 → 1.0001, etc.
+  const bucketVal = Math.round(dilation * 10000) / 10000;
+  const key = bucketVal.toFixed(4); // store as string key
+
+  if (!d.dilationOnPress.freq[key]) d.dilationOnPress.freq[key] = 0;
+  d.dilationOnPress.freq[key]++;
+  d.dilationOnPress.total++;
+}
+
+
+_updateCycle(outcome, k1) {
+  const sym = { win:'+', neu:'.', loss:'X', top:'★' }[outcome];
+  if (sym) {
+    this.currentCycle.length++;
+    if (outcome === 'win') this.currentCycle.wins++;
+    if (outcome === 'neu') this.currentCycle.neus++;
+    this.currentCycle.maxK = Math.max(this.currentCycle.maxK, k1);
+    this.currentCycle.path += sym;
   }
+
+  if (outcome === 'loss' || outcome === 'top') {
+    const len = this.currentCycle.length;
+
+    // Update global attempt-duration histogram
+    if (!this.allCycles.freq[len]) this.allCycles.freq[len] = 0;
+    this.allCycles.freq[len]++;
+    this.allCycles.total++;
+
+    // Keep last ~40 raw lengths for the per-run cycles distribution UI
+    this.distributions.cycles.push(len);
+    if (this.distributions.cycles.length > 40) this.distributions.cycles.shift();
+
+    // Store summary
+    const summary = { ...this.currentCycle, outcome };
+    this.cycleSummaries.unshift(summary);
+    if (this.cycleSummaries.length > 100) this.cycleSummaries.pop();
+
+    this.cycleId++;
+    this.currentCycle = this._newCycle();
+  }
+}
+
 
   setState(k, l) {
     this.state.k = Math.max(1, Math.min(this.params.M, k));
@@ -1607,34 +1683,38 @@ visualizeRoll(rng, duration, outcome) {
     box.innerHTML = ''; box.appendChild(fragment);
   }
 
-  _renderGlobalStats() {
-    const ac = this.model.allCycles;
-    this.els['global-n'].textContent = ac.length;
-    const stats = SisyphusMath.getQuantiles(ac);
-    if (stats) {
-      this.els['gs-min'].textContent = stats.min;
-      this.els['gs-25'].textContent = stats.q25.toFixed(1).replace('.0','');
-      this.els['gs-50'].textContent = stats.med.toFixed(1).replace('.0','');
-      this.els['gs-75'].textContent = stats.q75.toFixed(1).replace('.0','');
-      this.els['gs-max'].textContent = stats.max;
-    } else {
-      ['gs-min','gs-25','gs-50','gs-75','gs-max'].forEach(id => this.els[id].textContent = '—');
-    }
-    
-    // Dilation stats
-    const dop = this.model.distributions.dilationOnPress;
-    this.els['dilation-n'].textContent = dop.length;
-    const dstats = SisyphusMath.getQuantiles(dop);
-    if (dstats) {
-      this.els['ds-min'].textContent = dstats.min.toFixed(2) + 'x';
-      this.els['ds-25'].textContent = dstats.q25.toFixed(2) + 'x';
-      this.els['ds-50'].textContent = dstats.med.toFixed(2) + 'x';
-      this.els['ds-75'].textContent = dstats.q75.toFixed(2) + 'x';
-      this.els['ds-max'].textContent = dstats.max.toFixed(2) + 'x';
-    } else {
-      ['ds-min','ds-25','ds-50','ds-75','ds-max'].forEach(id => this.els[id].textContent = '—');
-    }
+_renderGlobalStats() {
+  // Attempt durations (global) – histogram of cycle lengths
+  const ac = this.model.allCycles;
+  const attemptStats = SisyphusMath.getQuantilesFromHistogram(ac);
+  this.els['global-n'].textContent = ac && typeof ac.total === 'number' ? ac.total : 0;
+
+  if (attemptStats) {
+    this.els['gs-min'].textContent = attemptStats.min;
+    this.els['gs-25'].textContent = attemptStats.q25;
+    this.els['gs-50'].textContent = attemptStats.med;
+    this.els['gs-75'].textContent = attemptStats.q75;
+    this.els['gs-max'].textContent = attemptStats.max;
+  } else {
+    ['gs-min','gs-25','gs-50','gs-75','gs-max'].forEach(id => this.els[id].textContent = '—');
   }
+
+  // Time dilation on press – histogram of dilation factors (bucketed to 0.0001)
+  const dop = this.model.distributions.dilationOnPress;
+  const dilationStats = SisyphusMath.getQuantilesFromHistogram(dop);
+  this.els['dilation-n'].textContent = dop && typeof dop.total === 'number' ? dop.total : 0;
+
+  if (dilationStats) {
+    this.els['ds-min'].textContent = dilationStats.min.toFixed(2) + 'x';
+    this.els['ds-25'].textContent = dilationStats.q25.toFixed(2) + 'x';
+    this.els['ds-50'].textContent = dilationStats.med.toFixed(2) + 'x';
+    this.els['ds-75'].textContent = dilationStats.q75.toFixed(2) + 'x';
+    this.els['ds-max'].textContent = dilationStats.max.toFixed(2) + 'x';
+  } else {
+    ['ds-min','ds-25','ds-50','ds-75','ds-max'].forEach(id => this.els[id].textContent = '—');
+  }
+}
+
 
   _renderDistributions() {
     const dist = this.model.distributions;
@@ -2653,32 +2733,77 @@ lockControls(duration, outcome) {
     };
   }
 
-    deserialize(data) {
-    Object.assign(this.model.params, data.params); Object.assign(this.model.state, data.state);
-    Object.assign(this.model.stats, data.stats);
-    // Backward compatibility: add isSimulation if missing
-    if (this.model.state.isSimulation === undefined) {
-      this.model.state.isSimulation = false;
-    }
-    if(data.historyK) this.model.historyK = data.historyK;
-    if(data.cycleSummaries) this.model.cycleSummaries = data.cycleSummaries;
-    if(data.distributions) {
-      this.model.distributions = data.distributions;
-      // Backward compatibility: add weatherOnPress and dilationOnPress if missing
-      if (!this.model.distributions.weatherOnPress) {
-        this.model.distributions.weatherOnPress = { calm: 0, windy: 0, storm: 0 };
-      }
-      if (!this.model.distributions.dilationOnPress) {
-        this.model.distributions.dilationOnPress = [];
-      }
-    }
-    if(data.allCycles) this.model.allCycles = data.allCycles;
-    if(data.lastRoll) this.model.lastRoll = data.lastRoll;
-    if(data.cycleId) this.model.cycleId = data.cycleId;
-    if(data.currentCycle) this.model.currentCycle = data.currentCycle;
-    if(data.startTime) this.model.startTime = data.startTime;
-    else this.model.startTime = Date.now();
+deserialize(data) {
+  Object.assign(this.model.params, data.params);
+  Object.assign(this.model.state, data.state);
+  Object.assign(this.model.stats, data.stats);
+
+  // Backward compatibility: add isSimulation if missing
+  if (this.model.state.isSimulation === undefined) {
+    this.model.state.isSimulation = false;
   }
+
+  if (data.historyK) this.model.historyK = data.historyK;
+  if (data.cycleSummaries) this.model.cycleSummaries = data.cycleSummaries;
+
+  if (data.distributions) {
+    this.model.distributions = data.distributions;
+
+    // Ensure weatherOnPress exists
+    if (!this.model.distributions.weatherOnPress) {
+      this.model.distributions.weatherOnPress = { calm: 0, windy: 0, storm: 0 };
+    }
+
+    // Normalize dilationOnPress to histogram form
+    const d = this.model.distributions;
+    if (!d.dilationOnPress) {
+      d.dilationOnPress = { freq: {}, total: 0 };
+    } else if (Array.isArray(d.dilationOnPress)) {
+      // Old format: array of raw dilation values
+      const hist = { freq: {}, total: 0 };
+      d.dilationOnPress.forEach(val => {
+        const bucketVal = Math.round(val * 10000) / 10000;
+        const key = bucketVal.toFixed(4);
+        if (!hist.freq[key]) hist.freq[key] = 0;
+        hist.freq[key]++;
+        hist.total++;
+      });
+      d.dilationOnPress = hist;
+    } else if (!d.dilationOnPress.freq) {
+      // If somehow an object but missing freq/total, normalize it
+      d.dilationOnPress = { freq: {}, total: 0 };
+    }
+  }
+
+  // Normalize allCycles to histogram form
+  if (data.allCycles) {
+    if (Array.isArray(data.allCycles)) {
+      const hist = { freq: {}, total: 0 };
+      data.allCycles.forEach(len => {
+        if (!hist.freq[len]) hist.freq[len] = 0;
+        hist.freq[len]++;
+        hist.total++;
+      });
+      this.model.allCycles = hist;
+    } else if (data.allCycles.freq) {
+      this.model.allCycles = data.allCycles;
+      if (!this.model.allCycles.total) {
+        this.model.allCycles.total = Object.values(this.model.allCycles.freq)
+          .reduce((sum, c) => sum + c, 0);
+      }
+    } else {
+      // Fallback: reset
+      this.model.allCycles = { freq: {}, total: 0 };
+    }
+  }
+
+  if (data.lastRoll) this.model.lastRoll = data.lastRoll;
+  if (data.cycleId) this.model.cycleId = data.cycleId;
+  if (data.currentCycle) this.model.currentCycle = data.currentCycle;
+  if (data.startTime) this.model.startTime = data.startTime;
+  else this.model.startTime = Date.now();
+}
+
 
  save() {
     localStorage.setItem('sisyphus_v9_delay', JSON.stringify(this.serialize()));
