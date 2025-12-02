@@ -1076,10 +1076,22 @@ class ProbabilityCache {
 }
 
 class AriaAnnouncer {
-  constructor() { this.element = document.getElementById('aria-announcer'); }
+  constructor() { 
+      this.element = document.getElementById('aria-announcer'); 
+      this.timeout = null; // Track the timer
+  }
+  
   announce(msg) {
+    // Clear pending clear-text timer
+    if (this.timeout) clearTimeout(this.timeout);
+    
     this.element.textContent = msg;
-    setTimeout(() => { this.element.textContent = ''; }, 1000);
+    
+    // Set new timer
+    this.timeout = setTimeout(() => { 
+        this.element.textContent = ''; 
+        this.timeout = null;
+    }, 1000);
   }
 }
 
@@ -1448,6 +1460,20 @@ class SisyphusUI {
     ].forEach(id => this.els[id] = document.getElementById(id));
   }
   
+resetMarker() {
+    const m = this.els['rng-marker'];
+    if (!m) return;
+    
+    // Strip all animation and status classes
+    m.classList.remove('visible', 'tension', 'mark-win', 'mark-neu', 'mark-loss', 'mark-top');
+    
+    // Reset position instantly without transition
+    m.style.transition = 'none';
+    m.style.left = '0%';
+    
+    // Force reflow to ensure the visual update happens immediately
+    void m.offsetWidth;
+  }
   batchUpdate(elementId, property, value) {
     if (!this.pendingUpdates.has(elementId)) this.pendingUpdates.set(elementId, {});
     this.pendingUpdates.get(elementId)[property] = value;
@@ -1481,20 +1507,18 @@ class SisyphusUI {
     return `${d}d ${h%24}h`;
   }
 
-// Modified signature: adds updateProbs flag (default true)
+
   render(grids, full = true, skipBars = false, updateProbs = true) {
     const m = this.model, s = m.state, st = m.stats;
     const lr = m.lastRoll || { outcome:null, k0:1, l0:0, k1:s.k, l1:s.l };
     const pct = x => (100 * Math.max(0, Math.min(1, x))).toFixed(1) + '%';
+        const probs = SisyphusMath.computeProbs(lr.k1, lr.l1, m.params);
     
-    // We compute probs based on the NEW state (k1/l1)
-    const probs = SisyphusMath.computeProbs(lr.k1, lr.l1, m.params);
-    
-    // 1. ALWAYS update the recent outcome text (Ascent/Ruin/Steady) immediately
+
     this.batchUpdate('recent-outcome', 'textContent', lr.outcome ? (lr.outcome === 'neu' ? 'STEADY' : lr.outcome === 'loss' ? 'RUIN' : lr.outcome === 'top' ? 'SUMMIT' : 'ASCENT') : '—');
     this.batchUpdate('recent-card', 'className', 'card recent ' + (lr.outcome === 'top' ? 'win' : lr.outcome || ''));
 
-    // 2. CONDITIONALLY update the probability bars (Future predictions)
+
     if (updateProbs) {
         this.batchUpdate('rbar-win', 'style.width', pct(probs.p_win));
         this.batchUpdate('rbar-neu', 'style.width', pct(probs.p_neu));
@@ -1539,7 +1563,6 @@ class SisyphusUI {
     this.batchUpdate('bar-neu', 'style.width', tot ? (100*st.neus/tot)+'%' : '0%');
     this.batchUpdate('bar-loss', 'style.width', tot ? (100*st.loss/tot)+'%' : '0%');
     
-    // Weather on press stats
     const wop = m.distributions.weatherOnPress;
     const wtot = wop.calm + wop.windy + wop.storm;
     this.batchUpdate('c-calm', 'textContent', wop.calm);
@@ -1604,6 +1627,8 @@ class SisyphusUI {
         kFill.classList.remove('active-motion', 'reverse-motion');
         lFill.classList.remove('active-motion', 'reverse-motion');
     }, duration);
+
+
   }
   
 visualizeRoll(rng, duration, outcome) {
@@ -2374,7 +2399,25 @@ class GameController {
     this.announcer.announce(`Saved to Slot ${id}`);
   }
 
-  loadFromSlot(id) {
+loadFromSlot(id) {
+    // 1. Invalidate any pending rolls so their .then() blocks don't fire
+    this.currentRollId = (this.currentRollId || 0) + 1; 
+    
+    // 2. Clear any active "Waiting..." timers from lockControls
+    if (this.lockTimer) {
+        this.bgTimer.clear(this.lockTimer);
+        this.lockTimer = null;
+    }
+    this.controlsLocked = false;
+
+    // 3. Force Button Reset (in case we reset mid-roll)
+    const btn = document.getElementById('roll1_big');
+    const mainSpan = document.getElementById('btn-roll-main');
+    if (btn) {
+        btn.disabled = false;
+        btn.className = 'btn big';
+    }
+    if (mainSpan) mainSpan.textContent = "ROLL";   
     const raw = localStorage.getItem(`sisyphus_slot_${id}`);
     if (raw) {
       this.deserialize(JSON.parse(raw));
@@ -2383,7 +2426,9 @@ class GameController {
       this.recalcExpectations();
       this.ui.render(this.grids, true);
       this.updateSimModeUI();
+      
       this.chaos.reset(); 
+      this.ui.resetMarker(); // <--- ADD THIS LINE
       
       const lblM = document.getElementById('lbl-M-goal');
       if(lblM) lblM.textContent = this.model.params.M;
@@ -2454,13 +2499,16 @@ class GameController {
     reader.readAsText(file);
   }
 
-  postLoadUpdate() {
+postLoadUpdate() {
       this.syncUIParams();
       this.recalcExpectations();
       this.ui.render(this.grids, true);
       this.updateSlotUI();
       this.updateSimModeUI();
+      
       this.chaos.reset();
+      this.ui.resetMarker(); // <--- ADD THIS LINE
+      
       const lblM = document.getElementById('lbl-M-goal');
       if(lblM) lblM.textContent = this.model.params.M;
   }
@@ -2512,20 +2560,22 @@ class GameController {
   stepManually() {
     if (this.controlsLocked) return;
     if(this.isAuto) this.toggleAuto();
+
+    this.currentRollId = (this.currentRollId || 0) + 1;
+         const thisRollId = this.currentRollId;
     
     const btn = document.getElementById('roll1_big');
     const mainSpan = document.getElementById('btn-roll-main'); 
     
-    // Capture weather condition and dilation at button press
     const weatherCondition = this.chaos.getCondition();
     const dilationValue = this.chaos.getModifier();
     this.model.recordWeatherOnPress(weatherCondition, dilationValue);
     
-    // 1. Disable and set "PUSHING THE BOULDER..." immediately
+
     btn.disabled = true;
     if(mainSpan) mainSpan.textContent = "PUSHING THE BOULDER...";
 
-    // 2. Freeze the atmosphere text
+
     this.chaos.setFrozen(true);
 
     const prevK = this.model.state.k;
@@ -2534,16 +2584,15 @@ class GameController {
     const res = this.model.step();
     const rng = this.model.lastRoll.rng;
     
-// Passing 'res' so the UI knows which color to turn at the end
-this.ui.visualizeRoll(rng, 3000, res).then(() => {
+
+    this.ui.visualizeRoll(rng, 3000, res).then(() => {
+	if (this.currentRollId !== thisRollId) return;
         this.handleStepResult(res); 
         this.save();
     
         const delay = this.getDynamicDelay();
     
         if (res !== 'top' && delay > 50) {
-          // CHANGE HERE: Added 'false' as 4th argument. 
-          // true (full update), true (skip bar animation), false (DO NOT update probabilities yet)
           this.ui.render(this.grids, true, true, false); 
           
           this.ui.animateChange(prevK, prevL, this.model.state.k, this.model.state.l, delay, this.model.params);
@@ -2566,13 +2615,13 @@ lockControls(duration, outcome) {
     this.controlsLocked = true;
     const btn = document.getElementById('roll1_big');
     const mainSpan = document.getElementById('btn-roll-main');
+    
+    // 1. Update UI to Locked State
     btn.disabled = true;
     btn.className = `btn big outcome-${outcome}`; 
-    
-    // Ensure chaos is frozen during delay
     this.chaos.setFrozen(true);
     
-    // Determine the verb based on context (Edge cases for UI)
+    // 2. Determine verb (Waiting, Ascending, etc.)
     let verb = 'WAITING';
     const lr = this.model.lastRoll;
     const L = this.model.params.L;
@@ -2580,37 +2629,34 @@ lockControls(duration, outcome) {
     if (outcome === 'win') {
         verb = 'ASCENDING';
     } else if (outcome === 'loss') {
-        // Edge Case: Ruin when already at the absolute bottom
-        if (lr.k0 === 1 && lr.l0 === 0) {
-            verb = 'THE STONE WAITS';
-        } else {
-            verb = 'THE STONE FALLS';
-        }
+        if (lr.k0 === 1 && lr.l0 === 0) verb = 'THE STONE WAITS';
+        else verb = 'THE STONE FALLS';
     } else if (outcome === 'neu') {
-        // Edge Case: Steady when Poise is already maxed
-        if (lr.l0 >= L) {
-            verb = 'KEEPING FOOTING';
-        } else {
-            verb = 'BUILDING POISE';
-        }
+        if (lr.l0 >= L) verb = 'KEEPING FOOTING';
+        else verb = 'BUILDING POISE';
     }
 
     const endTime = Date.now() + duration;
     
-    const timerId = this.bgTimer.setInterval(() => {
+    // 3. START THE TIMER (The Important Change)
+    // We save the reference to 'this.lockTimer' so reset() can access it.
+    this.lockTimer = this.bgTimer.setInterval(() => {
       const remaining = endTime - Date.now();
+      
       if (remaining <= 0) {
-        this.bgTimer.clear(timerId);
+        // TIME IS UP: Clean up manually
+        this.bgTimer.clear(this.lockTimer);
+        this.lockTimer = null; // Clear the reference
+        
         this.controlsLocked = false;
         btn.disabled = false;
         btn.className = 'btn big';
         mainSpan.textContent = "ROLL";
         
-        // Unfreeze atmosphere when control returns
         this.chaos.setFrozen(false);
-        
         this.ui.render(this.grids); 
       } else {
+        // TICK: Update text
         mainSpan.textContent = `${verb} · ${(Math.max(0, remaining)/1000).toFixed(1)}s`;
       }
     }, 50);
@@ -2709,8 +2755,27 @@ lockControls(duration, outcome) {
   }
 
   reset() {
+ // 1. Invalidate any pending rolls so their .then() blocks don't fire
+    this.currentRollId = (this.currentRollId || 0) + 1; 
+    
+    // 2. Clear any active "Waiting..." timers from lockControls
+    if (this.lockTimer) {
+        this.bgTimer.clear(this.lockTimer);
+        this.lockTimer = null;
+    }
+    this.controlsLocked = false;
+
+    // 3. Force Button Reset (in case we reset mid-roll)
+    const btn = document.getElementById('roll1_big');
+    const mainSpan = document.getElementById('btn-roll-main');
+    if (btn) {
+        btn.disabled = false;
+        btn.className = 'btn big';
+    }
+    if (mainSpan) mainSpan.textContent = "ROLL";   
     this.model.reset();
-    this.chaos.reset(); 
+    this.chaos.reset();
+    this.ui.resetMarker(); 
     this.recalcExpectations();
     this.ui.render(this.grids, true);
     this.updateSimModeUI();
