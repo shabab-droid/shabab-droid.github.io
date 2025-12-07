@@ -561,7 +561,7 @@
           <div class="details-content tiny" style="line-height:1.4">
             An <strong>Attempt</strong> is a complete journey from Height 1 until <strong style="color:var(--ruin)">Ruin</strong> or <strong style="color:var(--summit)">Summit</strong>.
             <br><br>
-            <span class="mono" style="opacity:0.9; letter-spacing:1px">(X) Ruin&nbsp;&nbsp;(.) Steady&nbsp;&nbsp;(+) Ascent&nbsp;&nbsp;(★) Summit</span>
+            <span class="mono" style="opacity:0.9; letter-spacing:1px">(▼) Ruin&nbsp;&nbsp;(◆) Steady&nbsp;&nbsp;(▲) Ascent&nbsp;&nbsp;(★) Summit</span>
             <br><br>
             The path shows each roll's outcome in sequence. Longer attempts indicate sustained progress before fate intervenes.
           </div>
@@ -1388,7 +1388,7 @@ reset() {
 
 
 _updateCycle(outcome, k1) {
-  const sym = { win:'+', neu:'.', loss:'X', top:'★' }[outcome];
+  const sym = { win:'▲', neu:'◆', loss:'▼', top:'★' }[outcome];
   if (sym) {
     this.currentCycle.length++;
     if (outcome === 'win') this.currentCycle.wins++;
